@@ -4,6 +4,14 @@ myants includes a Kotlin reimplementation of simulation behaviour and UI copy
 from AntSim_V2. The original project is MIT-licensed. Its copyright notice and
 license text follow.
 
+## Geometry and icons
+
+The 3D world does not ship glTF files. Soil, grass, rocks, flowers, ants, the clock stone, rain, and the nest cutaway are procedural meshes in `com.neojou.myants.render3d`. The app runs with an empty `assets/` model folder.
+
+Toolbar glyphs stay ASCII (`||`, `>|`, `?`, `S`, `P`, `E`). Material Symbols SVGs were not vendored in this tree. If a later build adds them, they are Apache-2.0 from Google Material Symbols, and a missing file must fall back to these ASCII labels.
+
+No kool-demo shader source was copied.
+
 ## AntSim_V2
 
 - Project: https://github.com/nilsgollub/AntSim_V2

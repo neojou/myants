@@ -1,5 +1,7 @@
 package com.neojou.myants
 
+import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.render3d.bloomAllowed
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.QualityLevel
 import com.neojou.myants.sim.SimConfig
@@ -45,8 +47,11 @@ private val SLIDERS = listOf(
 )
 
 private val ANT_COLORS = listOf("#c4703a", "#222222", "#d9bf52", "#88c0a0", "#6fa8dc")
+private val ACCENT = Color("#6750A4")
+private val ACCENT_HOVER = Color("#EADDFF")
 
 fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
+    session.uiScene = this
     val hud = addPanelSurface(
         backgroundColor = { Color(0f, 0f, 0f, 0.45f) },
         width = FitContent,
@@ -63,8 +68,22 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
         Text(session.hudFood.use()) { }
         Text(session.hudQueen.use()) { }
         Text("v${AppVersion.NAME}") { modifier.font(sizes.smallText) }
+        if (session.inspect.value.isNotEmpty()) {
+            Text(session.inspect.use()) { modifier.margin(top = sizes.smallGap) }
+        }
+    }
+    addPanelSurface(
+        backgroundColor = { Color(0f, 0f, 0f, 0.45f) },
+        width = FitContent,
+        height = FitContent,
+    ) {
+        session.revision.use()
+        modifier
+            .align(AlignmentX.End, AlignmentY.Top)
+            .margin(sizes.gap)
+            .padding(sizes.smallGap)
+            .onPointer { it.pointer.consume() }
         Row {
-            modifier.margin(top = sizes.smallGap)
             Text("Speed") { modifier.alignY(AlignmentY.Center).margin(end = sizes.smallGap) }
             Button("-") { modifier.onClick { session.stepSpeed(-1) } }
             Text(session.speedLabel()) { modifier.alignY(AlignmentY.Center).margin(horizontal = sizes.smallGap) }
@@ -108,15 +127,12 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
             Button("Params") { modifier.margin(start = sizes.smallGap).onClick { session.openPanel("params") } }
             Button("Stats") { modifier.margin(start = sizes.smallGap).onClick { session.openPanel("stats") } }
             Button("Analyse") { modifier.margin(start = sizes.smallGap).onClick { session.refreshAnalyse() } }
-        }
-        Button("About") {
-            modifier.margin(top = sizes.smallGap).onClick {
-                session.showAbout = true
-                session.bump()
+            Button("About") {
+                modifier.margin(start = sizes.smallGap).onClick {
+                    session.showAbout = true
+                    session.bump()
+                }
             }
-        }
-        if (session.inspect.value.isNotEmpty()) {
-            Text(session.inspect.use()) { modifier.margin(top = sizes.smallGap) }
         }
     }
     val grafikPanel = sidePanel(session, "Grafik") { grafik(session) }
@@ -204,6 +220,14 @@ private fun UiScope.toolButton(session: AppSession, tool: SimTool, label: String
             session.notifyInput()
             session.bump()
         }
+        if (session.tool == tool) {
+            modifier.colors(
+                buttonColor = ACCENT,
+                buttonHoverColor = ACCENT_HOVER,
+                textColor = Color.WHITE,
+                textHoverColor = ACCENT,
+            )
+        }
     }
 }
 
@@ -216,12 +240,20 @@ private fun UiScope.grafik(session: AppSession) {
             .selectedIndex(PerformanceManager.level.ordinal)
             .onItemSelected { session.setQuality(QualityLevel.entries[it]) }
     }
+    Text("Renderer") { modifier.margin(top = sizes.smallGap) }
+    ComboBox {
+        modifier
+            .width(Grow.Std)
+            .items(listOf("3D", "Classic 2D"))
+            .selectedIndex(if (session.renderer == RenderMode.D3) 0 else 1)
+            .onItemSelected { session.chooseRenderer(if (it == 0) RenderMode.D3 else RenderMode.CLASSIC) }
+    }
     Row {
         modifier.margin(top = sizes.smallGap)
         Checkbox(session.showPheromones) {
             modifier.onToggle { session.setPheromones(it) }
         }
-        Text("Pheromone") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Text("Pheromon-Spuren") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
     }
     Slider(session.pheromoneStrength.toFloat(), 0f, 1.5f) {
         modifier.width(Grow.Std).onChange { session.updatePheromoneStrength(it.toDouble()) }
@@ -231,13 +263,16 @@ private fun UiScope.grafik(session: AppSession) {
         for (hex in ANT_COLORS) {
             Button(hex) {
                 modifier.margin(end = sizes.smallGap).onClick { session.setAntColor(hex) }
+                if (session.antColor == Color(hex)) {
+                    modifier.colors(buttonColor = ACCENT, buttonHoverColor = ACCENT_HOVER, textColor = Color.WHITE)
+                }
             }
         }
     }
     Row {
         modifier.margin(top = sizes.smallGap)
         Checkbox(session.dayNight) { modifier.onToggle { session.updateDayNight(it) } }
-        Text("Tag/Nacht") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Text("Tag/Nacht-Tönung") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
     }
     Slider(session.dayNightStrength.toFloat(), 0f, 1f) {
         modifier.width(Grow.Std).onChange { session.updateDayNightStrength(it.toDouble()) }
@@ -245,16 +280,40 @@ private fun UiScope.grafik(session: AppSession) {
     Row {
         modifier.margin(top = sizes.smallGap)
         Checkbox(session.cinema) { modifier.onToggle { session.updateCinema(it) } }
-        Text("Cinema") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Text("Kino-Kamera") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+    }
+    val bloomOk = bloomAllowed(session)
+    Row {
+        modifier.margin(top = sizes.smallGap)
+        Checkbox(session.bloomUser && bloomOk) {
+            modifier.onToggle { if (bloomOk) session.chooseBloom(it) }
+        }
+        Text(if (bloomOk) "Bloom / Glühen" else "Bloom / Glühen (off)") {
+            modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap)
+        }
     }
     Row {
         modifier.margin(top = sizes.smallGap)
-        Checkbox(true) { modifier.onToggle { session.bump() } }
-        Text("WebGL (fixed)") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Checkbox(session.ssaoUser) { modifier.onToggle { session.chooseSsao(it) } }
+        Text("SSAO") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
     }
     Row {
-        Checkbox(true) { modifier.onToggle { session.bump() } }
-        Text("Bloom (fixed)") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        modifier.margin(top = sizes.smallGap)
+        Checkbox(session.shadowsUser) { modifier.onToggle { session.chooseShadows(it) } }
+        Text("Schatten") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+    }
+    Row {
+        modifier.margin(top = sizes.smallGap)
+        Checkbox(session.weatherUser) { modifier.onToggle { session.chooseWeather(it) } }
+        Text("Wetter-Effekte") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+    }
+    Text("Gras-Dichte ${session.grassDensity}") { modifier.margin(top = sizes.smallGap) }
+    Slider(session.grassDensity, 0f, 1.5f) {
+        modifier.width(Grow.Std).onChange { session.chooseGrassDensity(it) }
+    }
+    Text("Kamera-Neigung ${session.cameraPitchDeg.toInt()}") { modifier.margin(top = sizes.smallGap) }
+    Slider(session.cameraPitchDeg, -90f, -60f) {
+        modifier.width(Grow.Std).onChange { session.choosePitch(it) }
     }
 }
 

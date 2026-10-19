@@ -1,19 +1,37 @@
 package com.neojou.myants
 
+import com.neojou.myants.render3d.GpuBackend
+import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.render3d.parseBackend
+import com.neojou.myants.render3d.parseRenderMode
 import com.neojou.myants.sim.QualityLevel
 
 data class LaunchConfig(
     val seed: Int? = null,
     val colonies: Int? = null,
     val quality: QualityLevel? = null,
+    val renderer: RenderMode? = null,
+    val backend: GpuBackend? = null,
+    val noBloom: Boolean = false,
+    val shot: String? = null,
+    val shotOut: String? = null,
 )
 
 fun parseLaunch(tokens: List<String>): LaunchConfig {
     var seed: Int? = null
     var colonies: Int? = null
     var quality: QualityLevel? = null
+    var renderer: RenderMode? = null
+    var backend: GpuBackend? = null
+    var noBloom = false
+    var shot: String? = null
+    var shotOut: String? = null
     for (raw in tokens) {
         val body = raw.removePrefix("--").removePrefix("-")
+        if (body == "no-bloom" || body == "nobloom") {
+            noBloom = true
+            continue
+        }
         val eq = body.indexOf('=')
         if (eq <= 0) continue
         val key = body.substring(0, eq)
@@ -22,9 +40,13 @@ fun parseLaunch(tokens: List<String>): LaunchConfig {
             "seed" -> seed = value.toIntOrNull()
             "colonies" -> colonies = value.toIntOrNull()?.coerceIn(1, 2)
             "quality" -> quality = parseQuality(value)
+            "renderer" -> renderer = parseRenderMode(value)
+            "backend" -> backend = parseBackend(value)
+            "shot" -> shot = value
+            "shot-out" -> shotOut = value
         }
     }
-    return LaunchConfig(seed, colonies, quality)
+    return LaunchConfig(seed, colonies, quality, renderer, backend, noBloom, shot, shotOut)
 }
 
 fun parseQuality(raw: String): QualityLevel? = when (raw.uppercase().replace('-', '_')) {

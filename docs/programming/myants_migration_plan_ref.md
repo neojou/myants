@@ -1,5 +1,7 @@
 # myants：以 Kotlin + kool 重製 AntSim_V2 的移植計畫
 
+目前的程式入口是 `myantsApp()`（`MyantsApp.kt`）。下面記的是 0.1.0 移植當下，不是現在的畫面。
+
 ## 0. 現況（已查證，2026-10-19，commit `b71f65d` "Version 0.1.0 - kool hello world"）
 - kool 0.19.0、Kotlin 2.3.0、Gradle 9.3.0、`jvmToolchain(25)`；module `koolApp`；targets `jvm("desktop")` + `js`。
 - 內容：`HelloCubeScene.kt`（旋轉方塊）、`AppUi.kt`（左上 About 按鈕 + About 面板：APP_NAME、Version、OK）、`AppVersion.kt`、`KoolStudyApp.kt`（`koolStudyApp()` 入口，名稱沿用 kool_study）、`MyLog`/`SystemSettings`/`MyTopMenuItem`、desktop `MacOsApplicationName.kt` + `AboutPanelCallback.java`、`configure.sh`（改名/版本）。

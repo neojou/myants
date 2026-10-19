@@ -19,21 +19,29 @@
 ## 刻意不同的地方
 
 - 模擬時脈固定 60 Hz，與繪製幀率分開，每幀最多補 64 個 tick。來源是每個繪製幀跑 `floor(simSpeed)` 次，小數部分再用 `Math.random()` 決定要不要多一步。這裡的 0.5× 是每兩個 60 Hz 步進跑一次，結果可重現。
-- 畫面是單一正交場景。左側 74% 是可平移縮放的世界，4px `#333` 分隔線，右側 26% 是固定的 colony 0 巢穴。kool 的 `ClearColorFill` 會清整張 framebuffer，而且這版沒有呼叫 `gl.scissor`，所以不用兩張會互相清掉的世界場景。UI 場景用預設 `ClearColorLoad`。
+- Classic 2D 仍是單一正交場景。左側 74% 是可平移縮放的世界，4px `#333` 分隔線，右側 26% 是固定的 colony 0 巢穴。3D 模式另開一個場景，用 `Scene.isVisible` 切換，不重啟行程。隱藏的場景不會被 collect，所以模擬 tick 只在當下可見的世界場景跑一次。
 - 世界以 letterbox 放進左窗。縮放 1–6，滾輪以游標為錨點。
 - 品質只改 `maxAnts` 與繪製成本（80 / 120 / 300 / 600 / 1200）。費洛蒙解析度留在 `SimConfig`，切品質不呼叫 `rebuildPheromoneGrids`。來源會重蓋格，因為品質會改 `resolutionScale`。
 - 費洛蒙寫回使用 `arr[i] = (arr[i].toDouble() * decay).toFloat()`，對齊 JavaScript `Float32Array` 的存回捨入。
 - 費洛蒙疊加是 `BLEND_ADDITIVE`（`ONE, ONE`），alpha 不會被採用。顏色先乘上 `min(1, 0.85 * strength)`。通道是 `R=√(protein+sugar+danger)`、`G=√sugar`、`B=√(home+danger)`，門檻 0.01。
 - kool 的 GL 載入器會用影像位元組的雜湊當貼圖 id。全零的緩衝區不論尺寸都是同一個 id，室外與巢穴會共用一張 GPU 貼圖，後者接著被釋放。動態貼圖改用每個圖層兩個固定 id 輪流上傳。
 - 世界的滑鼠處理放在 UI 場景之後的空場景。面板用 `onPointer` 吃掉自己範圍內的指標，避免按鈕點擊同時作用在世界上。
-- 日夜是左窗一張半透明黑四邊形（`BLEND_MULTIPLY_ALPHA`），不是真正的乘法混合。
+- Classic 2D 的日夜仍是左窗一張半透明黑四邊形（`BLEND_MULTIPLY_ALPHA`）。3D 世界改由方向光與天空亮度表現，不疊那張黑片。
 - 時鐘是系統牆鐘 `HH:MM` 的七段顯示，畫在世界座標，會跟著平移縮放。來源 `drawClockStone` 也用 `new Date()`。
-- 沒有 PNG 編碼器。截圖按鈕只寫 log：`PNG encoder is not available in this build`。
+- Desktop 截圖把畫面複製進一張持久的 `OffscreenPass2d`（`shot-grab`），再用 `Texture2d.download` 與 `ImageIO` 寫 PNG，檔名 `antsim_seed{seed}_t{age}.png`。`--shot-out=` 可改路徑。Pass 層級的 single-shot 會在同一個 `update` 裡被清掉。畫面複製貼圖沒有 `TRANSFER_SRC`，不能直接 `download`。讀回必須排在 `BackendScope`：`FrontendScope` 碰上 `asyncSceneUpdate` 時，`mapReadbacks` 會在對應完成前清掉佇列，`await` 永不返回。kool 會開 AWT headless，這台機器上 `ImageIO` 仍寫得出 PNG。HUD 文字是正的，寫檔不翻 Y。JS 仍只寫 log：`PNG encoder is not available in this build`。
+- `classloaderAssetPath` 留空。設成 `assets` 會讓內建 Fira 字型路徑變成 `assets/fonts/...`，桌面 UI 沒有字。選用的模型放在 `koolApp/assets/`。
 - 設定與調參覆寫共用一個儲存。Desktop 是 `~/.myants/antsim.ui.v1.txt`，JS 是 `localStorage` key `antsim.ui.v1`。覆寫行是 `ov:path=value`。來源把覆寫放在另一個 `antsim.overrides.v1`。`applyTunerAction` 只改記憶體中的 `SimConfig`；存檔由 `AppSession.save()` 負責。
 - 啟動參數 `--seed=`、`--colonies=`、`--quality=`（JS 用網址 query）覆蓋已存的族群數與品質。
 - 按鈕用 ASCII（`||`、`>|`、`?`、`S`、`P`、`E`）。Fira MSDF 沒有 emoji，德文變音符號有。WebGL 與 Bloom 核取方塊顯示但鎖定。滑桿沒有 step，量化做在 `onChange`。
 - HUD 的 Protein / Sugar 用 `floor`，與來源 `Math.floor` 相同。
-- `HelloCubeScene.kt` 與 `AppUi.kt` 已移除。About 在 `AntSimUi.kt`，含 `Based on AntSim_V2 by nilsgollub (MIT)`。
+- `HelloCubeScene.kt`、`AppUi.kt` 與 `KoolStudyApp.kt` 已移除。入口是 `myantsApp()`。About 在 `AntSimUi.kt`，含 `Based on AntSim_V2 by nilsgollub (MIT)`。
+- 3D 世界在 `com.neojou.myants.render3d`。模擬套件不呼叫渲染，渲染不呼叫 `Rng`。裝飾用的高度、散布、雨與電影鏡頭用 `kotlin.random.Random`。
+- 正常鏡頭是俯視正交，俯角預設 -70°（-90° 到 -60°），平移與滾輪縮放鎖在游標打到的地面點，不旋轉。`CameraMode.ANT_POV` 只留介面，導演拒絕切換。
+- Bloom 只在 `KoolSystem.features.computeShaders` 為真且後端類名含 Vk 或 WebGpu 時開啟。Desktop GL 即使回報 computeShaders 也不開。雨與選取環畫在 deferred output quad 之後。
+- 品質檔位的模擬上限沒變。`QualityPreset` 只改渲染。前 5 秒平均低於 40 fps 時只加 `renderTierBias`，不呼叫 `setQuality`。手動選品質會把 bias 歸零。陰影貼圖大小在第一個 3D 影圖建立時固定為 2048；Ultra 的 4096 與 zoom≥4 的 CSM 這版沒有依檔位重建。
+- 螞蟻步行是程序化腿，姿態桶用 `forageSeed`，沒有 glTF。沒有 `.glb` 也能跑完整畫面。
+- 3D 巢穴畫在 present 場景，用跟 Classic 2D 相同的螢幕正交相機（近裁剪面必須是負的，否則 z=0 的四邊形會被裁掉）。kool 0.19 的 `AttachmentConfig.singleColorDefaultDepth(format, clearColor)` 不使用傳入的清除色，一律清成黑；在 MoltenVK 上把 `OffscreenPass2d` 的顏色貼圖貼回畫面時，取樣結果也是黑，剖面幾何沒有出現在那張貼圖裡。因此不走離屏貼圖，直接在右側 26% 畫土塊、隧道節點與蟻后／幼體／巢內蟻。Unlit 顏色要設 `LinearToSrgb`，否則會以線性值寫進交換鏈，土色會暗成接近黑。`nest3dActive` 為假時才回到 2D 巢穴疊層。巢穴點擊只在 3D 巢穴有效時做 inspect。
+- 這台 Mac（Apple M4 Pro、MoltenVK api 1.2.296）已開過 Vulkan 視窗，BloomPass 有建立，`ImageIO` 有寫出 PNG。尚未量到的項目：Medium、雙群約 300 蟻是否 ≥ 60 fps，以及 Ultra 1200 蟻是否 ≥ 30 fps。截圖當下族群 34，HUD 約 43–48 fps，不能當成達標。GL 3.3 context 沒測。費洛蒙貼圖的上下方向，以及螞蟻朝向是否與移動方向一致，靜態圖看不出來。對照見 `docs/programming/3d_refs/shots/REVIEW.md`。
 
 ## 黃金對照
 

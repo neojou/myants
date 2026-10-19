@@ -1,5 +1,7 @@
 package com.neojou.myants
 
+import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.render3d.parseRenderMode
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
@@ -11,6 +13,8 @@ import com.neojou.myants.sim.QualityLevel
 import com.neojou.myants.sim.Rng
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
+import de.fabmax.kool.pipeline.Texture2d
+import de.fabmax.kool.scene.Scene
 import com.neojou.tools.LogLevel
 import com.neojou.tools.MyLog
 import de.fabmax.kool.modules.ui2.mutableStateOf
@@ -45,6 +49,31 @@ class AppSession(launch: LaunchConfig) {
     var dayNight: Boolean = true
     var dayNightStrength: Double = 0.5
     var cinema: Boolean = true
+    var renderer: RenderMode = RenderMode.D3
+    var cameraPitchDeg: Float = -70f
+    var bloomUser: Boolean = true
+    var ssaoUser: Boolean = true
+    var weatherUser: Boolean = true
+    var shadowsUser: Boolean = true
+    var grassDensity: Float = 1f
+    var renderTierBias: Int = 0
+    var userFollow: Boolean = false
+    var nest3dActive: Boolean = false
+    val noBloom: Boolean = launch.noBloom
+    val shot: String? = launch.shot
+    val shotOut: String? = launch.shotOut
+
+    var classicScene: Scene? = null
+    var worldScene: Scene? = null
+    var nestOverlay: Scene? = null
+    var nestPresent: Scene? = null
+    var uiScene: Scene? = null
+    var nestTexture: Texture2d? = null
+    var inspectedAnt: Ant? = null
+    var screenshotRequested: Boolean = false
+    var worldSerial: Int = 1
+    var fpsShownPublic: Int = 0
+    var gpuMs: Float = 0f
 
     var showGrafik: Boolean = false
     var showParams: Boolean = false
@@ -97,6 +126,13 @@ class AppSession(launch: LaunchConfig) {
         saved["dayNight"]?.toBooleanStrictOrNull()?.let { dayNight = it }
         saved["dayNightIntensity"]?.toDoubleOrNull()?.let { dayNightStrength = it }
         saved["cinematic"]?.toBooleanStrictOrNull()?.let { cinema = it }
+        saved["renderer"]?.let { parseRenderMode(it)?.let { mode -> renderer = mode } }
+        saved["cameraPitch"]?.toFloatOrNull()?.let { cameraPitchDeg = it.coerceIn(-90f, -60f) }
+        saved["bloom"]?.toBooleanStrictOrNull()?.let { bloomUser = it }
+        saved["ssao"]?.toBooleanStrictOrNull()?.let { ssaoUser = it }
+        saved["weather"]?.toBooleanStrictOrNull()?.let { weatherUser = it }
+        saved["shadows"]?.toBooleanStrictOrNull()?.let { shadowsUser = it }
+        saved["grassDensity"]?.toFloatOrNull()?.let { grassDensity = it.coerceIn(0f, 1.5f) }
         saved["antColor"]?.let { hex ->
             try {
                 antColor = Color(hex)
@@ -106,6 +142,7 @@ class AppSession(launch: LaunchConfig) {
         }
         launch.colonies?.let { colonies = it.coerceIn(1, 2) }
         launch.quality?.let { quality = it }
+        launch.renderer?.let { renderer = it }
         for ((key, value) in saved) {
             if (!key.startsWith("ov:")) continue
             val number = value.toDoubleOrNull() ?: continue
@@ -122,6 +159,41 @@ class AppSession(launch: LaunchConfig) {
         PerformanceManager.setQuality(quality)
         world = World()
         resetCamera(fromUser = false)
+        applyShotPose()
+    }
+
+    private fun applyShotPose() {
+        when (shot) {
+            "day" -> {
+                world.age = (world.dayLength * 0.45).toInt()
+                world.timeOfDay = 0.45
+            }
+            "night" -> {
+                world.age = (world.dayLength * 0.92).toInt()
+                world.timeOfDay = (world.age % world.dayLength).toDouble() / world.dayLength.toDouble()
+            }
+            "rain" -> {
+                world.age = (world.dayLength * 0.45).toInt()
+                world.timeOfDay = 0.45
+                world.raining = true
+                world.rainTimer = 100000
+            }
+            "ant" -> {
+                world.age = (world.dayLength * 0.45).toInt()
+                world.timeOfDay = 0.45
+                zoom = 6.0
+            }
+            else -> Unit
+        }
+    }
+
+    fun applyRendererVisibility() {
+        val classic = renderer == RenderMode.CLASSIC
+        classicScene?.isVisible = classic
+        worldScene?.isVisible = !classic
+        val showOverlay = !classic && !nest3dActive
+        nestOverlay?.isVisible = showOverlay
+        nestPresent?.isVisible = !classic && nest3dActive
     }
 
     val colonies: Int get() = SimConfig.colonyCount
@@ -140,6 +212,7 @@ class AppSession(launch: LaunchConfig) {
         if (fpsStamp == 0.0) fpsStamp = now
         if (now - fpsStamp >= 1.0) {
             fpsShown = fpsFrames
+            fpsShownPublic = fpsShown
             fpsFrames = 0
             fpsStamp = now
             PerformanceManager.monitorFps(fpsShown.toDouble(), (now * 1000.0).toLong())
@@ -170,6 +243,7 @@ class AppSession(launch: LaunchConfig) {
             }
         }
         updateCinema()
+        updateUserFollow()
         syncHud()
     }
 
@@ -277,7 +351,10 @@ class AppSession(launch: LaunchConfig) {
 
     fun restart(fromUser: Boolean) {
         world = World()
+        worldSerial++
         follow = null
+        userFollow = false
+        inspectedAnt = null
         cineNextPick = 0.0
         deadFrames = 0
         history.clear()
@@ -295,6 +372,7 @@ class AppSession(launch: LaunchConfig) {
 
     fun setQuality(level: QualityLevel) {
         PerformanceManager.setQuality(level)
+        renderTierBias = 0
         save()
         notifyInput()
         bump()
@@ -383,7 +461,60 @@ class AppSession(launch: LaunchConfig) {
     }
 
     fun requestScreenshot() {
-        MyLog.add("APP", "Screenshot: PNG encoder is not available in this build", LogLevel.DEBUG)
+        screenshotRequested = true
+    }
+
+    fun chooseRenderer(mode: RenderMode) {
+        renderer = mode
+        applyRendererVisibility()
+        save()
+        bump()
+    }
+
+    fun choosePitch(deg: Float) {
+        cameraPitchDeg = deg.coerceIn(-90f, -60f)
+        save()
+    }
+
+    fun chooseBloom(on: Boolean) {
+        bloomUser = on
+        save()
+        bump()
+    }
+
+    fun chooseSsao(on: Boolean) {
+        ssaoUser = on
+        save()
+        bump()
+    }
+
+    fun chooseWeather(on: Boolean) {
+        weatherUser = on
+        save()
+        bump()
+    }
+
+    fun chooseShadows(on: Boolean) {
+        shadowsUser = on
+        save()
+        bump()
+    }
+
+    fun chooseGrassDensity(value: Float) {
+        grassDensity = value.coerceIn(0f, 1.5f)
+        save()
+    }
+
+    fun toggleUserFollow() {
+        userFollow = !userFollow
+        if (!userFollow) follow = null
+        notifyInput()
+        bump()
+    }
+
+    fun noteDrag() {
+        userFollow = false
+        notifyInput()
     }
 
     fun speedLabel(): String {
@@ -424,19 +555,21 @@ class AppSession(launch: LaunchConfig) {
     private fun inspectNearest(wx: Double, wy: Double) {
         var best = Double.MAX_VALUE
         var text = ""
-        fun consider(x: Double, y: Double, label: String) {
+        inspectedAnt = null
+        fun consider(x: Double, y: Double, label: String, ant: Ant? = null) {
             val dx = x - wx
             val dy = y - wy
             val d = dx * dx + dy * dy
             if (d < best && d <= 30.0 * 30.0) {
                 best = d
                 text = label
+                inspectedAnt = ant
             }
         }
         for (colony in world.colonies) {
             for (ant in colony.ants) {
                 if (ant.location != AntPlace.WORLD) continue
-                consider(ant.x, ant.y, antLine(ant))
+                consider(ant.x, ant.y, antLine(ant), ant)
             }
         }
         for (food in world.foods) {
@@ -448,11 +581,54 @@ class AppSession(launch: LaunchConfig) {
         inspect.value = text
     }
 
+    /** Hit test for the 3D nest cutaway. Classic 2D still uses [clickWorld] only. */
+    fun inspectNest(nx: Double, ny: Double) {
+        notifyInput()
+        var best = Double.MAX_VALUE
+        var text = ""
+        inspectedAnt = null
+        val colony = world.colonies[0]
+        for (ant in colony.ants) {
+            if (ant.location != AntPlace.NEST) continue
+            val dx = ant.x - nx
+            val dy = ant.y - ny
+            val d = dx * dx + dy * dy
+            if (d < best && d <= 30.0 * 30.0) {
+                best = d
+                text = antLine(ant)
+                inspectedAnt = ant
+            }
+        }
+        val queen = colony.queen
+        val qdx = queen.x - nx
+        val qdy = queen.y - ny
+        val qd = qdx * qdx + qdy * qdy
+        if (qd < best && qd <= 40.0 * 40.0) {
+            text = "Queen e=${queen.energy.toInt()} age=${queen.age}"
+            inspectedAnt = null
+        }
+        inspect.value = text
+        bump()
+    }
+
     private fun antLine(ant: Ant): String {
         return "Ant ${ant.type} ${ant.state} e=${ant.energy.toInt()} h=${ant.health.toInt()} ${ant.carrying}"
     }
 
+    private fun updateUserFollow() {
+        if (!userFollow) return
+        val ant = inspectedAnt ?: return
+        if (ant.location != AntPlace.WORLD || ant.energy <= 0.0) {
+            userFollow = false
+            return
+        }
+        val k = 0.12
+        camX += (ant.x - camX) * k
+        camY += (ant.y - camY) * k
+    }
+
     private fun updateCinema() {
+        if (userFollow) return
         if (!cinema) return
         val now = Time.gameTime
         if (now < cinePausedUntil) return
@@ -576,6 +752,13 @@ class AppSession(launch: LaunchConfig) {
             append("dayNight=").append(dayNight).append('\n')
             append("dayNightIntensity=").append(dayNightStrength).append('\n')
             append("cinematic=").append(cinema).append('\n')
+            append("renderer=").append(if (renderer == RenderMode.D3) "3d" else "2d").append('\n')
+            append("cameraPitch=").append(cameraPitchDeg).append('\n')
+            append("bloom=").append(bloomUser).append('\n')
+            append("ssao=").append(ssaoUser).append('\n')
+            append("weather=").append(weatherUser).append('\n')
+            append("shadows=").append(shadowsUser).append('\n')
+            append("grassDensity=").append(grassDensity).append('\n')
             for ((path, value) in overrides) {
                 append("ov:").append(path).append('=').append(value).append('\n')
             }

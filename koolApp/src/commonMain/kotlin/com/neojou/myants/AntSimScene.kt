@@ -1,5 +1,8 @@
 package com.neojou.myants
 
+import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.render3d.WorldInput
+import com.neojou.myants.render3d.nest.NestFrame
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.AntState
@@ -68,6 +71,7 @@ private val SEGMENTS = intArrayOf(
 )
 
 fun KoolApplication.addAntSimScene(session: AppSession) = addScene {
+    session.classicScene = this
     clearColor = ClearColorFill(Color(0x11 / 255f, 0x11 / 255f, 0x11 / 255f, 1f))
     val cam = OrthographicCamera()
     cam.isKeepAspectRatio = false
@@ -157,6 +161,7 @@ fun KoolApplication.addAntSimScene(session: AppSession) = addScene {
     bind('_', "zoom-out-us") { session.zoomBy(1.0 / 1.25) }
 
     onUpdate {
+        if (session.renderer != RenderMode.CLASSIC) return@onUpdate
         val winW = it.ctx.window.size.x.toFloat().coerceAtLeast(1f)
         val winH = it.ctx.window.size.y.toFloat().coerceAtLeast(1f)
         cam.left = 0f
@@ -392,18 +397,53 @@ private fun drawDigit(draw: SpriteDraw, cx: Float, cy: Float, w: Float, h: Float
  */
 fun KoolApplication.addAntSimInput(session: AppSession) = addScene {
     clearColor = ClearColorLoad
+    var shotFrames = 0
     onUpdate {
         val winW = it.ctx.window.size.x.toFloat().coerceAtLeast(1f)
         val winH = it.ctx.window.size.y.toFloat().coerceAtLeast(1f)
         handlePointer(session, winW * 0.74f, winH)
+        shotFrames = shotFrame(session, shotFrames)
+        captureFrame(session)
     }
 }
 
 private fun handlePointer(session: AppSession, leftW: Float, winH: Float) {
     val p = PointerInput.primaryPointer
     if (!p.isValid || p.isConsumed()) return
+    val drag = sqrt(p.dragMovement.x * p.dragMovement.x + p.dragMovement.y * p.dragMovement.y)
+    if (session.renderer == RenderMode.D3 && session.nest3dActive && p.pos.x > leftW && p.pos.y in 0f..winH) {
+        if (p.isLeftButtonClicked && drag <= 5f && NestFrame.fit > 0f) {
+            val nx = (p.pos.x - NestFrame.ox) / NestFrame.fit
+            val ny = (p.pos.y - NestFrame.oy) / NestFrame.fit
+            session.inspectNest(nx.toDouble(), ny.toDouble())
+            p.consume()
+        }
+        return
+    }
     val inside = p.pos.x in 0f..leftW && p.pos.y in 0f..winH
     if (!inside) return
+    if (session.renderer == RenderMode.D3) {
+        val hit = WorldInput.screenToGround?.invoke(p.pos.x, p.pos.y)
+        if (p.scroll.y != 0f && hit != null) {
+            val factor = if (p.scroll.y > 0f) 1.1 else 1.0 / 1.1
+            session.zoomAt(factor, hit.x.toDouble(), hit.y.toDouble())
+            session.notifyInput()
+            p.consume(PointerInput.CONSUMED_SCROLL_Y)
+        }
+        if (p.isLeftButtonDown && drag > 5f) {
+            val prev = WorldInput.screenToGround?.invoke(p.pos.x - p.delta.x, p.pos.y - p.delta.y)
+            if (hit != null && prev != null) {
+                session.camX += (prev.x - hit.x).toDouble()
+                session.camY += (prev.y - hit.y).toDouble()
+                session.noteDrag()
+            }
+        }
+        if (p.isLeftButtonClicked && drag <= 5f && hit != null) {
+            session.clickWorld(hit.x.toDouble(), hit.y.toDouble())
+            p.consume()
+        }
+        return
+    }
     if (p.scroll.y != 0f) {
         val (wx, wy) = session.screenToWorld(p.pos.x, p.pos.y, leftW, winH)
         val factor = if (p.scroll.y > 0f) 1.1 else 1.0 / 1.1
@@ -411,7 +451,6 @@ private fun handlePointer(session: AppSession, leftW: Float, winH: Float) {
         session.notifyInput()
         p.consume(PointerInput.CONSUMED_SCROLL_Y)
     }
-    val drag = sqrt(p.dragMovement.x * p.dragMovement.x + p.dragMovement.y * p.dragMovement.y)
     if (p.isLeftButtonDown && drag > 5f) {
         val fit = session.fitScale(leftW, winH).toFloat()
         session.pan(p.delta.x, p.delta.y, fit)
@@ -565,4 +604,88 @@ private fun colorFromRgb(rgb: Int): Color {
     val g = ((rgb shr 8) and 255) / 255f
     val b = (rgb and 255) / 255f
     return Color(r, g, b, 1f)
+}
+
+/**
+ * Right-hand nest used while the 3D cutaway is not ready.
+ * Classic mode draws its own nest inside [addAntSimScene] and hides this scene.
+ */
+fun KoolApplication.addLegacyNestOverlay(session: AppSession) = addScene {
+    session.nestOverlay = this
+    isVisible = false
+    clearColor = ClearColorLoad
+    val cam = OrthographicCamera()
+    cam.isKeepAspectRatio = false
+    cam.clipNear = -10f
+    cam.clipFar = 10f
+    camera = cam
+    val circle = circleTexture()
+    val layout = InstanceLayouts.ModelMatColor
+    val nestBatch = MeshInstanceList(layout, 2048)
+    val chromeBatch = MeshInstanceList(layout, 8)
+    fun spriteShader() = KslUnlitShader {
+        vertices { instancedModelMatrix(layout.modelMat) }
+        color {
+            textureData(circle)
+            instanceColor(layout.color, ColorBlockConfig.BlendMode.Multiply)
+        }
+        pipeline {
+            cullMethod = CullMethod.NO_CULLING
+            depthTest = DepthCompareOp.ALWAYS
+            isWriteDepth = false
+        }
+    }
+    fun flatShader() = KslUnlitShader {
+        vertices { instancedModelMatrix(layout.modelMat) }
+        color { instanceColor(layout.color) }
+        pipeline {
+            cullMethod = CullMethod.NO_CULLING
+            depthTest = DepthCompareOp.ALWAYS
+            isWriteDepth = false
+            blendMode = BlendMode.BLEND_MULTIPLY_ALPHA
+        }
+    }
+    val nestPhero = addQuad(pheroShader())
+    addMesh(VertexLayouts.Position, chromeBatch) {
+        generate { rect { size.set(1f, 1f) } }
+        shader = flatShader()
+    }
+    addMesh(VertexLayouts.PositionTexCoord, nestBatch) {
+        generate { rect { size.set(1f, 1f) } }
+        shader = spriteShader()
+    }
+    val nestField = PheroLayer("overlay-nest-phero")
+    val draw = SpriteDraw()
+    onUpdate {
+        val winW = it.ctx.window.size.x.toFloat().coerceAtLeast(1f)
+        val winH = it.ctx.window.size.y.toFloat().coerceAtLeast(1f)
+        cam.left = 0f
+        cam.right = winW
+        cam.top = 0f
+        cam.bottom = -winH
+        nestBatch.clear()
+        chromeBatch.clear()
+        val leftW = winW * 0.74f
+        val rightX = leftW + 4f
+        val rightW = winW - rightX
+        draw.batch = chromeBatch
+        draw.rect(rightX + rightW * 0.5f, winH * 0.5f, rightW, winH, PANE)
+        draw.rect(leftW + 2f, winH * 0.5f, 4f, winH, DIVIDER)
+        val colony0 = session.world.colonies[0]
+        val nest = colony0.nest
+        val nFit = min(rightW / nest.width.toFloat(), winH / nest.height.toFloat())
+        val nOx = rightX + (rightW - nest.width.toFloat() * nFit) * 0.5f
+        val nOy = (winH - nest.height.toFloat() * nFit) * 0.5f
+        val nestWpx = nest.width.toFloat() * nFit
+        val nestHpx = nest.height.toFloat() * nFit
+        if (session.showPheromones) {
+            val tex = nestField.update(colony0.nestGrid, session.pheromoneStrength, pheroEvery())
+            (nestPhero.shader as KslUnlitShader).colorMap = tex
+            placeQuad(nestPhero, nOx + nestWpx * 0.5f, nOy + nestHpx * 0.5f, nestWpx, nestHpx)
+        } else {
+            placeQuad(nestPhero, 0f, 0f, 0f, 0f)
+        }
+        draw.batch = nestBatch
+        drawNest(session, draw, nOx, nOy, nFit)
+    }
 }

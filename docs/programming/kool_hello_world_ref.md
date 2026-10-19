@@ -1,5 +1,7 @@
 # kool Hello World 參考
 
+目前的程式入口是 `myantsApp()`（`MyantsApp.kt`），不再呼叫 `koolStudyApp()`。下面是 Hello World 當時的寫法。
+
 kool README 的 Hello World：一個會自轉的彩色立方體，加上一盞方向光，可以用滑鼠繞著看。
 
 狀態：

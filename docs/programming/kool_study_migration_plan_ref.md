@@ -1,5 +1,7 @@
 # myants 改用 kool 引擎的遷移計畫
 
+目前的程式入口是 `myantsApp()`（`MyantsApp.kt`）。`koolStudyApp()` 已移除。下面是當時的遷移記錄。
+
 目標：myants 從 Compose Multiplatform 改成 kool 引擎，`./gradlew :koolApp:runDesktop` 開出旋轉的彩色立方體（kool README 的 Hello World）。JS 版也要能 build，並且保留 Neo 模板的 About、版號與 `configure.sh` 流程。
 
 狀態標記：**已驗證**表示在 `kool_study_trial`（scratch 複本）實際做過；**推測**表示還沒驗證。完整 diff 見 `kool_study_trial_diff.patch`。
