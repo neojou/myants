@@ -1,0 +1,978 @@
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 42b57d5..c3a7ab5 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -1,7 +1,4 @@
+ // Root build — plugins applied by subprojects only.
+-// Coexists with the Vite/npm SPA (package.json); does not replace it.
+ plugins {
+     alias(libs.plugins.kotlinMultiplatform) apply false
+-    alias(libs.plugins.composeMultiplatform) apply false
+-    alias(libs.plugins.composeCompiler) apply false
+ }
+diff --git a/composeApp/build.gradle.kts b/composeApp/build.gradle.kts
+deleted file mode 100644
+index c0743f9..0000000
+--- a/composeApp/build.gradle.kts
++++ /dev/null
+@@ -1,75 +0,0 @@
+-// KMP : Desktop + WasmJs
+-
+-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+-
+-plugins {
+-    alias(libs.plugins.kotlinMultiplatform)
+-    alias(libs.plugins.composeMultiplatform)
+-    alias(libs.plugins.composeCompiler)
+-}
+-
+-val appGroup = providers.gradleProperty("app.group").get()
+-val appRootName = providers.gradleProperty("app.rootName").get()
+-val appDisplayName = providers.gradleProperty("app.displayName").get()
+-val appVersion = providers.gradleProperty("app.version").get()
+-
+-group = appGroup
+-version = appVersion
+-
+-kotlin {
+-    jvm("desktop")
+-    jvmToolchain(25)
+-
+-    @OptIn(ExperimentalWasmDsl::class)
+-    wasmJs {
+-        outputModuleName.set(appRootName)
+-        browser { }
+-        binaries.executable()
+-    }
+-
+-    sourceSets {
+-        val commonMain by getting {
+-            dependencies {
+-                implementation(compose.runtime)
+-                implementation(compose.foundation)
+-                implementation(compose.material3)
+-                implementation(compose.ui)
+-                implementation(compose.components.resources)
+-            }
+-        }
+-        val desktopMain by getting {
+-            dependencies {
+-                implementation(compose.desktop.currentOs)
+-            }
+-        }
+-        val wasmJsMain by getting
+-    }
+-}
+-
+-compose.desktop {
+-    application {
+-        mainClass = "$appGroup.MainKt"
+-
+-        // The macOS menu bar name is fixed when the JVM starts. Gradle `run` does not
+-        // package an app, so the dock name has to be passed as a launcher argument.
+-        if (System.getProperty("os.name").orEmpty().contains("mac", ignoreCase = true)) {
+-            jvmArgs += listOf(
+-                "-Dapple.awt.application.name=$appDisplayName",
+-                "-Xdock:name=$appDisplayName",
+-            )
+-        }
+-
+-        nativeDistributions {
+-            packageName = appRootName
+-            packageVersion = appVersion
+-            macOS {
+-                dockName = appDisplayName
+-                bundleID = appGroup
+-            }
+-        }
+-    }
+-}
+-
+-compose.resources {
+-    packageOfResClass = appGroup
+-}
+diff --git a/composeApp/src/commonMain/composeResources/font/notosanstc_regular.otf b/composeApp/src/commonMain/composeResources/font/notosanstc_regular.otf
+deleted file mode 100644
+index 63c3422..0000000
+Binary files a/composeApp/src/commonMain/composeResources/font/notosanstc_regular.otf and /dev/null differ
+diff --git a/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/App.kt b/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/App.kt
+deleted file mode 100644
+index 1f3490e..0000000
+--- a/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/App.kt
++++ /dev/null
+@@ -1,103 +0,0 @@
+-package com.neojou.koolstudy
+-
+-import androidx.compose.material3.Text
+-import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.LaunchedEffect
+-import androidx.compose.runtime.getValue
+-import androidx.compose.runtime.mutableStateOf
+-import androidx.compose.runtime.remember
+-import androidx.compose.runtime.setValue
+-import com.neojou.tools.LogLevel
+-import com.neojou.tools.MyLog
+-import com.neojou.tools.SystemSettings
+-
+-/**
+- * Open and close state for the one About dialog.
+- *
+- * The in-app About item and the macOS application-menu About item share one instance.
+- */
+-class AboutRequest {
+-    var visible by mutableStateOf(false)
+-        private set
+-
+-    fun show() {
+-        visible = true
+-    }
+-
+-    fun dismiss() {
+-        visible = false
+-    }
+-}
+-
+-
+-/**
+- * Log tag used by [App] for app-level logging.
+- */
+-private const val TAG = "APP"
+-
+-/**
+- * UI state for application bootstrap/initialization.
+- */
+-private sealed class AppInitState {
+-    /** Initialization is running. */
+-    data object Loading : AppInitState()
+-
+-    /** Initialization completed successfully and the app can render its main UI. */
+-    data object Ready : AppInitState()
+-
+-    /**
+-     * Initialization failed.
+-     *
+-     * @property error The root cause of the initialization failure.
+-     */
+-    data class Error(val error: Throwable) : AppInitState()
+-}
+-
+-/**
+- * Root composable of the application.
+- *
+- * Responsibilities:
+- * - Bootstraps app-wide initialization (via [SystemSettings.initOnce]) when this composable
+- *   enters the Composition.
+- * - Emits an app-level log when initialization succeeds or fails.
+- * - Renders a lightweight loading UI while initialization is running, or an error UI on failure.
+- *
+- * Side effects:
+- * Initialization is performed inside [LaunchedEffect] to tie the coroutine to the lifecycle of this
+- * composable, as recommended for Compose side effects. [LaunchedEffect] starts when [App] enters
+- * the Composition and is cancelled when it leaves it. [web:99]
+- *
+- * Important:
+- * [SystemSettings.initOnce] must be idempotent because [App] may re-enter the Composition later
+- * (for example, after navigation changes). [web:145]
+- *
+- * @since 1.0
+- * @see LaunchedEffect
+- */
+-@Composable
+-fun App(about: AboutRequest = remember { AboutRequest() }) {
+-    var initState: AppInitState by remember { mutableStateOf(AppInitState.Loading) }
+-
+-    LaunchedEffect(Unit) {
+-        runCatching { SystemSettings.initOnce() }
+-            .onSuccess {
+-                MyLog.add(TAG, "System Ready", LogLevel.DEBUG)
+-                initState = AppInitState.Ready
+-            }
+-            .onFailure { e ->
+-                MyLog.add(TAG, "System init failed: ${e.message ?: "unknown"}", LogLevel.ERROR)
+-                initState = AppInitState.Error(e)
+-            }
+-    }
+-
+-    AppTheme {
+-        when (val state = initState) {
+-            AppInitState.Loading -> Text("Loading...")
+-            AppInitState.Ready -> HomeScreen(about)
+-            is AppInitState.Error -> Text("Init failed: ${state.error.message ?: "unknown"}")
+-        }
+-        if (about.visible) {
+-            AboutDialog(onDismiss = about::dismiss)
+-        }
+-    }
+-}
+diff --git a/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/HomeScreen.kt b/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/HomeScreen.kt
+deleted file mode 100644
+index 66842ad..0000000
+--- a/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/HomeScreen.kt
++++ /dev/null
+@@ -1,128 +0,0 @@
+-package com.neojou.koolstudy
+-
+-import androidx.compose.foundation.layout.Arrangement
+-import androidx.compose.foundation.layout.Box
+-import androidx.compose.foundation.layout.Column
+-import androidx.compose.foundation.layout.fillMaxSize
+-import androidx.compose.foundation.layout.fillMaxWidth
+-import androidx.compose.foundation.layout.heightIn
+-import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.layout.widthIn
+-import androidx.compose.foundation.shape.RoundedCornerShape
+-import androidx.compose.material3.MaterialTheme
+-import androidx.compose.material3.Scaffold
+-import androidx.compose.material3.Surface
+-import androidx.compose.material3.Text
+-import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.LaunchedEffect
+-import androidx.compose.ui.Alignment
+-import androidx.compose.ui.Modifier
+-import androidx.compose.ui.text.font.FontWeight
+-import androidx.compose.ui.text.style.TextAlign
+-import androidx.compose.ui.unit.dp
+-import androidx.compose.ui.window.Dialog
+-import com.neojou.tools.LogLevel
+-import com.neojou.tools.MyLog
+-import com.neojou.tools.ui.menu.MyTopMenuBar
+-import com.neojou.tools.ui.menu.MyTopMenuItem
+-
+-/**
+- * Log tag used by [HomeScreen] for logging UI events.
+- */
+-private const val TAG = "Home"
+-
+-/**
+- * Main content modes for the shell area below the toolbar.
+- */
+-private enum class MainContent {
+-    /** Default placeholder until a feature is chosen. */
+-    Home,
+-
+-    /** Daily candlestick + volume chart (viewport pan/zoom). */
+-    KChart,
+-}
+-
+-/**
+- * Primary application shell.
+- *
+- * Hosts a product-configured [MyTopMenuBar] and content area.
+- * - Database → Input / View / Export / Import
+- * - K Chart → View / Settings（均線 + KD + MACD 參數）
+- */
+-@Composable
+-fun HomeScreen(about: AboutRequest) {
+-    // Product-specific menu tree only; [MyTopMenuBar] stays app-agnostic.
+-    // Rebuilt each composition so callbacks always see current shell state.
+-    val topMenus = listOf(
+-        MyTopMenuItem(
+-            id = "about",
+-            label = "About",
+-            onClick = about::show,
+-        ),
+-    )
+-
+-    LaunchedEffect(Unit) {
+-        MyLog.add(TAG, "Enter", LogLevel.DEBUG)
+-    }
+-
+-    Scaffold(
+-        topBar = {
+-            MyTopMenuBar(items = topMenus)
+-        },
+-    ) { innerPadding ->
+-        Box(
+-            modifier = Modifier
+-                .fillMaxSize()
+-                .padding(innerPadding),
+-            contentAlignment = Alignment.Center,
+-        ) {
+-            Text(AppVersion.APP_NAME)
+-        }
+-    }
+-}
+-
+-/**
+- * About content shared by the in-app menu and the macOS application menu.
+- *
+- * Two lines only: product name, then `Version` plus [AppVersion.NAME].
+- * Click outside the card or press Escape to dismiss.
+- */
+-@Composable
+-internal fun AboutDialog(onDismiss: () -> Unit) {
+-    Dialog(onDismissRequest = onDismiss) {
+-        Surface(
+-            shape = RoundedCornerShape(12.dp),
+-            color = MaterialTheme.colorScheme.surface,
+-            tonalElevation = 6.dp,
+-            modifier = Modifier.widthIn(min = 320.dp, max = 480.dp),
+-        ) {
+-            Box(
+-                modifier = Modifier
+-                    .fillMaxWidth()
+-                    .heightIn(min = 168.dp)
+-                    .padding(horizontal = 32.dp, vertical = 28.dp),
+-                contentAlignment = Alignment.Center,
+-            ) {
+-                Column(
+-                    horizontalAlignment = Alignment.CenterHorizontally,
+-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+-                ) {
+-                    Text(
+-                        text = AppVersion.APP_NAME,
+-                        modifier = Modifier.fillMaxWidth(),
+-                        style = MaterialTheme.typography.titleLarge,
+-                        fontWeight = FontWeight.Medium,
+-                        textAlign = TextAlign.Center,
+-                    )
+-                    Text(
+-                        text = "Version ${AppVersion.NAME}",
+-                        modifier = Modifier.fillMaxWidth(),
+-                        style = MaterialTheme.typography.bodyLarge,
+-                        textAlign = TextAlign.Center,
+-                    )
+-                }
+-            }
+-        }
+-    }
+-}
+-
+diff --git a/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/Theme.kt b/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/Theme.kt
+deleted file mode 100644
+index 6224980..0000000
+--- a/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/Theme.kt
++++ /dev/null
+@@ -1,46 +0,0 @@
+-package com.neojou.koolstudy
+-
+-import androidx.compose.material3.MaterialTheme
+-import androidx.compose.material3.Typography
+-import androidx.compose.runtime.Composable
+-import androidx.compose.ui.text.font.FontFamily
+-import org.jetbrains.compose.resources.Font
+-
+-/**
+- * Bundled CJK-capable family — Noto Sans TC Regular (SIL OFL 1.1).
+- *
+- * Compose Wasm/Desktop draw with Skia, which does **not** pick up browser or
+- * CSS fonts. Without a bundled CJK face, Chinese glyphs render as blank.
+- */
+-@Composable
+-fun appFontFamily(): FontFamily = FontFamily(Font(Res.font.notosanstc_regular))
+-
+-private fun Typography.withFontFamily(fontFamily: FontFamily): Typography = copy(
+-    displayLarge = displayLarge.copy(fontFamily = fontFamily),
+-    displayMedium = displayMedium.copy(fontFamily = fontFamily),
+-    displaySmall = displaySmall.copy(fontFamily = fontFamily),
+-    headlineLarge = headlineLarge.copy(fontFamily = fontFamily),
+-    headlineMedium = headlineMedium.copy(fontFamily = fontFamily),
+-    headlineSmall = headlineSmall.copy(fontFamily = fontFamily),
+-    titleLarge = titleLarge.copy(fontFamily = fontFamily),
+-    titleMedium = titleMedium.copy(fontFamily = fontFamily),
+-    titleSmall = titleSmall.copy(fontFamily = fontFamily),
+-    bodyLarge = bodyLarge.copy(fontFamily = fontFamily),
+-    bodyMedium = bodyMedium.copy(fontFamily = fontFamily),
+-    bodySmall = bodySmall.copy(fontFamily = fontFamily),
+-    labelLarge = labelLarge.copy(fontFamily = fontFamily),
+-    labelMedium = labelMedium.copy(fontFamily = fontFamily),
+-    labelSmall = labelSmall.copy(fontFamily = fontFamily),
+-)
+-
+-/**
+- * App-wide Material 3 theme with a CJK-capable default typeface.
+- */
+-@Composable
+-fun AppTheme(content: @Composable () -> Unit) {
+-    val fontFamily = appFontFamily()
+-    MaterialTheme(
+-        typography = Typography().withFontFamily(fontFamily),
+-        content = content,
+-    )
+-}
+diff --git a/composeApp/src/commonMain/kotlin/com/neojou/tools/ui/menu/MyTopMenuBar.kt b/composeApp/src/commonMain/kotlin/com/neojou/tools/ui/menu/MyTopMenuBar.kt
+deleted file mode 100644
+index 30fd002..0000000
+--- a/composeApp/src/commonMain/kotlin/com/neojou/tools/ui/menu/MyTopMenuBar.kt
++++ /dev/null
+@@ -1,113 +0,0 @@
+-package com.neojou.tools.ui.menu
+-
+-import androidx.compose.foundation.layout.Box
+-import androidx.compose.foundation.layout.Row
+-import androidx.compose.foundation.layout.padding
+-import androidx.compose.material3.DropdownMenu
+-import androidx.compose.material3.DropdownMenuItem
+-import androidx.compose.material3.ExperimentalMaterial3Api
+-import androidx.compose.material3.MaterialTheme
+-import androidx.compose.material3.Text
+-import androidx.compose.material3.TextButton
+-import androidx.compose.material3.TopAppBar
+-import androidx.compose.material3.TopAppBarDefaults
+-import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.getValue
+-import androidx.compose.runtime.mutableStateOf
+-import androidx.compose.runtime.remember
+-import androidx.compose.runtime.setValue
+-import androidx.compose.ui.Modifier
+-import androidx.compose.ui.unit.dp
+-
+-/**
+- * Reusable top menu bar driven only by [items].
+- *
+- * Host apps configure structure and actions via [MyTopMenuItem]; this composable
+- * does not embed product-specific menu names and needs no source edits for reuse.
+- *
+- * Supports:
+- * - Top-level actions (leaf items)
+- * - One dropdown level under a root with [MyTopMenuItem.children]
+- */
+-@OptIn(ExperimentalMaterial3Api::class)
+-@Composable
+-fun MyTopMenuBar(
+-    items: List<MyTopMenuItem>,
+-    barModifier: Modifier = Modifier,
+-) {
+-    TopAppBar(
+-        modifier = barModifier,
+-        title = {
+-            Row {
+-                items.forEachIndexed { index, item ->
+-                    val itemModifier = if (index == 0) {
+-                        Modifier
+-                    } else {
+-                        Modifier.padding(start = 4.dp)
+-                    }
+-                    if (item.children.isNotEmpty()) {
+-                        DropdownRootItem(
+-                            item = item,
+-                            modifier = itemModifier,
+-                        )
+-                    } else {
+-                        ActionRootItem(
+-                            item = item,
+-                            modifier = itemModifier,
+-                        )
+-                    }
+-                }
+-            }
+-        },
+-        colors = TopAppBarDefaults.topAppBarColors(
+-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+-            titleContentColor = MaterialTheme.colorScheme.onSurface,
+-        ),
+-    )
+-}
+-
+-@Composable
+-private fun ActionRootItem(
+-    item: MyTopMenuItem,
+-    modifier: Modifier = Modifier,
+-) {
+-    TextButton(
+-        onClick = { item.onClick?.invoke() },
+-        enabled = item.enabled,
+-        modifier = modifier,
+-    ) {
+-        Text(item.label)
+-    }
+-}
+-
+-@Composable
+-private fun DropdownRootItem(
+-    item: MyTopMenuItem,
+-    modifier: Modifier = Modifier,
+-) {
+-    var expanded by remember(item.id) { mutableStateOf(false) }
+-
+-    Box(modifier = modifier) {
+-        TextButton(
+-            onClick = { if (item.enabled) expanded = true },
+-            enabled = item.enabled,
+-        ) {
+-            Text(item.label)
+-        }
+-        DropdownMenu(
+-            expanded = expanded,
+-            onDismissRequest = { expanded = false },
+-        ) {
+-            item.children.forEach { child ->
+-                DropdownMenuItem(
+-                    text = { Text(child.label) },
+-                    enabled = child.enabled,
+-                    onClick = {
+-                        expanded = false
+-                        child.onClick?.invoke()
+-                    },
+-                )
+-            }
+-        }
+-    }
+-}
+diff --git a/composeApp/src/desktopMain/kotlin/com/neojou/koolstudy/Main.kt b/composeApp/src/desktopMain/kotlin/com/neojou/koolstudy/Main.kt
+deleted file mode 100644
+index 0e505dc..0000000
+--- a/composeApp/src/desktopMain/kotlin/com/neojou/koolstudy/Main.kt
++++ /dev/null
+@@ -1,64 +0,0 @@
+-package com.neojou.koolstudy
+-
+-import androidx.compose.runtime.DisposableEffect
+-import androidx.compose.runtime.remember
+-import androidx.compose.ui.unit.DpSize
+-import androidx.compose.ui.unit.dp
+-import androidx.compose.ui.window.Window
+-import androidx.compose.ui.window.application
+-import androidx.compose.ui.window.rememberWindowState
+-import java.awt.Desktop
+-import java.awt.EventQueue
+-
+-/**
+- * Desktop entry — opens a window hosting [App].
+- *
+- * Creates a Compose for Desktop [Window] within [application]
+- * and hosts the shared [App] composable.
+- * On macOS the system application menu uses [AppVersion.APP_NAME], and its About
+- * item opens the same dialog as the in-app About item.
+- */
+-fun main() {
+-    // Read by AWT when it creates the macOS application menu. Set this before any window.
+-    System.setProperty("apple.awt.application.name", AppVersion.APP_NAME)
+-
+-    application {
+-        val about = remember { AboutRequest() }
+-        DisposableEffect(about) {
+-            val remove = installMacAboutHandler(about::show)
+-            onDispose(remove)
+-        }
+-
+-        val windowState = rememberWindowState(
+-            size = DpSize(960.dp, 640.dp),
+-        )
+-        Window(
+-            onCloseRequest = ::exitApplication,
+-            title = AppVersion.APP_NAME,
+-            state = windowState,
+-        ) {
+-            App(about)
+-        }
+-    }
+-}
+-
+-/**
+- * Routes the macOS application-menu About item to [onAbout].
+- *
+- * Returns a remover. On other systems About is not a desktop action, so this does nothing.
+- */
+-private fun installMacAboutHandler(onAbout: () -> Unit): () -> Unit {
+-    if (!Desktop.isDesktopSupported()) {
+-        return {}
+-    }
+-    val desktop = Desktop.getDesktop()
+-    if (!desktop.isSupported(Desktop.Action.APP_ABOUT)) {
+-        return {}
+-    }
+-    desktop.setAboutHandler { _ ->
+-        EventQueue.invokeLater { onAbout() }
+-    }
+-    return {
+-        desktop.setAboutHandler(null)
+-    }
+-}
+diff --git a/composeApp/src/wasmJsMain/kotlin/com/neojou/koolstudy/WasmMain.kt b/composeApp/src/wasmJsMain/kotlin/com/neojou/koolstudy/WasmMain.kt
+deleted file mode 100644
+index ea942c1..0000000
+--- a/composeApp/src/wasmJsMain/kotlin/com/neojou/koolstudy/WasmMain.kt
++++ /dev/null
+@@ -1,16 +0,0 @@
+-package com.neojou.koolstudy
+-
+-import androidx.compose.ui.ExperimentalComposeUiApi
+-import androidx.compose.ui.window.ComposeViewport
+-import kotlinx.browser.document
+-
+-/**
+- * Browser / Wasm entry — mounts shared [App] into the page body.
+- */
+-@OptIn(ExperimentalComposeUiApi::class)
+-fun main() {
+-    document.title = AppVersion.APP_NAME
+-    ComposeViewport(document.body!!) {
+-        App()
+-    }
+-}
+diff --git a/composeApp/src/wasmJsMain/resources/index.html b/composeApp/src/wasmJsMain/resources/index.html
+deleted file mode 100644
+index 5baf6ee..0000000
+--- a/composeApp/src/wasmJsMain/resources/index.html
++++ /dev/null
+@@ -1,21 +0,0 @@
+-<!DOCTYPE html>
+-<html lang="en">
+-<head>
+-    <meta charset="UTF-8">
+-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+-    <title>kool_study</title>
+-    <style>
+-        html, body {
+-            width: 100%;
+-            height: 100%;
+-            margin: 0;
+-            padding: 0;
+-            overflow: hidden;
+-            background: #ffffff;
+-        }
+-    </style>
+-</head>
+-<body>
+-<script type="application/javascript" src="composeApp.js"></script>
+-</body>
+-</html>
+diff --git a/configure.sh b/configure.sh
+index a5bc6bd..fc91850 100755
+--- a/configure.sh
++++ b/configure.sh
+@@ -14,11 +14,11 @@ ROOT = Path(os.environ["CONFIGURE_ROOT"]).resolve()
+ SKIP_DIRS = {".git", ".gradle", ".idea", ".kotlin", "build", "kotlin-js-store"}
+ TEXT_SUFFIXES = {".kt", ".kts", ".html", ".md", ".properties", ".xml", ".json", ".toml"}
+ SOURCE_ROOTS = (
+-    "composeApp/src/commonMain/kotlin",
+-    "composeApp/src/desktopMain/kotlin",
+-    "composeApp/src/wasmJsMain/kotlin",
++    "koolApp/src/commonMain/kotlin",
++    "koolApp/src/desktopMain/kotlin",
++    "koolApp/src/jsMain/kotlin",
+ )
+-INDEX_HTML = Path("composeApp/src/wasmJsMain/resources/index.html")
++INDEX_HTML = Path("koolApp/src/jsMain/resources/index.html")
+ PROPS_FILE = Path("gradle.properties")
+ MARKER = "configure:app.displayName"
+ MARKER_RE = re.compile(
+@@ -122,7 +122,7 @@ def help_text(values=None):
+       把產品版號改成 <版號>。About 的第二行、Gradle 版本與
+       打包版號都讀這個值。
+       格式是 MAJOR、MAJOR.MINOR 或 MAJOR.MINOR.PATCH，例如 0.2 或 0.2.0。
+-      不含 v 前綴。不會改 Kotlin、Compose 或函式庫的版號。
++      不含 v 前綴。不會改 Kotlin、kool 或函式庫的版號。
+ 
+ 目前專案：
+   顯示名稱  {display}
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index 6f2a61e..96a9b32 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -1,10 +1,9 @@
+ [versions]
+ kotlin = "2.3.0"
+-compose-plugin = "1.10.0"
++kool = "0.19.0"
+ 
+ [libraries]
++kool-core = { module = "de.fabmax.kool:kool-core", version.ref = "kool" }
+ 
+ [plugins]
+ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+-composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+-composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+diff --git a/koolApp/build.gradle.kts b/koolApp/build.gradle.kts
+new file mode 100644
+index 0000000..dea6d76
+--- /dev/null
++++ b/koolApp/build.gradle.kts
+@@ -0,0 +1,60 @@
++// KMP : Desktop (JVM) + JS (browser), rendered by kool engine.
++
++import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
++import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
++
++plugins {
++    alias(libs.plugins.kotlinMultiplatform)
++}
++
++val appGroup = providers.gradleProperty("app.group").get()
++val appRootName = providers.gradleProperty("app.rootName").get()
++val appDisplayName = providers.gradleProperty("app.displayName").get()
++val appVersion = providers.gradleProperty("app.version").get()
++val isMacOs = System.getProperty("os.name").orEmpty().contains("mac", ignoreCase = true)
++
++group = appGroup
++version = appVersion
++
++kotlin {
++    jvm("desktop") {
++        @OptIn(ExperimentalKotlinGradlePluginApi::class)
++        binaries {
++            executable {
++                mainClass.set("$appGroup.MainKt")
++                applicationDefaultJvmArgs = buildList {
++                    add("--add-opens=java.base/java.lang=ALL-UNNAMED")
++                    add("--enable-native-access=ALL-UNNAMED")
++                    if (isMacOs) {
++                        // GLFW must run on the macOS main thread.
++                        add("-XstartOnFirstThread")
++                        add("-Dapple.awt.application.name=$appDisplayName")
++                        add("-Xdock:name=$appDisplayName")
++                    }
++                }
++            }
++        }
++    }
++    jvmToolchain(25)
++
++    js {
++        outputModuleName.set(appRootName)
++        browser {
++            commonWebpackConfig {
++                // Fixed bundle name so index.html need not change when ./configure.sh proj_name renames the project.
++                outputFileName = "koolApp.js"
++                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
++            }
++        }
++        binaries.executable()
++        compilerOptions {
++            target.set("es2015")
++        }
++    }
++
++    sourceSets {
++        commonMain.dependencies {
++            implementation(libs.kool.core)
++        }
++    }
++}
+diff --git a/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/AppUi.kt b/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/AppUi.kt
+new file mode 100644
+index 0000000..592a8bb
+--- /dev/null
++++ b/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/AppUi.kt
+@@ -0,0 +1,58 @@
++package com.neojou.koolstudy
++
++import com.neojou.tools.LogLevel
++import com.neojou.tools.MyLog
++import de.fabmax.kool.KoolApplication
++import de.fabmax.kool.addUiScene
++import de.fabmax.kool.modules.ui2.*
++import de.fabmax.kool.scene.Scene
++
++private const val TAG = "AppUi"
++
++/**
++ * 疊在 3D 場景上的 UI：左上角 About 按鈕，以及兩行的 About 面板
++ * （第一行 [AppVersion.APP_NAME]，第二行 `Version` + [AppVersion.NAME]）。
++ */
++fun KoolApplication.addAppUiScene(): Scene = addUiScene {
++    lateinit var aboutSurface: UiSurface
++
++    // Top menu bar: one leaf item "About".
++    addPanelSurface(backgroundColor = { null }) {
++        modifier
++            .width(FitContent)
++            .height(FitContent)
++            .align(AlignmentX.Start, AlignmentY.Top)
++            .margin(sizes.gap)
++        Button("About") {
++            modifier
++                .padding(horizontal = sizes.largeGap, vertical = sizes.smallGap)
++                .onClick {
++                    MyLog.add(TAG, "About clicked", LogLevel.DEBUG)
++                    aboutSurface.isVisible = true
++                }
++        }
++    }
++
++    // About dialog, hidden until the button is clicked.
++    aboutSurface = addPanelSurface {
++        modifier
++            .size(360.dp, 180.dp)
++            .align(AlignmentX.Center, AlignmentY.Center)
++            .background(RoundRectBackground(colors.background, 12.dp))
++            .padding(sizes.largeGap)
++        Text(AppVersion.APP_NAME) {
++            modifier.alignX(AlignmentX.Center).margin(top = sizes.largeGap).font(sizes.largeText)
++        }
++        Text("Version ${AppVersion.NAME}") {
++            modifier.alignX(AlignmentX.Center).margin(top = sizes.gap)
++        }
++        Button("OK") {
++            modifier
++                .alignX(AlignmentX.Center)
++                .margin(top = sizes.largeGap)
++                .padding(horizontal = sizes.largeGap, vertical = sizes.smallGap)
++                .onClick { aboutSurface.isVisible = false }
++        }
++    }
++    aboutSurface.isVisible = false
++}
+diff --git a/composeApp/src/commonMain/kotlin/com/neojou/koolstudy/AppVersion.kt b/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/AppVersion.kt
+similarity index 100%
+rename from composeApp/src/commonMain/kotlin/com/neojou/koolstudy/AppVersion.kt
+rename to koolApp/src/commonMain/kotlin/com/neojou/koolstudy/AppVersion.kt
+diff --git a/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/HelloCubeScene.kt b/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/HelloCubeScene.kt
+new file mode 100644
+index 0000000..c432321
+--- /dev/null
++++ b/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/HelloCubeScene.kt
+@@ -0,0 +1,35 @@
++package com.neojou.koolstudy
++
++import de.fabmax.kool.KoolApplication
++import de.fabmax.kool.addScene
++import de.fabmax.kool.math.Vec3f
++import de.fabmax.kool.math.deg
++import de.fabmax.kool.modules.ksl.KslPbrShader
++import de.fabmax.kool.scene.Scene
++import de.fabmax.kool.scene.addColorMesh
++import de.fabmax.kool.scene.defaultOrbitCamera
++import de.fabmax.kool.util.Color
++import de.fabmax.kool.util.Time
++
++/**
++ * kool README 的 Hello World 場景：旋轉的彩色立方體。
++ *
++ * 內容與 README 的 `addScene { ... }` 區塊逐行相同，只是包成函式，
++ * 讓 desktop 與 js 的 main 共用。
++ */
++fun KoolApplication.addHelloCubeScene(): Scene = addScene {
++    defaultOrbitCamera()
++    addColorMesh {
++        generate { cube { colored() } }
++        shader = KslPbrShader {
++            color { vertexColor() }
++            metallic(0f)
++            roughness(0.25f)
++        }
++        onUpdate { transform.rotate(45f.deg * Time.deltaT, Vec3f.X_AXIS) }
++    }
++    lighting.singleDirectionalLight {
++        setup(Vec3f(-1f, -1f, -1f))
++        setColor(Color.WHITE, 5f)
++    }
++}
+diff --git a/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/KoolStudyApp.kt b/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/KoolStudyApp.kt
+new file mode 100644
+index 0000000..4ab38dd
+--- /dev/null
++++ b/koolApp/src/commonMain/kotlin/com/neojou/koolstudy/KoolStudyApp.kt
+@@ -0,0 +1,19 @@
++package com.neojou.koolstudy
++
++import com.neojou.tools.LogLevel
++import com.neojou.tools.MyLog
++import com.neojou.tools.SystemSettings
++import de.fabmax.kool.KoolApplication
++
++private const val TAG = "APP"
++
++/** 共用的 app 內容：desktop 與 js 的 main 都呼叫這裡。 */
++fun KoolApplication.koolStudyApp() {
++    SystemSettings.initOnce()
++    MyLog.add(TAG, "System Ready", LogLevel.DEBUG)
++    addHelloCubeScene()
++    addAppUiScene()
++}
++
++/** 視窗與分頁標題，例如 `kool_study 0.1.0`。 */
++val appTitle: String get() = "${AppVersion.APP_NAME} ${AppVersion.NAME}"
+diff --git a/composeApp/src/commonMain/kotlin/com/neojou/tools/MyLog.kt b/koolApp/src/commonMain/kotlin/com/neojou/tools/MyLog.kt
+similarity index 100%
+rename from composeApp/src/commonMain/kotlin/com/neojou/tools/MyLog.kt
+rename to koolApp/src/commonMain/kotlin/com/neojou/tools/MyLog.kt
+diff --git a/composeApp/src/commonMain/kotlin/com/neojou/tools/SystemSettings.kt b/koolApp/src/commonMain/kotlin/com/neojou/tools/SystemSettings.kt
+similarity index 100%
+rename from composeApp/src/commonMain/kotlin/com/neojou/tools/SystemSettings.kt
+rename to koolApp/src/commonMain/kotlin/com/neojou/tools/SystemSettings.kt
+diff --git a/composeApp/src/commonMain/kotlin/com/neojou/tools/ui/menu/MyTopMenuItem.kt b/koolApp/src/commonMain/kotlin/com/neojou/tools/ui/menu/MyTopMenuItem.kt
+similarity index 100%
+rename from composeApp/src/commonMain/kotlin/com/neojou/tools/ui/menu/MyTopMenuItem.kt
+rename to koolApp/src/commonMain/kotlin/com/neojou/tools/ui/menu/MyTopMenuItem.kt
+diff --git a/koolApp/src/desktopMain/kotlin/com/neojou/koolstudy/Main.kt b/koolApp/src/desktopMain/kotlin/com/neojou/koolstudy/Main.kt
+new file mode 100644
+index 0000000..fc71a42
+--- /dev/null
++++ b/koolApp/src/desktopMain/kotlin/com/neojou/koolstudy/Main.kt
+@@ -0,0 +1,18 @@
++package com.neojou.koolstudy
++
++import de.fabmax.kool.KoolApplication
++import de.fabmax.kool.KoolConfigJvm
++import de.fabmax.kool.math.Vec2i
++
++/**
++ * Desktop entry. kool 自己開 GLFW 視窗（不是 Compose 視窗）。
++ * macOS 需要 JVM 參數 -XstartOnFirstThread，已寫在 koolApp/build.gradle.kts。
++ */
++fun main() = KoolApplication(
++    config = KoolConfigJvm(
++        windowTitle = appTitle,
++        windowSize = Vec2i(1280, 800),
++    )
++) {
++    koolStudyApp()
++}
+diff --git a/koolApp/src/jsMain/kotlin/com/neojou/koolstudy/JsMain.kt b/koolApp/src/jsMain/kotlin/com/neojou/koolstudy/JsMain.kt
+new file mode 100644
+index 0000000..de756b3
+--- /dev/null
++++ b/koolApp/src/jsMain/kotlin/com/neojou/koolstudy/JsMain.kt
+@@ -0,0 +1,13 @@
++package com.neojou.koolstudy
++
++import de.fabmax.kool.KoolApplication
++import de.fabmax.kool.KoolConfigJs
++import kotlinx.browser.document
++
++/** Browser entry. kool 畫在 index.html 的 <canvas id="glCanvas">。 */
++fun main() {
++    document.title = appTitle
++    KoolApplication(config = KoolConfigJs(canvasName = "glCanvas")) {
++        koolStudyApp()
++    }
++}
+diff --git a/koolApp/src/jsMain/resources/index.html b/koolApp/src/jsMain/resources/index.html
+new file mode 100644
+index 0000000..8381985
+--- /dev/null
++++ b/koolApp/src/jsMain/resources/index.html
+@@ -0,0 +1,17 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <title>kool_study</title>
++    <style>
++        html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #000000; }
++        canvas { width: 100vw; height: 100vh; display: block; }
++    </style>
++</head>
++<body>
++<!-- kool renders into this canvas. tabindex makes it focusable for key events. -->
++<canvas id="glCanvas" tabindex="0"></canvas>
++<script src="koolApp.js"></script>
++</body>
++</html>
+diff --git a/settings.gradle.kts b/settings.gradle.kts
+index fbc9501..3ea3374 100644
+--- a/settings.gradle.kts
++++ b/settings.gradle.kts
+@@ -4,18 +4,14 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+ pluginManagement {
+     repositories {
+         gradlePluginPortal()
+-        google()
+         mavenCentral()
+-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+     }
+ }
+ 
+ dependencyResolutionManagement {
+     repositories {
+-        google()
+         mavenCentral()
+-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+     }
+ }
+ 
+-include(":composeApp")
++include(":koolApp")
