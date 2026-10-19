@@ -1,7 +1,12 @@
 package com.neojou.myants.render3d
 
 import com.neojou.myants.AppSession
+import com.neojou.myants.render3d.actors.GltfAnt
 import com.neojou.myants.render3d.actors.PoseBuckets
+import com.neojou.myants.render3d.actors.draw
+import com.neojou.myants.render3d.actors.outdoorAntTint
+import com.neojou.myants.render3d.actors.parseGltfAnt
+import com.neojou.myants.render3d.actors.uploadAntMeshes
 import com.neojou.myants.render3d.camera.CameraDirector
 import com.neojou.myants.render3d.camera.TopDownCamera
 import com.neojou.myants.render3d.nest.NestCutaway
@@ -19,6 +24,7 @@ import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.wallClockHm
 import com.neojou.tools.LogLevel
 import com.neojou.tools.MyLog
+import de.fabmax.kool.Assets
 import de.fabmax.kool.KoolApplication
 import de.fabmax.kool.addScene
 import de.fabmax.kool.math.MutableMat4f
@@ -58,6 +64,7 @@ import kotlin.math.max
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
+import kotlinx.coroutines.launch
 
 private const val TAG = "RENDER"
 
@@ -106,6 +113,15 @@ class WorldRenderer(
     private lateinit var bodies: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var heads: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var legs: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private var blackAnt: GltfAnt? = null
+    private lateinit var antBody: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var antEyes: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var antJaws: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var antLegs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>
+    private lateinit var antBodyMesh: Mesh<*>
+    private lateinit var antEyeMesh: Mesh<*>
+    private lateinit var antJawMesh: Mesh<*>
+    private lateinit var antLegMeshes: List<Mesh<*>>
     private lateinit var food: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var insects: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var digits: MeshInstanceList<InstanceLayouts.ModelMatColor>
@@ -135,6 +151,7 @@ class WorldRenderer(
         val forward = Node("world-forward").apply { isFrustumChecked = false }
         buildContent(content)
         buildForward(forward)
+        loadBlackAnt()
 
         scene.onUpdate {
             if (session.renderer != RenderMode.D3) return@onUpdate
@@ -356,6 +373,16 @@ class WorldRenderer(
         instanced(content, heads, "ant-head") { icoSphere { steps = 1; radius = 0.22f } }
         legs = MeshInstanceList(layout, 8192)
         instanced(content, legs, "ant-leg") { cube { size.set(0.16f, 0.55f, 0.1f) } }
+        antBody = MeshInstanceList(layout, 2048)
+        antBodyMesh = shadedInstances(content, antBody, "ant-chitin", 0.42f, 0.08f)
+        antEyes = MeshInstanceList(layout, 2048)
+        antEyeMesh = shadedInstances(content, antEyes, "ant-eye", 0.12f, 0.02f)
+        antJaws = MeshInstanceList(layout, 2048)
+        antJawMesh = shadedInstances(content, antJaws, "ant-jaw", 0.38f, 0.12f)
+        antLegs = List(6) { MeshInstanceList(layout, 2048) }
+        antLegMeshes = antLegs.mapIndexed { index, batch ->
+            shadedInstances(content, batch, "ant-leg-$index", 0.42f, 0.08f)
+        }
         food = MeshInstanceList(layout, 256)
         val foodShader = deferredKslPbrShader {
             vertices { instancedModelMatrix(layout.modelMat) }
@@ -420,6 +447,45 @@ class WorldRenderer(
             isVisible = false
             generate { ringXZ() }
             shader = ringShader
+        }
+    }
+
+    private fun loadBlackAnt() {
+        scene.coroutineScope.launch {
+            val loaded = Assets.defaultLoader.loadBlob("models/ants/worker_black.glb")
+            loaded.onSuccess { buf ->
+                try {
+                    val parsed = parseGltfAnt(buf.toArray())
+                    uploadAntMeshes(parsed, antBodyMesh, antEyeMesh, antJawMesh, antLegMeshes)
+                    blackAnt = parsed
+                    MyLog.add(TAG, "black ant gltf tris=${parsed.triangles}", LogLevel.DEBUG)
+                } catch (err: Throwable) {
+                    MyLog.add(TAG, "Black ant glTF failed: ${err.message}. Using block ants.", LogLevel.DEBUG)
+                }
+            }.onFailure { err ->
+                MyLog.add(TAG, "Black ant glTF missing: ${err.message}. Using block ants.", LogLevel.DEBUG)
+            }
+        }
+    }
+
+    private fun shadedInstances(
+        parent: Node,
+        instances: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+        name: String,
+        roughness: Float,
+        metallic: Float,
+    ): Mesh<*> {
+        val shader = deferredKslPbrShader {
+            vertices { instancedModelMatrix(layout.modelMat) }
+            color { instanceColor(layout.color) }
+            roughness(roughness)
+            metallic(metallic)
+        }
+        return parent.addMesh(VertexLayouts.PositionNormal, instances = instances) {
+            isFrustumChecked = false
+            this.name = name
+            generate { }
+            this.shader = shader
         }
     }
 
@@ -498,6 +564,8 @@ class WorldRenderer(
     private fun pushActors(preset: QualityPreset) {
         grass.clear(); rocks.clear(); leaves.clear(); flowers.clear()
         bodies.clear(); heads.clear(); legs.clear(); food.clear(); insects.clear(); digits.clear(); bits.clear()
+        antBody.clear(); antEyes.clear(); antJaws.clear()
+        for (batch in antLegs) batch.clear()
         val time = Time.gameTime.toFloat()
         pushScatter(preset, time)
         pushSimGrass(preset, time)
@@ -695,30 +763,44 @@ class WorldRenderer(
                 val bucket = PoseBuckets.index(ant.forageSeed.toFloat(), speed, buckets)
                 val phase = PoseBuckets.phase(bucket, buckets, time, moving && preset.legAnimation)
                 val len = (if (ant.type == AntKind.SOLDIER) 16f else 12f) * ant.sizeVar.toFloat()
-                val y = GroundHeight.at(x, z) + len * 0.18f
-                pose(bodies, x, y, z, yaw, 0f, 0f, 0f, len, len * 0.28f, len * 0.36f, tint)
-                val headColor = if (ant.type == AntKind.SOLDIER) Color(0.75f, 0.1f, 0.08f, 1f) else tint
-                pose(heads, x, y, z, yaw, len * 0.42f, len * 0.05f, 0f, len * 0.28f, len * 0.28f, len * 0.28f, headColor)
-                if (preset.legAnimation) {
-                    val along = floatArrayOf(0.22f, 0f, -0.22f)
-                    val side = floatArrayOf(-1f, 1f)
-                    var leg = 0
-                    for (a in along) {
-                        for (s in side) {
-                            val lift = sin(phase * PI.toFloat() * 2f + leg) * if (moving) len * 0.08f else 0f
-                            val swing = cos(phase * PI.toFloat() * 2f + leg) * if (moving) len * 0.05f else 0f
-                            pose(
-                                legs, x, y, z, yaw,
-                                len * a + swing, -len * 0.16f + lift, s * len * 0.18f,
-                                len * 0.08f, len * 0.28f, len * 0.06f, tint,
-                            )
-                            leg++
+                val model = blackAnt
+                if (model != null) {
+                    val y = GroundHeight.at(x, z)
+                    model.draw(
+                        antBody, antEyes, antJaws, antLegs,
+                        x, y, z, yaw, len, phase, moving && preset.legAnimation,
+                        outdoorAntTint(colony.id), mat, scale,
+                    )
+                    if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
+                        val carry = if (ant.carrying == CarryKind.SUGAR) Color(1f, 0.84f, 0.2f, 1f) else Color(0.8f, 0.25f, 0.22f, 1f)
+                        pose(bits, x, y, z, yaw, len * 0.46f, len * 0.07f, 0f, len * 0.18f, len * 0.18f, len * 0.18f, carry)
+                    }
+                } else {
+                    val y = GroundHeight.at(x, z) + len * 0.18f
+                    pose(bodies, x, y, z, yaw, 0f, 0f, 0f, len, len * 0.28f, len * 0.36f, tint)
+                    val headColor = if (ant.type == AntKind.SOLDIER) Color(0.75f, 0.1f, 0.08f, 1f) else tint
+                    pose(heads, x, y, z, yaw, len * 0.42f, len * 0.05f, 0f, len * 0.28f, len * 0.28f, len * 0.28f, headColor)
+                    if (preset.legAnimation) {
+                        val along = floatArrayOf(0.22f, 0f, -0.22f)
+                        val side = floatArrayOf(-1f, 1f)
+                        var leg = 0
+                        for (a in along) {
+                            for (s in side) {
+                                val lift = sin(phase * PI.toFloat() * 2f + leg) * if (moving) len * 0.08f else 0f
+                                val swing = cos(phase * PI.toFloat() * 2f + leg) * if (moving) len * 0.05f else 0f
+                                pose(
+                                    legs, x, y, z, yaw,
+                                    len * a + swing, -len * 0.16f + lift, s * len * 0.18f,
+                                    len * 0.08f, len * 0.28f, len * 0.06f, tint,
+                                )
+                                leg++
+                            }
                         }
                     }
-                }
-                if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
-                    val carry = if (ant.carrying == CarryKind.SUGAR) Color(1f, 0.84f, 0.2f, 1f) else Color(0.8f, 0.25f, 0.22f, 1f)
-                    pose(bits, x, y, z, yaw, -len * 0.15f, len * 0.16f, 0f, len * 0.22f, len * 0.22f, len * 0.22f, carry)
+                    if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
+                        val carry = if (ant.carrying == CarryKind.SUGAR) Color(1f, 0.84f, 0.2f, 1f) else Color(0.8f, 0.25f, 0.22f, 1f)
+                        pose(bits, x, y, z, yaw, -len * 0.15f, len * 0.16f, 0f, len * 0.22f, len * 0.22f, len * 0.22f, carry)
+                    }
                 }
             }
         }

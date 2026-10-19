@@ -88,4 +88,7 @@ val extractKoolJsFonts = tasks.register<Copy>("extractKoolJsFonts") {
 
 tasks.named<ProcessResources>("jsProcessResources") {
     from(extractKoolJsFonts)
+    from(layout.projectDirectory.dir("assets/models")) {
+        into("assets/models")
+    }
 }
