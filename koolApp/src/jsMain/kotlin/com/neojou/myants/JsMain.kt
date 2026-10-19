@@ -8,6 +8,6 @@ import kotlinx.browser.document
 fun main() {
     document.title = appTitle
     KoolApplication(config = KoolConfigJs(canvasName = "glCanvas")) {
-        koolStudyApp()
+        koolStudyApp(browserLaunch())
     }
 }

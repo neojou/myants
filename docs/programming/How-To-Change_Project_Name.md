@@ -28,7 +28,7 @@ const val APP_NAME: String = "myants" // configure:app.displayName
 
 - Desktop 視窗標題：`koolApp/src/desktopMain/kotlin/com/neojou/myants/Main.kt` 的 `KoolConfigJvm(windowTitle = appTitle)`
 - macOS 應用程式選單：同一個 `Main.kt` 呼叫 `applyMacOsApplicationName(AppVersion.APP_NAME)`，只放顯示名稱，不加版號
-- About 第一行：`koolApp/src/commonMain/kotlin/com/neojou/myants/AppUi.kt` 的 About 面板
+- About 第一行：`koolApp/src/commonMain/kotlin/com/neojou/myants/AntSimUi.kt` 的 About 面板
 - JS 分頁標題：`koolApp/src/jsMain/kotlin/com/neojou/myants/JsMain.kt` 在啟動時設定 `document.title = appTitle`
 - 靜態網頁標題：`koolApp/src/jsMain/resources/index.html` 的 `<title>`。這一行不是 Kotlin，所以 `proj_name` 會另外改它。
 

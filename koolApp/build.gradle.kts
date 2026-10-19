@@ -57,6 +57,9 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kool.core)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
     }
 }
 
