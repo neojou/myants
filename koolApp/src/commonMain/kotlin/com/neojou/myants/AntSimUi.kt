@@ -84,22 +84,22 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
             .padding(MyantsTheme.space.s2)
             .onPointer { it.pointer.consume() }
         Row {
-            Text("Speed") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.s2) }
+            Text("Speed") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.gapGroup) }
             Button("-") { modifier.onClick { session.stepSpeed(-1) } }
-            Text(session.speedLabel()) { modifier.alignY(AlignmentY.Center).margin(horizontal = MyantsTheme.space.s2) }
+            Text(session.speedLabel()) { modifier.alignY(AlignmentY.Center).margin(horizontal = MyantsTheme.space.gapInGroup) }
             Button("+") { modifier.onClick { session.stepSpeed(1) } }
             Button(if (session.paused) ">" else "||") {
-                modifier.margin(start = MyantsTheme.space.s2).onClick { session.togglePause() }
+                modifier.margin(start = MyantsTheme.space.gapGroup).onClick { session.togglePause() }
             }
-            Button(">|") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.stepOnce() } }
+            Button(">|") { modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.stepOnce() } }
         }
         Row {
             modifier.margin(top = MyantsTheme.space.s2)
-            Text("Zoom") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.s2) }
+            Text("Zoom") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.gapGroup) }
             Button("+") { modifier.onClick { session.zoomBy(1.25) } }
-            Button("-") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.zoomBy(1.0 / 1.25) } }
-            Button("o") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.resetCamera() } }
-            Button("PNG") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.requestScreenshot() } }
+            Button("-") { modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.zoomBy(1.0 / 1.25) } }
+            Button("o") { modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.resetCamera() } }
+            Button("PNG") { modifier.margin(start = MyantsTheme.space.gapGroup).onClick { session.requestScreenshot() } }
         }
         Row {
             modifier.margin(top = MyantsTheme.space.s2)
@@ -108,7 +108,7 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
             toolButton(session, SimTool.PROTEIN, "P")
             toolButton(session, SimTool.ENEMY, "E")
             Button(if (session.world.raining) "Rain*" else "Rain") {
-                modifier.margin(start = MyantsTheme.space.s2).onClick { session.toggleRain() }
+                modifier.margin(start = MyantsTheme.space.gapGroup).onClick { session.toggleRain() }
             }
         }
         Row {
@@ -144,19 +144,19 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
         modifier
             .size(420.dp, 220.dp)
             .align(AlignmentX.Center, AlignmentY.Center)
-            .padding(sizes.largeGap)
+            .padding(MyantsTheme.space.s6)
             .onPointer { it.pointer.consume() }
         Text(AppVersion.APP_NAME) {
-            modifier.alignX(AlignmentX.Center).margin(top = sizes.gap).font(sizes.largeText)
+            modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s3).font(sizes.largeText.derive(MyantsTheme.text.lg))
         }
         Text("Version ${AppVersion.NAME}") {
             modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s2)
         }
         Text("Based on AntSim_V2 by nilsgollub (MIT)") {
-            modifier.alignX(AlignmentX.Center).margin(top = sizes.gap)
+            modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s3)
         }
         Button("OK") {
-            modifier.alignX(AlignmentX.Center).margin(top = sizes.largeGap).onClick {
+            modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s6).onClick {
                 session.showAbout = false
                 session.bump()
             }
@@ -180,7 +180,7 @@ private fun Scene.sidePanel(session: AppSession, title: String, block: UiScope.(
             .width(360.dp)
             .align(AlignmentX.Start, AlignmentY.Bottom)
             .margin(MyantsTheme.space.screenEdge)
-            .padding(sizes.gap)
+            .padding(MyantsTheme.space.panelPadding)
             .onPointer { it.pointer.consume() }
         Row {
             Text(title) { modifier.alignY(AlignmentY.Center).width(Grow.Std) }
@@ -213,9 +213,8 @@ private fun AppSession.openPanel(name: String) {
 }
 
 private fun UiScope.toolButton(session: AppSession, tool: SimTool, label: String) {
-    val text = if (session.tool == tool) "[$label]" else label
-    Button(text) {
-        modifier.margin(end = MyantsTheme.space.s2).onClick {
+    Button(label) {
+        modifier.margin(end = MyantsTheme.space.gapInGroup).onClick {
             session.tool = tool
             session.notifyInput()
             session.bump()
@@ -223,9 +222,9 @@ private fun UiScope.toolButton(session: AppSession, tool: SimTool, label: String
         if (session.tool == tool) {
             modifier.colors(
                 buttonColor = T.primary,
-                buttonHoverColor = T.primaryVariant,
+                buttonHoverColor = T.primary,
                 textColor = T.primaryContainer,
-                textHoverColor = T.onPrimary,
+                textHoverColor = T.primaryContainer,
             )
         }
     }
@@ -264,7 +263,7 @@ private fun UiScope.grafik(session: AppSession) {
             Button(hex) {
                 modifier.margin(end = MyantsTheme.space.s2).onClick { session.setAntColor(hex) }
                 if (session.antColor == Color(hex)) {
-                    modifier.colors(buttonColor = T.primary, buttonHoverColor = T.primaryVariant, textColor = T.primaryContainer)
+                    modifier.colors(buttonColor = T.primary, buttonHoverColor = T.primary, textColor = T.primaryContainer, textHoverColor = T.primaryContainer)
                 }
             }
         }
