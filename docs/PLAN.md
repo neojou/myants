@@ -12,12 +12,12 @@
 
 ## Status
 
-- 日期：2026-10-20
-- Agent：Grok Build（只補交接文件；下一個執行者尚未指定）
-- 版本：0.14.0（`gradle.properties` 的 `app.version` 與 `AppVersion.NAME`）
-- Branch：`main`，與 `origin/main` 同一程式 commit
-- SHA：`2859ffe`（3D 場景無法平移／縮放的修復）。本檔與 `AGENTS.md`、`docs/programming/README.md` 是這次未 commit 的文件。
-- 工作樹：程式與 `2859ffe` 相同。未 commit 的是交接文件。
+- 日期：2026-10-21
+- Agent：Grok Bot（Coder）
+- 版本：0.14.0（未變）
+- Branch：`feat/4-theme-tokens`（PR #16，issue #4），基於 `origin/main` `c22caca`
+- 內容：新增 `ui/Theme.kt`（MyantsTheme token），`AntSimUi.kt` 收斂到 token；sim 沒改。
+- 下一步：Neo 在 macOS 補日／夜截圖給 Artist 重審；pressed 0.96 見 #17；radius/outline/尺寸/字級見 #18；HUD 數字固定寬度靠右對齊尚未做。
 
 已落地：
 
