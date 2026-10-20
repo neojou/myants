@@ -8,10 +8,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
-/** Queen.layTimer is a Double and uses `--`, which Kotlin only defines for integers. */
-operator fun Double.inc(): Double = this + 1.0
-operator fun Double.dec(): Double = this - 1.0
-
 enum class ParticleKind { DEFAULT, BLOOD, DUST }
 
 class Particle(
