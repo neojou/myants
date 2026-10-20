@@ -5,6 +5,7 @@ import com.neojou.myants.render3d.bloomAllowed
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.QualityLevel
 import com.neojou.myants.sim.SimConfig
+import com.neojou.myants.ui.MyantsTheme
 import de.fabmax.kool.KoolApplication
 import de.fabmax.kool.addUiScene
 import de.fabmax.kool.modules.ui2.*
@@ -46,22 +47,21 @@ private val SLIDERS = listOf(
     SliderSpec("predatorSpawnRate", "predatorSpawnRate", 0.0, 0.005, 0.0001),
 )
 
-private val ANT_COLORS = listOf("#c4703a", "#222222", "#d9bf52", "#88c0a0", "#6fa8dc")
-private val ACCENT = Color("#6750A4")
-private val ACCENT_HOVER = Color("#EADDFF")
+private val ANT_COLORS = MyantsTheme.Data.antColors
+private val T = MyantsTheme.colors
 
 fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
     session.uiScene = this
     val hud = addPanelSurface(
-        backgroundColor = { Color(0f, 0f, 0f, 0.45f) },
+        backgroundColor = { T.surface },
         width = FitContent,
         height = FitContent,
     ) {
         session.revision.use()
         modifier
             .align(AlignmentX.Start, AlignmentY.Top)
-            .margin(sizes.gap)
-            .padding(sizes.smallGap)
+            .margin(MyantsTheme.space.screenEdge)
+            .padding(MyantsTheme.space.s2)
             .onPointer { it.pointer.consume() }
         Text(session.hudFps.use()) { }
         Text(session.hudPop.use()) { }
@@ -69,66 +69,66 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
         Text(session.hudQueen.use()) { }
         Text("v${AppVersion.NAME}") { modifier.font(sizes.smallText) }
         if (session.inspect.value.isNotEmpty()) {
-            Text(session.inspect.use()) { modifier.margin(top = sizes.smallGap) }
+            Text(session.inspect.use()) { modifier.margin(top = MyantsTheme.space.s2) }
         }
     }
     addPanelSurface(
-        backgroundColor = { Color(0f, 0f, 0f, 0.45f) },
+        backgroundColor = { T.surface },
         width = FitContent,
         height = FitContent,
     ) {
         session.revision.use()
         modifier
             .align(AlignmentX.End, AlignmentY.Top)
-            .margin(sizes.gap)
-            .padding(sizes.smallGap)
+            .margin(MyantsTheme.space.screenEdge)
+            .padding(MyantsTheme.space.s2)
             .onPointer { it.pointer.consume() }
         Row {
-            Text("Speed") { modifier.alignY(AlignmentY.Center).margin(end = sizes.smallGap) }
+            Text("Speed") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.s2) }
             Button("-") { modifier.onClick { session.stepSpeed(-1) } }
-            Text(session.speedLabel()) { modifier.alignY(AlignmentY.Center).margin(horizontal = sizes.smallGap) }
+            Text(session.speedLabel()) { modifier.alignY(AlignmentY.Center).margin(horizontal = MyantsTheme.space.s2) }
             Button("+") { modifier.onClick { session.stepSpeed(1) } }
             Button(if (session.paused) ">" else "||") {
-                modifier.margin(start = sizes.smallGap).onClick { session.togglePause() }
+                modifier.margin(start = MyantsTheme.space.s2).onClick { session.togglePause() }
             }
-            Button(">|") { modifier.margin(start = sizes.smallGap).onClick { session.stepOnce() } }
+            Button(">|") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.stepOnce() } }
         }
         Row {
-            modifier.margin(top = sizes.smallGap)
-            Text("Zoom") { modifier.alignY(AlignmentY.Center).margin(end = sizes.smallGap) }
+            modifier.margin(top = MyantsTheme.space.s2)
+            Text("Zoom") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.s2) }
             Button("+") { modifier.onClick { session.zoomBy(1.25) } }
-            Button("-") { modifier.margin(start = sizes.smallGap).onClick { session.zoomBy(1.0 / 1.25) } }
-            Button("o") { modifier.margin(start = sizes.smallGap).onClick { session.resetCamera() } }
-            Button("PNG") { modifier.margin(start = sizes.smallGap).onClick { session.requestScreenshot() } }
+            Button("-") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.zoomBy(1.0 / 1.25) } }
+            Button("o") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.resetCamera() } }
+            Button("PNG") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.requestScreenshot() } }
         }
         Row {
-            modifier.margin(top = sizes.smallGap)
+            modifier.margin(top = MyantsTheme.space.s2)
             toolButton(session, SimTool.INSPECT, "?")
             toolButton(session, SimTool.SUGAR, "S")
             toolButton(session, SimTool.PROTEIN, "P")
             toolButton(session, SimTool.ENEMY, "E")
             Button(if (session.world.raining) "Rain*" else "Rain") {
-                modifier.margin(start = sizes.smallGap).onClick { session.toggleRain() }
+                modifier.margin(start = MyantsTheme.space.s2).onClick { session.toggleRain() }
             }
         }
         Row {
-            modifier.margin(top = sizes.smallGap)
+            modifier.margin(top = MyantsTheme.space.s2)
             Button("Restart") { modifier.onClick { session.restart(fromUser = true) } }
             Checkbox(session.colonies > 1) {
                 modifier.margin(start = sizes.gap).alignY(AlignmentY.Center).onToggle {
                     session.setColonies(if (it) 2 else 1)
                 }
             }
-            Text("Rivalenkolonie") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+            Text("Rivalenkolonie") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
         }
         Row {
-            modifier.margin(top = sizes.smallGap)
+            modifier.margin(top = MyantsTheme.space.s2)
             Button("Grafik") { modifier.onClick { session.openPanel("grafik") } }
-            Button("Params") { modifier.margin(start = sizes.smallGap).onClick { session.openPanel("params") } }
-            Button("Stats") { modifier.margin(start = sizes.smallGap).onClick { session.openPanel("stats") } }
-            Button("Analyse") { modifier.margin(start = sizes.smallGap).onClick { session.refreshAnalyse() } }
+            Button("Params") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.openPanel("params") } }
+            Button("Stats") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.openPanel("stats") } }
+            Button("Analyse") { modifier.margin(start = MyantsTheme.space.s2).onClick { session.refreshAnalyse() } }
             Button("About") {
-                modifier.margin(start = sizes.smallGap).onClick {
+                modifier.margin(start = MyantsTheme.space.s2).onClick {
                     session.showAbout = true
                     session.bump()
                 }
@@ -139,7 +139,7 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
     val paramsPanel = sidePanel(session, "Params") { params(session) }
     val statsPanel = sidePanel(session, "Verlauf") { stats(session) }
     val analysePanel = sidePanel(session, "Analyse") { analyse(session) }
-    val aboutPanel = addPanelSurface(width = FitContent, height = FitContent) {
+    val aboutPanel = addPanelSurface(backgroundColor = { T.surfaceRaised }, width = FitContent, height = FitContent) {
         session.revision.use()
         modifier
             .size(420.dp, 220.dp)
@@ -150,7 +150,7 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
             modifier.alignX(AlignmentX.Center).margin(top = sizes.gap).font(sizes.largeText)
         }
         Text("Version ${AppVersion.NAME}") {
-            modifier.alignX(AlignmentX.Center).margin(top = sizes.smallGap)
+            modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s2)
         }
         Text("Based on AntSim_V2 by nilsgollub (MIT)") {
             modifier.alignX(AlignmentX.Center).margin(top = sizes.gap)
@@ -174,12 +174,12 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
 }
 
 private fun Scene.sidePanel(session: AppSession, title: String, block: UiScope.() -> Unit) =
-    addPanelSurface(width = FitContent, height = FitContent) {
+    addPanelSurface(backgroundColor = { T.surfaceRaised }, width = FitContent, height = FitContent) {
         session.revision.use()
         modifier
             .width(360.dp)
             .align(AlignmentX.Start, AlignmentY.Bottom)
-            .margin(sizes.gap)
+            .margin(MyantsTheme.space.screenEdge)
             .padding(sizes.gap)
             .onPointer { it.pointer.consume() }
         Row {
@@ -215,24 +215,24 @@ private fun AppSession.openPanel(name: String) {
 private fun UiScope.toolButton(session: AppSession, tool: SimTool, label: String) {
     val text = if (session.tool == tool) "[$label]" else label
     Button(text) {
-        modifier.margin(end = sizes.smallGap).onClick {
+        modifier.margin(end = MyantsTheme.space.s2).onClick {
             session.tool = tool
             session.notifyInput()
             session.bump()
         }
         if (session.tool == tool) {
             modifier.colors(
-                buttonColor = ACCENT,
-                buttonHoverColor = ACCENT_HOVER,
-                textColor = Color.WHITE,
-                textHoverColor = ACCENT,
+                buttonColor = T.primary,
+                buttonHoverColor = T.primaryVariant,
+                textColor = T.primaryContainer,
+                textHoverColor = T.onPrimary,
             )
         }
     }
 }
 
 private fun UiScope.grafik(session: AppSession) {
-    Text("Qualität") { modifier.margin(top = sizes.smallGap) }
+    Text("Qualität") { modifier.margin(top = MyantsTheme.space.s2) }
     ComboBox {
         modifier
             .width(Grow.Std)
@@ -240,7 +240,7 @@ private fun UiScope.grafik(session: AppSession) {
             .selectedIndex(PerformanceManager.level.ordinal)
             .onItemSelected { session.setQuality(QualityLevel.entries[it]) }
     }
-    Text("Renderer") { modifier.margin(top = sizes.smallGap) }
+    Text("Renderer") { modifier.margin(top = MyantsTheme.space.s2) }
     ComboBox {
         modifier
             .width(Grow.Std)
@@ -249,69 +249,69 @@ private fun UiScope.grafik(session: AppSession) {
             .onItemSelected { session.chooseRenderer(if (it == 0) RenderMode.D3 else RenderMode.CLASSIC) }
     }
     Row {
-        modifier.margin(top = sizes.smallGap)
+        modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.showPheromones) {
             modifier.onToggle { session.setPheromones(it) }
         }
-        Text("Pheromon-Spuren") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Text("Pheromon-Spuren") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     Slider(session.pheromoneStrength.toFloat(), 0f, 1.5f) {
         modifier.width(Grow.Std).onChange { session.updatePheromoneStrength(it.toDouble()) }
     }
-    Text("Ameisenfarbe") { modifier.margin(top = sizes.smallGap) }
+    Text("Ameisenfarbe") { modifier.margin(top = MyantsTheme.space.s2) }
     Row {
         for (hex in ANT_COLORS) {
             Button(hex) {
-                modifier.margin(end = sizes.smallGap).onClick { session.setAntColor(hex) }
+                modifier.margin(end = MyantsTheme.space.s2).onClick { session.setAntColor(hex) }
                 if (session.antColor == Color(hex)) {
-                    modifier.colors(buttonColor = ACCENT, buttonHoverColor = ACCENT_HOVER, textColor = Color.WHITE)
+                    modifier.colors(buttonColor = T.primary, buttonHoverColor = T.primaryVariant, textColor = T.primaryContainer)
                 }
             }
         }
     }
     Row {
-        modifier.margin(top = sizes.smallGap)
+        modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.dayNight) { modifier.onToggle { session.updateDayNight(it) } }
-        Text("Tag/Nacht-Tönung") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Text("Tag/Nacht-Tönung") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     Slider(session.dayNightStrength.toFloat(), 0f, 1f) {
         modifier.width(Grow.Std).onChange { session.updateDayNightStrength(it.toDouble()) }
     }
     Row {
-        modifier.margin(top = sizes.smallGap)
+        modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.cinema) { modifier.onToggle { session.updateCinema(it) } }
-        Text("Kino-Kamera") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Text("Kino-Kamera") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     val bloomOk = bloomAllowed(session)
     Row {
-        modifier.margin(top = sizes.smallGap)
+        modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.bloomUser && bloomOk) {
             modifier.onToggle { if (bloomOk) session.chooseBloom(it) }
         }
         Text(if (bloomOk) "Bloom / Glühen" else "Bloom / Glühen (off)") {
-            modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap)
+            modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2)
         }
     }
     Row {
-        modifier.margin(top = sizes.smallGap)
+        modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.ssaoUser) { modifier.onToggle { session.chooseSsao(it) } }
-        Text("SSAO") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Text("SSAO") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     Row {
-        modifier.margin(top = sizes.smallGap)
+        modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.shadowsUser) { modifier.onToggle { session.chooseShadows(it) } }
-        Text("Schatten") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Text("Schatten") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     Row {
-        modifier.margin(top = sizes.smallGap)
+        modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.weatherUser) { modifier.onToggle { session.chooseWeather(it) } }
-        Text("Wetter-Effekte") { modifier.alignY(AlignmentY.Center).margin(start = sizes.smallGap) }
+        Text("Wetter-Effekte") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
-    Text("Gras-Dichte ${session.grassDensity}") { modifier.margin(top = sizes.smallGap) }
+    Text("Gras-Dichte ${session.grassDensity}") { modifier.margin(top = MyantsTheme.space.s2) }
     Slider(session.grassDensity, 0f, 1.5f) {
         modifier.width(Grow.Std).onChange { session.chooseGrassDensity(it) }
     }
-    Text("Kamera-Neigung ${session.cameraPitchDeg.toInt()}") { modifier.margin(top = sizes.smallGap) }
+    Text("Kamera-Neigung ${session.cameraPitchDeg.toInt()}") { modifier.margin(top = MyantsTheme.space.s2) }
     Slider(session.cameraPitchDeg, -90f, -60f) {
         modifier.width(Grow.Std).onChange { session.choosePitch(it) }
     }
@@ -319,13 +319,13 @@ private fun UiScope.grafik(session: AppSession) {
 
 private fun UiScope.params(session: AppSession) {
     Button("Reset") {
-        modifier.margin(top = sizes.smallGap).onClick { session.resetTunables() }
+        modifier.margin(top = MyantsTheme.space.s2).onClick { session.resetTunables() }
     }
     ScrollArea(height = 360.dp, withHorizontalScrollbar = false) {
         Column {
             for (spec in SLIDERS) {
                 val value = SimConfig.getNumber(spec.path)
-                Text("${spec.label} ${fmt(value)}") { modifier.margin(top = sizes.smallGap) }
+                Text("${spec.label} ${fmt(value)}") { modifier.margin(top = MyantsTheme.space.s2) }
                 Slider(value.toFloat(), spec.min.toFloat(), spec.max.toFloat()) {
                     modifier.width(Grow.Std).onChange {
                         session.setTunable(spec.path, quantize(it.toDouble(), spec.min, spec.max, spec.step))
@@ -339,9 +339,9 @@ private fun UiScope.params(session: AppSession) {
 private fun UiScope.stats(session: AppSession) {
     StatsChart.paint(session.history)
     Image(StatsChart.tex) {
-        modifier.margin(top = sizes.smallGap).imageSize(ImageSize.Stretch).size(280.dp, 130.dp)
+        modifier.margin(top = MyantsTheme.space.s2).imageSize(ImageSize.Stretch).size(280.dp, 130.dp)
     }
-    Text("Pop  Zucker  Protein  Energie") { modifier.margin(top = sizes.smallGap) }
+    Text("Pop  Zucker  Protein  Energie") { modifier.margin(top = MyantsTheme.space.s2) }
 }
 
 private fun UiScope.analyse(session: AppSession) {
@@ -352,10 +352,10 @@ private fun UiScope.analyse(session: AppSession) {
             }
             for (line in session.analyseLines) {
                 if (line.path == null) {
-                    Text(line.text) { modifier.margin(top = sizes.smallGap) }
+                    Text(line.text) { modifier.margin(top = MyantsTheme.space.s2) }
                 } else {
                     Button(line.text) {
-                        modifier.margin(top = sizes.smallGap).onClick {
+                        modifier.margin(top = MyantsTheme.space.s2).onClick {
                             session.applyAnalyse(line.path, line.to)
                         }
                     }
