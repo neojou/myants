@@ -91,4 +91,7 @@ tasks.named<ProcessResources>("jsProcessResources") {
     from(layout.projectDirectory.dir("assets/models")) {
         into("assets/models")
     }
+    from(layout.projectDirectory.dir("assets/icons")) {
+        into("assets/icons")
+    }
 }

@@ -35,6 +35,11 @@ jobs:
       - name: Build JS distribution
         run: ./gradlew jsBrowserDistribution --stacktrace
 
+      - name: Check HUD icons are packaged in JS distribution
+        run: |
+          diff <(cd koolApp/assets/icons && ls *.svg | sort) \
+               <(cd koolApp/build/dist/js/productionExecutable/assets/icons && ls *.svg | sort)
+
       - name: Upload JS distribution
         uses: actions/upload-artifact@v7
         with:

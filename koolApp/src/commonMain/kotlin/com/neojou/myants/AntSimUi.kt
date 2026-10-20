@@ -5,6 +5,9 @@ import com.neojou.myants.render3d.bloomAllowed
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.QualityLevel
 import com.neojou.myants.sim.SimConfig
+import com.neojou.myants.ui.HudIcon
+import com.neojou.myants.ui.HudIcons
+import com.neojou.myants.ui.IconButton
 import com.neojou.myants.ui.MyantsTheme
 import de.fabmax.kool.KoolApplication
 import de.fabmax.kool.addUiScene
@@ -52,6 +55,7 @@ private val T = MyantsTheme.colors
 
 fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
     session.uiScene = this
+    HudIcons.loadAll(coroutineScope)
     val hud = addPanelSurface(
         backgroundColor = { T.surface },
         width = FitContent,
@@ -85,30 +89,30 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
             .onPointer { it.pointer.consume() }
         Row {
             Text("Speed") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.gapGroup) }
-            Button("-") { modifier.onClick { session.stepSpeed(-1) } }
+            IconButton(HudIcon.SLOWER) { session.stepSpeed(-1) }
             Text(session.speedLabel()) { modifier.alignY(AlignmentY.Center).margin(horizontal = MyantsTheme.space.gapInGroup) }
-            Button("+") { modifier.onClick { session.stepSpeed(1) } }
-            Button(if (session.paused) ">" else "||") {
-                modifier.margin(start = MyantsTheme.space.gapGroup).onClick { session.togglePause() }
+            IconButton(HudIcon.FASTER) { session.stepSpeed(1) }
+            IconButton(if (session.paused) HudIcon.RESUME else HudIcon.PAUSE, startMargin = MyantsTheme.space.gapGroup) {
+                session.togglePause()
             }
-            Button(">|") { modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.stepOnce() } }
+            IconButton(HudIcon.STEP, enabled = session.paused, startMargin = MyantsTheme.space.gapInGroup) { session.stepOnce() }
         }
         Row {
             modifier.margin(top = MyantsTheme.space.s2)
             Text("Zoom") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.gapGroup) }
-            Button("+") { modifier.onClick { session.zoomBy(1.25) } }
-            Button("-") { modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.zoomBy(1.0 / 1.25) } }
-            Button("o") { modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.resetCamera() } }
-            Button("PNG") { modifier.margin(start = MyantsTheme.space.gapGroup).onClick { session.requestScreenshot() } }
+            IconButton(HudIcon.ZOOM_IN) { session.zoomBy(1.25) }
+            IconButton(HudIcon.ZOOM_OUT, startMargin = MyantsTheme.space.gapInGroup) { session.zoomBy(1.0 / 1.25) }
+            IconButton(HudIcon.RESET_CAMERA, startMargin = MyantsTheme.space.gapInGroup) { session.resetCamera() }
+            IconButton(HudIcon.SCREENSHOT, startMargin = MyantsTheme.space.gapGroup) { session.requestScreenshot() }
         }
         Row {
             modifier.margin(top = MyantsTheme.space.s2)
-            toolButton(session, SimTool.INSPECT, "?")
-            toolButton(session, SimTool.SUGAR, "S")
-            toolButton(session, SimTool.PROTEIN, "P")
-            toolButton(session, SimTool.ENEMY, "E")
-            Button(if (session.world.raining) "Rain*" else "Rain") {
-                modifier.margin(start = MyantsTheme.space.gapGroup).onClick { session.toggleRain() }
+            toolButton(session, SimTool.INSPECT, HudIcon.INSPECT)
+            toolButton(session, SimTool.SUGAR, HudIcon.SUGAR)
+            toolButton(session, SimTool.PROTEIN, HudIcon.PROTEIN)
+            toolButton(session, SimTool.ENEMY, HudIcon.ENEMY)
+            IconButton(HudIcon.RAIN, selected = session.world.raining, startMargin = MyantsTheme.space.gapGroup) {
+                session.toggleRain()
             }
         }
         Row {
@@ -212,22 +216,16 @@ private fun AppSession.openPanel(name: String) {
     bump()
 }
 
-private fun UiScope.toolButton(session: AppSession, tool: SimTool, label: String) {
-    Button(label) {
-        modifier.margin(end = MyantsTheme.space.gapInGroup).onClick {
-            session.tool = tool
-            session.notifyInput()
-            session.bump()
-        }
-        if (session.tool == tool) {
-            modifier.colors(
-                buttonColor = T.primary,
-                buttonHoverColor = T.primary,
-                textColor = T.primaryContainer,
-                textHoverColor = T.primaryContainer,
-            )
-            modifier.border(selectedBorder())
-        }
+private fun UiScope.toolButton(session: AppSession, tool: SimTool, icon: HudIcon) {
+    val first = tool == SimTool.INSPECT
+    IconButton(
+        icon,
+        selected = session.tool == tool,
+        startMargin = if (first) Dp(0f) else MyantsTheme.space.gapInGroup,
+    ) {
+        session.tool = tool
+        session.notifyInput()
+        session.bump()
     }
 }
 
