@@ -13,3 +13,4 @@ updates:
       - dependency-name: "org.jetbrains.kotlin*"
       - dependency-name: "de.fabmax.kool*"
       - dependency-name: "gradle"
+      - dependency-name: "gradle-wrapper"
