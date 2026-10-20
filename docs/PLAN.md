@@ -15,9 +15,9 @@
 - 日期：2026-10-21
 - Agent：Grok Bot（Coder）
 - 版本：0.14.0（未變）
-- Branch：`feat/4-theme-tokens`（PR #16，issue #4），基於 `origin/main` `c22caca`
-- 內容：新增 `ui/Theme.kt`（MyantsTheme token），`AntSimUi.kt` 收斂到 token；sim 沒改。
-- 下一步：Neo 在 macOS 補日／夜截圖給 Artist 重審；pressed 0.96 見 #17；radius/outline/尺寸/字級見 #18；HUD 數字固定寬度靠右對齊尚未做。
+- Branch：`feat/6-material-icons`（issue #6），基於 `origin/main` `cbaa3f8`（已含 #16 Theme token）
+- 內容：Speed／Zoom／Tool 三列改用 Material Symbols SVG 圖示按鈕（`ui/IconButton.kt`、`ui/HudIcon.kt`），每個都有 EN/DE tooltip，缺圖示時退回 ASCII；sim 沒改。
+- 下一步：Neo 在 macOS 補日／夜截圖給 Artist 和 QE 審；面板列（Restart/Grafik/…）和 `x` 圖示留給後續；pressed 0.96 見 #17。
 
 已落地：
 
