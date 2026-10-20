@@ -3,11 +3,9 @@ package com.neojou.myants.render3d.camera
 import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.WorldFrames
 import com.neojou.myants.render3d.terrain.GroundHeight
-import de.fabmax.kool.math.RayF
 import de.fabmax.kool.math.Vec2f
 import de.fabmax.kool.scene.OrthographicCamera
 import de.fabmax.kool.scene.Scene
-import kotlin.math.abs
 
 /**
  * Locked top-down (or a fixed tilt). Dragging never changes yaw.
@@ -21,7 +19,6 @@ class TopDownCamera(
     override val allowsRotation: Boolean = false
 
     private var scene: Scene? = null
-    private val ray = RayF()
     private var winW = 1f
     private var winH = 1f
 
@@ -91,14 +88,25 @@ class TopDownCamera(
 
     override fun screenToGround(px: Float, py: Float): Vec2f? {
         val host = scene ?: return null
-        if (!camera.computePickRay(ray, px, py, host.mainRenderPass.viewport)) return null
-        val dirY = ray.direction.y
-        if (abs(dirY) < 1e-5f) return null
+        val vp = host.mainRenderPass.viewport
         val ground = GroundHeight.at(camera.lookAt.x, camera.lookAt.z)
-        val t = (ground - ray.origin.y) / dirY
-        if (t < 0f) return null
-        val x = ray.origin.x + ray.direction.x * t
-        val z = ray.origin.z + ray.direction.z * t
-        return Vec2f(x, z)
+        // Do not use Camera.computePickRay. Its reversed-depth unproject is the
+        // perspective formula, and on this ortho camera the near point is non-finite.
+        return OrthoGround.hit(
+            px,
+            py,
+            vp.x.toFloat(),
+            vp.y.toFloat(),
+            vp.width.toFloat(),
+            vp.height.toFloat(),
+            camera.left,
+            camera.right,
+            camera.bottom,
+            camera.top,
+            camera.position,
+            camera.lookAt,
+            camera.up,
+            ground,
+        )
     }
 }

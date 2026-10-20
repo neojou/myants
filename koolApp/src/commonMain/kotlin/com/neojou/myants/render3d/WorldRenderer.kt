@@ -2,11 +2,15 @@ package com.neojou.myants.render3d
 
 import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.actors.GltfAnt
+import com.neojou.myants.render3d.actors.GltfAphid
 import com.neojou.myants.render3d.actors.PoseBuckets
 import com.neojou.myants.render3d.actors.draw
+import com.neojou.myants.render3d.actors.drawAphid
 import com.neojou.myants.render3d.actors.outdoorAntTint
 import com.neojou.myants.render3d.actors.parseGltfAnt
+import com.neojou.myants.render3d.actors.parseGltfAphid
 import com.neojou.myants.render3d.actors.uploadAntMeshes
+import com.neojou.myants.render3d.actors.uploadAphidMeshes
 import com.neojou.myants.render3d.camera.CameraDirector
 import com.neojou.myants.render3d.camera.TopDownCamera
 import com.neojou.myants.render3d.nest.NestCutaway
@@ -122,6 +126,17 @@ class WorldRenderer(
     private lateinit var antEyeMesh: Mesh<*>
     private lateinit var antJawMesh: Mesh<*>
     private lateinit var antLegMeshes: List<Mesh<*>>
+    private var greenAphid: GltfAphid? = null
+    private lateinit var aphidBody: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var aphidEyes: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var aphidLegs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>
+    private lateinit var aphidBodyMesh: Mesh<*>
+    private lateinit var aphidEyeMesh: Mesh<*>
+    private lateinit var aphidLegMeshes: List<Mesh<*>>
+    private lateinit var molts: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var honey: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private val aphidPrevX = HashMap<Int, Float>()
+    private val aphidPrevZ = HashMap<Int, Float>()
     private lateinit var food: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var insects: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var digits: MeshInstanceList<InstanceLayouts.ModelMatColor>
@@ -152,6 +167,7 @@ class WorldRenderer(
         buildContent(content)
         buildForward(forward)
         loadBlackAnt()
+        loadGreenAphid()
 
         scene.onUpdate {
             if (session.renderer != RenderMode.D3) return@onUpdate
@@ -383,6 +399,18 @@ class WorldRenderer(
         antLegMeshes = antLegs.mapIndexed { index, batch ->
             shadedInstances(content, batch, "ant-leg-$index", 0.42f, 0.08f)
         }
+        aphidBody = MeshInstanceList(layout, 64)
+        aphidBodyMesh = shadedInstances(content, aphidBody, "aphid-cuticle", 0.42f, 0.02f)
+        aphidEyes = MeshInstanceList(layout, 64)
+        aphidEyeMesh = shadedInstances(content, aphidEyes, "aphid-eye", 0.22f, 0.02f)
+        aphidLegs = List(6) { MeshInstanceList(layout, 64) }
+        aphidLegMeshes = aphidLegs.mapIndexed { index, batch ->
+            shadedInstances(content, batch, "aphid-leg-$index", 0.55f, 0.02f)
+        }
+        molts = MeshInstanceList(layout, 64)
+        instanced(content, molts, "aphid-molt", 0.92f) { moltFlake() }
+        honey = MeshInstanceList(layout, 64)
+        instanced(content, honey, "aphid-honey", 0.22f) { uvSphere { radius = 1f; steps = 6 } }
         food = MeshInstanceList(layout, 256)
         val foodShader = deferredKslPbrShader {
             vertices { instancedModelMatrix(layout.modelMat) }
@@ -468,6 +496,24 @@ class WorldRenderer(
         }
     }
 
+    private fun loadGreenAphid() {
+        scene.coroutineScope.launch {
+            val loaded = Assets.defaultLoader.loadBlob("models/insects/aphid_green.glb")
+            loaded.onSuccess { buf ->
+                try {
+                    val parsed = parseGltfAphid(buf.toArray())
+                    uploadAphidMeshes(parsed, aphidBodyMesh, aphidEyeMesh, aphidLegMeshes)
+                    greenAphid = parsed
+                    MyLog.add(TAG, "green aphid gltf tris=${parsed.triangles}", LogLevel.DEBUG)
+                } catch (err: Throwable) {
+                    MyLog.add(TAG, "Green aphid glTF failed: ${err.message}. Using block aphids.", LogLevel.DEBUG)
+                }
+            }.onFailure { err ->
+                MyLog.add(TAG, "Green aphid glTF missing: ${err.message}. Using block aphids.", LogLevel.DEBUG)
+            }
+        }
+    }
+
     private fun shadedInstances(
         parent: Node,
         instances: MeshInstanceList<InstanceLayouts.ModelMatColor>,
@@ -493,12 +539,13 @@ class WorldRenderer(
         parent: Node,
         instances: MeshInstanceList<InstanceLayouts.ModelMatColor>,
         name: String,
+        roughness: Float = 0.8f,
         build: de.fabmax.kool.scene.geometry.MeshBuilder<*>.() -> Unit,
     ): Mesh<*> {
         val shader = deferredKslPbrShader {
             vertices { instancedModelMatrix(layout.modelMat) }
             color { instanceColor(layout.color) }
-            roughness(0.8f)
+            roughness(roughness)
         }
         return parent.addMesh(VertexLayouts.PositionNormal, instances = instances) {
             isFrustumChecked = false
@@ -566,6 +613,8 @@ class WorldRenderer(
         bodies.clear(); heads.clear(); legs.clear(); food.clear(); insects.clear(); digits.clear(); bits.clear()
         antBody.clear(); antEyes.clear(); antJaws.clear()
         for (batch in antLegs) batch.clear()
+        aphidBody.clear(); aphidEyes.clear(); honey.clear(); molts.clear()
+        for (batch in aphidLegs) batch.clear()
         val time = Time.gameTime.toFloat()
         pushScatter(preset, time)
         pushSimGrass(preset, time)
@@ -739,13 +788,59 @@ class WorldRenderer(
     }
 
     private fun pushInsects() {
+        val seen = HashSet<Int>()
         for (insect in session.world.insects) {
             val x = insect.x.toFloat()
             val z = insect.y.toFloat()
             val yaw = WorldFrames.yawRad(insect.angle.toFloat())
             val size = insectSpan(insect.type)
+            if (insect.type == InsectKind.APHID) {
+                seen += insect.seq
+                val prevX = aphidPrevX[insect.seq]
+                val prevZ = aphidPrevZ[insect.seq]
+                val moved = prevX != null && prevZ != null && hypot(x - prevX, z - prevZ) > 0.05f
+                aphidPrevX[insect.seq] = x
+                aphidPrevZ[insect.seq] = z
+                val ground = GroundHeight.at(x, z)
+                val model = greenAphid
+                if (model != null) {
+                    val phase = (Time.gameTime.toFloat() * 0.25f + insect.seq * 0.173f) % 1f
+                    drawAphid(
+                        model, aphidBody, aphidEyes, aphidLegs,
+                        x, ground, z, yaw, size, phase, moved, mat, scale,
+                    )
+                } else {
+                    pose(
+                        insects, x, ground + size * 0.35f, z, yaw,
+                        0f, 0f, 0f, size, size * 0.45f, size * 0.7f, APHID_FALLBACK,
+                    )
+                }
+                pushAphidTraces(insect.seq, x, ground, z, yaw, size)
+                continue
+            }
             val y = GroundHeight.at(x, z) + size * 0.35f
             pose(insects, x, y, z, yaw, 0f, 0f, 0f, size, size * 0.45f, size * 0.7f, insectTint(insect.type))
+        }
+        aphidPrevX.keys.retainAll(seen)
+        aphidPrevZ.keys.retainAll(seen)
+    }
+
+    private fun pushAphidTraces(seq: Int, x: Float, ground: Float, z: Float, yaw: Float, length: Float) {
+        val bits = (seq * 1103515245 xor 12345).toUInt()
+        val ang = (bits and 255u).toFloat() / 255f * (PI.toFloat() * 2f)
+        val dist = 2.4f + ((bits shr 8) and 255u).toFloat() / 255f * 1.8f
+        val flakeYaw = ((bits shr 16) and 255u).toFloat() / 255f * (PI.toFloat() * 2f)
+        pose(
+            molts, x + cos(ang) * dist, ground + 0.05f, z + sin(ang) * dist, flakeYaw,
+            0f, 0f, 0f, 3.1f, 0.8f, 1.35f, MOLT,
+        )
+        if (seq and 1 == 0) {
+            val side = if ((bits and 1u) == 0u) 0.55f else -0.45f
+            pose(
+                honey, x, ground, z, yaw,
+                -length * 0.62f, 0.28f, side,
+                0.36f, 0.30f, 0.36f, HONEY,
+            )
         }
     }
 
@@ -856,6 +951,10 @@ private fun soilColor(ix: Int, iz: Int): Color {
     return Color(0.32f + n * 0.12f, 0.22f + n * 0.06f, 0.12f + n * 0.04f, 1f)
 }
 
+private val APHID_FALLBACK = Color(0.50f, 0.78f, 0.26f, 1f)
+private val MOLT = Color(0.96f, 0.95f, 0.92f, 1f)
+private val HONEY = Color(0.95f, 0.78f, 0.28f, 1f)
+
 private fun insectSpan(type: InsectKind): Float = when (type) {
     InsectKind.PREY -> 10f
     InsectKind.APHID -> 8f
@@ -885,6 +984,26 @@ private fun colorOr(hex: String, fallback: Color): Color = try {
     Color(hex)
 } catch (_: Throwable) {
     fallback
+}
+
+private fun de.fabmax.kool.scene.geometry.MeshBuilder<*>.moltFlake() {
+    val seg = 6
+    val halfW = 0.42f
+    val up = Vec3f.Y_AXIS
+    for (i in 0 until seg) {
+        val t0 = i / seg.toFloat()
+        val t1 = (i + 1) / seg.toFloat()
+        val x0 = -0.5f + t0
+        val x1 = -0.5f + t1
+        val y0 = sin(t0 * PI.toFloat()) * 0.22f
+        val y1 = sin(t1 * PI.toFloat()) * 0.22f
+        val a = vertex(Vec3f(x0, y0, -halfW), up)
+        val b = vertex(Vec3f(x0, y0, halfW), up)
+        val c = vertex(Vec3f(x1, y1, halfW), up)
+        val d = vertex(Vec3f(x1, y1, -halfW), up)
+        addTriIndices(a, b, c)
+        addTriIndices(a, c, d)
+    }
 }
 
 private fun de.fabmax.kool.scene.geometry.MeshBuilder<*>.ringXZ() {

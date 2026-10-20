@@ -189,7 +189,7 @@ private fun bucketFor(index: Int, names: Array<String>, parent: IntArray): Strin
     return "body"
 }
 
-private class MeshAccum {
+internal class MeshAccum {
     private val positions = ArrayList<Float>()
     private val normals = ArrayList<Float>()
     private val indices = ArrayList<Int>()
@@ -208,7 +208,7 @@ private class MeshAccum {
     )
 }
 
-private fun transform(world: FloatArray, inverse: FloatArray, positions: FloatArray, normals: FloatArray) {
+internal fun transform(world: FloatArray, inverse: FloatArray, positions: FloatArray, normals: FloatArray) {
     var i = 0
     while (i < positions.size) {
         val x = positions[i]
@@ -230,7 +230,7 @@ private fun transform(world: FloatArray, inverse: FloatArray, positions: FloatAr
     }
 }
 
-private fun readVec3(accessors: List<Any?>, views: List<Any?>, bin: ByteArray, index: Int): FloatArray {
+internal fun readVec3(accessors: List<Any?>, views: List<Any?>, bin: ByteArray, index: Int): FloatArray {
     val acc = accessors[index] as JsonMap
     val count = acc.num("count").toInt()
     val offset = viewOffset(views, acc)
@@ -243,7 +243,7 @@ private fun readVec3(accessors: List<Any?>, views: List<Any?>, bin: ByteArray, i
     return out
 }
 
-private fun readIndices(accessors: List<Any?>, views: List<Any?>, bin: ByteArray, index: Int): IntArray {
+internal fun readIndices(accessors: List<Any?>, views: List<Any?>, bin: ByteArray, index: Int): IntArray {
     val acc = accessors[index] as JsonMap
     val count = acc.num("count").toInt()
     val offset = viewOffset(views, acc)
@@ -261,12 +261,12 @@ private fun readIndices(accessors: List<Any?>, views: List<Any?>, bin: ByteArray
     return out
 }
 
-private fun viewOffset(views: List<Any?>, accessor: JsonMap): Int {
+internal fun viewOffset(views: List<Any?>, accessor: JsonMap): Int {
     val view = views[accessor.num("bufferView").toInt()] as JsonMap
     return (view.maybeNum("byteOffset")?.toInt() ?: 0) + (accessor.maybeNum("byteOffset")?.toInt() ?: 0)
 }
 
-private fun trs(t: FloatArray, q: FloatArray, s: FloatArray): FloatArray {
+internal fun trs(t: FloatArray, q: FloatArray, s: FloatArray): FloatArray {
     val x = q[0]
     val y = q[1]
     val z = q[2]
@@ -291,7 +291,7 @@ private fun trs(t: FloatArray, q: FloatArray, s: FloatArray): FloatArray {
     )
 }
 
-private fun mul(a: FloatArray, b: FloatArray): FloatArray {
+internal fun mul(a: FloatArray, b: FloatArray): FloatArray {
     val out = FloatArray(16)
     for (col in 0 until 4) {
         for (row in 0 until 4) {
@@ -305,7 +305,7 @@ private fun mul(a: FloatArray, b: FloatArray): FloatArray {
     return out
 }
 
-private fun invert(m: FloatArray): FloatArray {
+internal fun invert(m: FloatArray): FloatArray {
     val a = Array(4) { row ->
         FloatArray(8) { col ->
             if (col < 4) m[col * 4 + row] else if (col - 4 == row) 1f else 0f
@@ -343,13 +343,13 @@ private fun invert(m: FloatArray): FloatArray {
     return out
 }
 
-private fun ByteArray.u32(at: Int): Int =
+internal fun ByteArray.u32(at: Int): Int =
     (this[at].toInt() and 0xff) or
         ((this[at + 1].toInt() and 0xff) shl 8) or
         ((this[at + 2].toInt() and 0xff) shl 16) or
         ((this[at + 3].toInt() and 0xff) shl 24)
 
-private class JsonMap(val values: Map<String, Any?>) {
+internal class JsonMap(val values: Map<String, Any?>) {
     fun str(key: String): String = values[key] as? String ?: error("missing string $key")
     fun num(key: String): Double = (values[key] as? Double) ?: error("missing number $key")
     fun maybeNum(key: String): Double? = values[key] as? Double
@@ -362,7 +362,7 @@ private class JsonMap(val values: Map<String, Any?>) {
     }
 }
 
-private class JsonReader(val text: String) {
+internal class JsonReader(val text: String) {
     private var i = 0
 
     fun parse(): Any? {

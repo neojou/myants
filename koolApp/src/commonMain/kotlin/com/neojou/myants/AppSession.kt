@@ -278,8 +278,11 @@ class AppSession(launch: LaunchConfig) {
     }
 
     fun zoomAt(factor: Double, anchorX: Double, anchorY: Double) {
+        if (!factor.isFinite() || !anchorX.isFinite() || !anchorY.isFinite()) return
+        if (!zoom.isFinite() || !camX.isFinite() || !camY.isFinite()) return
         val next = (zoom * factor).coerceIn(1.0, 6.0)
         val change = next / zoom
+        if (change == 0.0 || !change.isFinite()) return
         camX = anchorX + (camX - anchorX) / change
         camY = anchorY + (camY - anchorY) / change
         zoom = next
@@ -301,6 +304,10 @@ class AppSession(launch: LaunchConfig) {
     }
 
     fun clampCamera(leftW: Float, winH: Float) {
+        if (!camX.isFinite() || !camY.isFinite() || !zoom.isFinite()) {
+            resetCamera(fromUser = false)
+            return
+        }
         zoom = zoom.coerceIn(1.0, 6.0)
         val fit = fitScale(leftW, winH)
         val s = fit * zoom
