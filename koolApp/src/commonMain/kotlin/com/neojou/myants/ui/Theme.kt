@@ -10,12 +10,12 @@ import kotlin.math.pow
  */
 object MyantsTheme {
     object colors {
-        val surface = Color("#120F17").withAlpha(0.62f)
+        val surface = Color("#120F17").withAlpha(0.72f)
         val surfaceRaised = Color("#1C1822").withAlpha(0.86f)
         val surfaceVariant = Color("#2A2730")
         val outline = Color("#EADDFF").withAlpha(0.10f)
         val onSurface = Color("#EEEEEE")
-        val onSurfaceVar = Color("#AAAAAA")
+        val onSurfaceVar = Color("#BDBDBD")
         val onSurfaceDisabled = Color("#EEEEEE").withAlpha(0.38f)
         val primary = Color("#6750A4")
         val primaryVariant = Color("#4F378B")

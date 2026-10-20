@@ -11,10 +11,11 @@ class ThemeTest {
 
     @Test
     fun surfaceTokensMatchSpec() {
-        assertEquals(0.62f, c.surface.a, 1e-4f)
+        assertEquals(0.72f, c.surface.a, 1e-4f)
         assertEquals(0.86f, c.surfaceRaised.a, 1e-4f)
         assertEquals(Color("#6750A4"), c.primary)
         assertEquals(Color("#EEEEEE"), c.onSurface)
+        assertEquals(Color("#BDBDBD"), c.onSurfaceVar)
     }
 
     @Test
@@ -32,7 +33,7 @@ class ThemeTest {
         println("CONTRAST onSurface/hud=%.2f onSurfaceVar/hud=%.2f onSurfaceVar/panel=%.2f".format(main, varHud, varPanel))
         assertTrue(main >= 4.5, "onSurface on HUD card: $main")
         assertTrue(varPanel >= 4.5, "onSurfaceVar on panel: $varPanel")
-        assertTrue(varHud >= 2.5, "onSurfaceVar on HUD card: $varHud")
+        assertTrue(varHud >= 4.5, "onSurfaceVar on HUD card: $varHud")
     }
 
     @Test
