@@ -14,11 +14,10 @@
 
 - 日期：2026-10-21
 - Agent：Grok Bot（Coder）
-- 版本：0.14.0（未變）
-- Branch：`feat/6-material-icons`（issue #6），基於 `origin/main` `cbaa3f8`（已含 #16 Theme token）
-- 內容：Speed／Zoom／Tool 三列改用 Material Symbols SVG 圖示按鈕（`ui/IconButton.kt`、`ui/HudIcon.kt`），每個都有 EN/DE tooltip（延遲 0.45s），缺圖示時退回 ASCII 並寫 WARN。選中狀態用實心圖示＋外框，pressed 用 primaryPressed。圖示會一起打包進 js（`jsProcessResources`），CI 也會檢查。sim 沒改。
-- 驗證：`compileKotlinDesktop compileKotlinJs desktopTest` 共 66 個測試全過；desktop 實機和截圖都還沒驗證（box 沒有 GPU）。
-- 下一步：Neo 在 macOS 補日／夜截圖；Artist 複審、QE 重驗 js；pressed 縮到 0.96 見 #17；圓角、外框、尺寸、字級見 #18；文字按鈕 tooltip 和語言切換見 #24。
+- 版本：0.15.0（未發布，未變）
+- Branch：`feat/7-split-appsession`（issue #7 第 1 步），基於 `origin/main` `75b6e84`
+- 內容：從 `AppSession` 拆出 `session/SimClock`（暫停、速度、累加器）和 `session/CameraState`（相機、縮放、clamp、座標換算）。`AppSession` 保留原本的 API 並轉呼叫新類別，其他檔案不用改。sim 沒改，HeadlessInvariantsTest 通過。
+- 下一步：#7 第 2 步拆 `ToolController`（工具、放置、Inspect）；第 3 步拆 `ViewState`（面板、HUD 文字、cinema／follow），把 `AppSession` 壓到 300 行以下。
 
 已落地：
 

@@ -4,7 +4,10 @@
 
 ## [Unreleased]
 
-## [0.15.0] - 未發布
+### 變更
+- 重構：`AppSession` 的時序（暫停、速度、60 Hz 累加器）拆到 `session/SimClock`，相機拆到 `session/CameraState`；行為不變（#7 第 1 步）
+
+## [0.15.0] - 2026-10-21
 
 涵蓋 M1（試跑流程）與 M2（HUD 圖示）。
 
