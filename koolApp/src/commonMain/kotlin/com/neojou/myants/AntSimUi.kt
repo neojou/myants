@@ -226,6 +226,7 @@ private fun UiScope.toolButton(session: AppSession, tool: SimTool, label: String
                 textColor = T.primaryContainer,
                 textHoverColor = T.primaryContainer,
             )
+            modifier.border(selectedBorder())
         }
     }
 }
@@ -264,6 +265,7 @@ private fun UiScope.grafik(session: AppSession) {
                 modifier.margin(end = MyantsTheme.space.s2).onClick { session.setAntColor(hex) }
                 if (session.antColor == Color(hex)) {
                     modifier.colors(buttonColor = T.primary, buttonHoverColor = T.primary, textColor = T.primaryContainer, textHoverColor = T.primaryContainer)
+                    modifier.border(selectedBorder())
                 }
             }
         }
@@ -461,3 +463,6 @@ private object StatsChart {
         buf[i + 3] = a.toUByte()
     }
 }
+
+/** Non-color cue for selected state (color-vision deficiency, #4): 1dp primaryContainer outline. */
+private fun selectedBorder() = RoundRectBorder(T.primaryContainer, MyantsTheme.radius.md, MyantsTheme.stroke.selected)

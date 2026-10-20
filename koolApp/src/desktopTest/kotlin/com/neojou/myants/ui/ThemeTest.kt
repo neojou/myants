@@ -42,4 +42,12 @@ class ThemeTest {
         assertEquals(12f, MyantsTheme.space.screenEdge.value)
         assertEquals(10f, MyantsTheme.radius.lg.value)
     }
+
+    @Test
+    fun selectedOutlineIsVisibleOnHudAndPrimary() {
+        assertEquals(1f, MyantsTheme.stroke.selected.value)
+        val day = MyantsTheme.over(c.surface, brightSky)
+        assertTrue(MyantsTheme.contrast(c.primaryContainer, day) >= 4.5)
+        assertTrue(MyantsTheme.contrast(c.primaryContainer, c.primary) >= 4.5)
+    }
 }

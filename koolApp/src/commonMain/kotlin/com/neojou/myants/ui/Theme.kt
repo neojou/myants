@@ -39,6 +39,11 @@ object MyantsTheme {
         val lg: Dp = Dp(10f)
     }
 
+    object stroke {
+        /** Selected-state outline width (non-color cue). */
+        val selected: Dp = Dp(1f)
+    }
+
     object space {
         val s1: Dp = Dp(4f)
         val s2: Dp = Dp(8f)
