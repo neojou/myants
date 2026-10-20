@@ -15,9 +15,9 @@
 - 日期：2026-10-21
 - Agent：Grok Bot（Coder）
 - 版本：0.15.0（已發布；本分支未改版號）
-- Branch：`feat/7-tool-controller`（issue #7 第 2 步），基於 `feat/7-split-appsession`（PR #28，尚未合併）
-- 內容：第 1 步從 `AppSession` 拆出 `session/SimClock`、`session/CameraState`；第 2 步拆出 `session/ToolController`（SimTool、放置、Inspect 世界／巢穴判定）。`AppSession` 保留原本的 API 並轉呼叫新類別，其他檔案不用改。sim 沒改，HeadlessInvariantsTest 通過。
-- 下一步：#7 第 3 步拆 `ViewState`（面板、HUD 文字、cinema／follow）和設定存取，把 `AppSession` 壓到 300 行以下。
+- Branch：`feat/7-view-state`（issue #7 第 3 步），基於 `feat/7-tool-controller`（PR #32）；合併順序 #28 → #32 → 本 PR
+- 內容：`AppSession` 拆成組合根（296 行）加上 `session/` 底下的 SimClock、CameraState、ToolController、ViewState（偏好、面板、設定檔格式）、HudState、CinemaDirector、ShotPose、TunerOverrides、FpsCounter。對外 API 不變，sim 沒改，HeadlessInvariantsTest 通過。
+- 下一步：#7 完成後依 PM 第 2 批：#10 PointerRouter、#8 拆 AntSimUi.kt。
 
 已落地：
 
