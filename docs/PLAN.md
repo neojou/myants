@@ -14,11 +14,11 @@
 
 - 日期：2026-10-21
 - Agent：Grok Bot（Coder）
-- 版本：0.14.0（未變）
-- Branch：`feat/6-material-icons`（issue #6），基於 `origin/main` `cbaa3f8`（已含 #16 Theme token）
-- 內容：Speed／Zoom／Tool 三列改用 Material Symbols SVG 圖示按鈕（`ui/IconButton.kt`、`ui/HudIcon.kt`），每個都有 EN/DE tooltip（延遲 0.45s），缺圖示時退回 ASCII 並寫 WARN。選中狀態用實心圖示＋外框，pressed 用 primaryPressed。圖示會一起打包進 js（`jsProcessResources`），CI 也會檢查。sim 沒改。
-- 驗證：`compileKotlinDesktop compileKotlinJs desktopTest` 共 66 個測試全過；desktop 實機和截圖都還沒驗證（box 沒有 GPU）。
-- 下一步：Neo 在 macOS 補日／夜截圖；Artist 複審、QE 重驗 js；pressed 縮到 0.96 見 #17；圓角、外框、尺寸、字級見 #18；文字按鈕 tooltip 和語言切換見 #24。
+- 版本：0.15.0（已發布；本分支未改版號）
+- Branch：`feat/31-world-shadowed-ext`（issue #31），基於 `origin/main` `ac9b558`
+- 內容：移除 `sim/World.kt` 中被遮蔽的 `Double.inc/dec` 擴充函式（死碼，消除警告）。行為不變，HeadlessInvariantsTest 通過。
+- 進行中：#7 拆分 AppSession（PR #28 → #32 → #33，依序合併）。
+- 下一步：依 PM 第 2 批：#10 PointerRouter、#8 拆 AntSimUi.kt。
 
 已落地：
 
