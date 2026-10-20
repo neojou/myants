@@ -60,6 +60,9 @@ M1 試跑流程：#1 CI（PR #2 待審）。
 3. 合併只由 Neo 執行；agent 不 push main、不 merge、不 force-push、不刪分支。
 4. PM 留言、issue、PR 標題以 `[PM]` 開頭；其他角色用 `[CI]`/`[Coder]`/`[QE]`/`[Artist]`。
 5. 決策紀錄見 `docs/adr/`。
+6. 每個 PR 都要更新 `CHANGELOG.md` 的 `Unreleased` 區（附 PR 編號）。
+7. 每個 milestone 的最後一個 PR 是 release PR：`./configure.sh version x.y.z`，標題 `chore(release): vX.Y.Z`。
+8. Neo 合併 release PR 後，由 PM 在該 merge commit 建 tag `vX.Y.Z` 與 GitHub Release（內容取自 CHANGELOG；Neo 也可自己打）。版本規則見 ADR 0003（提議中）。
 
 ## 不要動
 
