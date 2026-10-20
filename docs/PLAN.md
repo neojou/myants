@@ -16,8 +16,9 @@
 - Agent：Grok Bot（Coder）
 - 版本：0.14.0（未變）
 - Branch：`feat/6-material-icons`（issue #6），基於 `origin/main` `cbaa3f8`（已含 #16 Theme token）
-- 內容：Speed／Zoom／Tool 三列改用 Material Symbols SVG 圖示按鈕（`ui/IconButton.kt`、`ui/HudIcon.kt`），每個都有 EN/DE tooltip，缺圖示時退回 ASCII；sim 沒改。
-- 下一步：Neo 在 macOS 補日／夜截圖給 Artist 和 QE 審；面板列（Restart/Grafik/…）和 `x` 圖示留給後續；pressed 0.96 見 #17。
+- 內容：Speed／Zoom／Tool 三列改用 Material Symbols SVG 圖示按鈕（`ui/IconButton.kt`、`ui/HudIcon.kt`），每個都有 EN/DE tooltip（延遲 0.45s），缺圖示時退回 ASCII 並寫 WARN。選中狀態用實心圖示＋外框，pressed 用 primaryPressed。圖示會一起打包進 js（`jsProcessResources`），CI 也會檢查。sim 沒改。
+- 驗證：`compileKotlinDesktop compileKotlinJs desktopTest` 共 66 個測試全過；desktop 實機和截圖都還沒驗證（box 沒有 GPU）。
+- 下一步：Neo 在 macOS 補日／夜截圖；Artist 複審、QE 重驗 js；pressed 縮到 0.96 見 #17；圓角、外框、尺寸、字級見 #18；文字按鈕 tooltip 和語言切換見 #24。
 
 已落地：
 
