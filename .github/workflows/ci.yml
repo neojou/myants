@@ -30,10 +30,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Compile and test
-        run: ./gradlew compileKotlinDesktop compileKotlinJs desktopTest --stacktrace
+        run: ./gradlew compileKotlinDesktop compileKotlinJs desktopTest --stacktrace --warning-mode all
 
       - name: Build JS distribution
-        run: ./gradlew jsBrowserDistribution --stacktrace
+        run: ./gradlew jsBrowserDistribution --stacktrace --warning-mode all
 
       - name: Check HUD icons are packaged in JS distribution
         run: |
