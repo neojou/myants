@@ -31,11 +31,34 @@
 
 ## Now
 
-沒有進行中的功能。這次只建立交接文件。
+M1 試跑流程：#1 CI（PR #2 待審）。
 
 ## Next
 
-（空。擁有者指定下一件之前不要開工。寫進來時每項一行，並寫完成條件。）
+（擁有者 Neo 於 2026-10-21 指定 M1–M5 roadmap，由 [PM] 建立；細節見 GitHub milestones 與 issues。）
+
+| 順序 | Milestone | Issues | 完成條件 |
+|---|---|---|---|
+| 1 | M1 試跑流程 | #1（CI，PR #2）、#3 Theme token 規格、#4 Theme.kt 實作 | CI 綠；Theme token 落地；完整走過一次 issue→PR→QE/Artist PASS→Neo 合併 |
+| 2 | M2 UI 元件圖示化 | #5 圖示規格、#6 圖示按鈕＋tooltip | `>|` 等文字按鈕換圖示，有 tooltip 與缺檔退路 |
+| 3 | M3 UI/UX 與架構整理 | #7 拆 AppSession、#8 AntSimUi 拆檔、#9 細粒度 state、#10 PointerRouter、#11 工具列分組 | 行為不變、黃金值不變，檔案職責單一 |
+| 4 | M4 Tool - Inspect | #12 Epic | M1–M3 大致完成才開始 |
+| 5 | M5 glTF 單位模型美化 | #13 Epic | 有程序退路、效能達標 |
+
+調整理由：
+- 先 M1 驗證流程（CI + 角色審查），之後所有 PR 才有一致品質門檻。
+- Theme token 先於圖示化，圖示狀態色才有來源。
+- M3 架構整理放在 M4 之前：Inspect 需要乾淨的拾取（PointerRouter）與 AppSession 拆分，否則會繼續堆在 794 行的 AppSession。
+- M5 主要是美術工作，可在 M3 之後與 M4 並行。
+- 第一人稱仍不在 Next；Inspect 只讀 sim，不寫回。
+
+### 流程
+
+1. 一 issue 一分支一 PR：`feat/<issue#>-slug`（CI 用 `ci/`、文件用 `docs/`），PR 描述 `Closes #n`。
+2. 完成條件：CI 綠 + issue/PR 上有 `[QE] PASS` 留言 + 畫面相關變更有 `[Artist] PASS` 留言。
+3. 合併只由 Neo 執行；agent 不 push main、不 merge、不 force-push、不刪分支。
+4. PM 留言、issue、PR 標題以 `[PM]` 開頭；其他角色用 `[CI]`/`[Coder]`/`[QE]`/`[Artist]`。
+5. 決策紀錄見 `docs/adr/`。
 
 ## 不要動
 
