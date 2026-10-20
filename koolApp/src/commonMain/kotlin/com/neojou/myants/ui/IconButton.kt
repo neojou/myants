@@ -7,6 +7,7 @@ import de.fabmax.kool.loadTexture2d
 import de.fabmax.kool.math.Vec2i
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.pipeline.Texture2d
+import de.fabmax.kool.util.Color
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -24,17 +25,78 @@ object HudIcons {
     fun loadAll(scope: CoroutineScope) {
         for (path in HudIcon.allAssetPaths()) {
             scope.launch {
-                Assets.defaultLoader.loadTexture2d(path, resolveSize = Vec2i(RASTER_PX, RASTER_PX))
-                    .onSuccess {
-                        textures[path] = it
+                loadIcon(
+                    path,
+                    loader = { Assets.defaultLoader.loadTexture2d(it, resolveSize = Vec2i(RASTER_PX, RASTER_PX)) },
+                    onLoaded = { p, tex ->
+                        textures[p] = tex
                         loadedCount.set(loadedCount.value + 1)
-                    }
-                    .onFailure { err ->
-                        MyLog.add(TAG, "Icon $path missing: ${err.message}. Using text label.", LogLevel.WARN)
-                    }
+                    },
+                )
             }
         }
     }
+
+    /**
+     * Loads one icon; on failure writes a WARN via [warn] and never throws, so the button keeps its text fallback.
+     * @return true when the icon was loaded.
+     */
+    suspend fun <T> loadIcon(
+        path: String,
+        loader: suspend (String) -> Result<T>,
+        onLoaded: (String, T) -> Unit,
+        warn: (String) -> Unit = { MyLog.add(TAG, it, LogLevel.WARN) },
+    ): Boolean {
+        val result = try { loader(path) } catch (err: Throwable) { Result.failure(err) }
+        result.onSuccess { onLoaded(path, it) }
+            .onFailure { err -> warn("Icon $path missing: ${err.message}. Using text label.") }
+        return result.isSuccess
+    }
+}
+
+/** Resolved look of an [IconButton] for a given state (pure, unit-tested). */
+data class IconButtonVisual(
+    /** Icon asset to draw, or null when the texture is not loaded and [text] is shown instead. */
+    val assetPath: String?,
+    val text: String,
+    val background: Color?,
+    val foreground: Color,
+    val outlined: Boolean,
+    val clickable: Boolean,
+)
+
+fun iconButtonVisual(
+    icon: HudIcon,
+    selected: Boolean,
+    enabled: Boolean,
+    hovered: Boolean,
+    pressed: Boolean,
+    isLoaded: (String) -> Boolean,
+): IconButtonVisual {
+    val c = MyantsTheme.colors
+    val path = icon.assetPath(filled = selected)
+    val loaded = isLoaded(path)
+    val bg = when {
+        selected && pressed && enabled -> c.primaryVariant
+        selected -> c.primary
+        !enabled -> null
+        pressed -> c.primaryPressed
+        hovered -> c.primaryHover
+        else -> null
+    }
+    val fg = when {
+        !enabled -> c.onSurfaceDisabled
+        selected -> c.primaryContainer
+        else -> c.onSurface
+    }
+    return IconButtonVisual(
+        assetPath = if (loaded) path else null,
+        text = icon.label(loaded),
+        background = bg,
+        foreground = fg,
+        outlined = selected,
+        clickable = enabled,
+    )
 }
 
 /**
@@ -50,39 +112,38 @@ fun UiScope.IconButton(
 ) {
     val c = MyantsTheme.colors
     HudIcons.loadedCount.use()
-    val tex = HudIcons.texture(icon.assetPath(filled = selected))
     Box {
         val hovered = remember { mutableStateOf(false) }
-        val bg = when {
-            selected -> c.primary
-            enabled && hovered.use() -> c.primaryHover
-            else -> null
-        }
-        val fg = when {
-            !enabled -> c.onSurfaceDisabled
-            selected -> c.primaryContainer
-            else -> c.onSurface
-        }
+        val pressed = remember { mutableStateOf(false) }
+        val v = iconButtonVisual(icon, selected, enabled, hovered.use(), pressed.use()) { HudIcons.texture(it) != null }
         modifier
             .size(MyantsTheme.size.button, MyantsTheme.size.button)
             .margin(start = startMargin)
             .alignY(AlignmentY.Center)
             .onEnter { hovered.set(true) }
-            .onExit { hovered.set(false) }
-            .onClick { if (enabled) onClick() }
-        modifier.background(bg?.let { RoundRectBackground(it, MyantsTheme.radius.md) })
-        if (selected) modifier.border(RoundRectBorder(c.primaryContainer, MyantsTheme.radius.md, MyantsTheme.stroke.selected))
+            .onHover { pressed.set(it.pointer.isLeftButtonDown) }
+            .onExit {
+                hovered.set(false)
+                pressed.set(false)
+            }
+            .onClick {
+                pressed.set(false)
+                if (v.clickable) onClick()
+            }
+        modifier.background(v.background?.let { RoundRectBackground(it, MyantsTheme.radius.md) })
+        if (v.outlined) modifier.border(RoundRectBorder(c.primaryContainer, MyantsTheme.radius.md, MyantsTheme.stroke.selected))
+        val tex = v.assetPath?.let { HudIcons.texture(it) }
         if (tex != null) {
             Image(tex) {
                 modifier
                     .size(MyantsTheme.size.icon, MyantsTheme.size.icon)
                     .align(AlignmentX.Center, AlignmentY.Center)
                     .imageSize(ImageSize.Stretch)
-                    .tint(fg)
+                    .tint(v.foreground)
             }
         } else {
-            Text(icon.label(false)) {
-                modifier.align(AlignmentX.Center, AlignmentY.Center).textColor(fg)
+            Text(v.text) {
+                modifier.align(AlignmentX.Center, AlignmentY.Center).textColor(v.foreground)
             }
         }
         Tooltip(
