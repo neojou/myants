@@ -16,7 +16,7 @@ HUD toolbar icons (Speed, Zoom, Tool rows) are Material Symbols Rounded SVGs (op
 - `cookie_fill.svg`
 - `pause.svg`
 - `photo_camera.svg`
-- `play_arrow.svg`
+- `play_arrow_fill.svg`
 - `rainy.svg`
 - `rainy_fill.svg`
 - `remove.svg`
@@ -24,7 +24,7 @@ HUD toolbar icons (Speed, Zoom, Tool rows) are Material Symbols Rounded SVGs (op
 - `search_fill.svg`
 - `set_meal.svg`
 - `set_meal_fill.svg`
-- `skip_next.svg`
+- `skip_next_fill.svg`
 - `skull.svg`
 - `skull_fill.svg`
 - `zoom_in.svg`
