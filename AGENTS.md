@@ -27,7 +27,9 @@
 ## Workflow
 1. 一 issue 一 branch：`feat/<issue#>-slug`；Conventional Commits。
 2. 小 PR，描述含：做了什麼、怎麼驗證（含截圖）、未完成事項。
-3. 換手前更新 `docs/PLAN.md` 的 Status（日期、agent、版本、SHA、下一步）並 push。
+3. 每個 PR 都更新 `CHANGELOG.md` 的 `Unreleased` 區（附 PR 編號）。
+4. milestone 結尾開 release PR（`./configure.sh version x.y.z`，標題 `chore(release): vX.Y.Z`）；合併後由 PM 建 tag 與 GitHub Release。見 `docs/adr/0003-versioning-and-release.md`。
+5. 換手前更新 `docs/PLAN.md` 的 Status（日期、agent、版本、SHA、下一步）並 push。
 
 ## Rules
 - 不升級 kool / Kotlin / Gradle / JDK 版本。
