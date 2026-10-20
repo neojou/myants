@@ -8,3 +8,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # 依 AGENTS.md：不自動升級 Kotlin／Gradle／kool，交給 Neo 決定
+    ignore:
+      - dependency-name: "org.jetbrains.kotlin*"
+      - dependency-name: "de.fabmax.kool*"
+      - dependency-name: "gradle"
