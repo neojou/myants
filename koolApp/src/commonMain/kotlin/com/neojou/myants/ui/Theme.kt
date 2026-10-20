@@ -39,6 +39,16 @@ object MyantsTheme {
         val lg: Dp = Dp(10f)
     }
 
+    object size {
+        val button: Dp = Dp(28f)
+        val icon: Dp = Dp(18f)
+    }
+
+    object motion {
+        /** Tooltip delay; issue #6 requires < 0.5s. */
+        const val tooltipDelaySec = 0.45
+    }
+
     object stroke {
         /** Selected-state outline width (non-color cue). */
         val selected: Dp = Dp(1f)
