@@ -201,21 +201,6 @@ private fun Scene.sidePanel(session: AppSession, title: String, block: UiScope.(
         block()
     }
 
-private fun AppSession.openPanel(name: String) {
-    val was = when (name) {
-        "grafik" -> showGrafik
-        "params" -> showParams
-        "stats" -> showStats
-        else -> showAnalyse
-    }
-    showGrafik = name == "grafik" && !was
-    showParams = name == "params" && !was
-    showStats = name == "stats" && !was
-    showAnalyse = name == "analyse" && !was
-    notifyInput()
-    bump()
-}
-
 private fun UiScope.toolButton(session: AppSession, tool: SimTool, icon: HudIcon) {
     val first = tool == SimTool.INSPECT
     IconButton(

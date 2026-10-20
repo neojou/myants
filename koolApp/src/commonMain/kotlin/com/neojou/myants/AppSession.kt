@@ -2,31 +2,28 @@ package com.neojou.myants
 
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.session.CameraState
+import com.neojou.myants.session.CinemaDirector
+import com.neojou.myants.session.HudState
 import com.neojou.myants.session.SimClock
 import com.neojou.myants.session.ToolController
-import com.neojou.myants.render3d.parseRenderMode
+import com.neojou.myants.session.FpsCounter
+import com.neojou.myants.session.ShotPose
+import com.neojou.myants.session.TunerOverrides
+import com.neojou.myants.session.ViewState
+import com.neojou.myants.session.buildAnalyseLines
 import com.neojou.myants.sim.Ant
-import com.neojou.myants.sim.AntKind
-import com.neojou.myants.sim.AntPlace
-import com.neojou.myants.sim.AntState
-import com.neojou.myants.sim.FoodKind
-import com.neojou.myants.sim.InsectKind
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.QualityLevel
 import com.neojou.myants.sim.Rng
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
-import de.fabmax.kool.pipeline.Texture2d
-import de.fabmax.kool.scene.Scene
 import com.neojou.tools.LogLevel
 import com.neojou.tools.MyLog
 import de.fabmax.kool.modules.ui2.mutableStateOf
+import de.fabmax.kool.pipeline.Texture2d
+import de.fabmax.kool.scene.Scene
 import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.Time
-import kotlin.math.cos
-import kotlin.math.floor
-import kotlin.math.roundToInt
-import kotlin.math.sin
 
 enum class SimTool { INSPECT, SUGAR, PROTEIN, ENEMY }
 
@@ -35,45 +32,54 @@ class AnalyseLine(val text: String, val path: String?, val to: Double)
 class GraphSample(val population: Int, val sugar: Double, val protein: Double, val energyPct: Double)
 
 /**
- * Live session: fixed 60 Hz sim clock, camera, tools, and the UI settings file.
+ * Composition root of the live session (#7): [SimClock], [CameraState], [ToolController],
+ * [ViewState] (prefs + panels + settings format), [HudState] and [CinemaDirector].
+ * Public properties delegate to those parts so UI and render code stay unchanged.
  * Cinema picks use [kotlin.random.Random], never [Rng].
  */
 class AppSession(launch: LaunchConfig) {
     val clock = SimClock()
     val camera = CameraState()
-    val speeds: DoubleArray get() = clock.speeds
-    var speedIndex: Int
-        get() = clock.speedIndex
-        set(v) { clock.speedIndex = v }
-    var paused: Boolean
-        get() = clock.paused
-        set(v) { clock.paused = v }
     val tools = ToolController()
-    var tool: SimTool
-        get() = tools.tool
-        set(v) { tools.tool = v }
-    var camX: Double
-        get() = camera.x
-        set(v) { camera.x = v }
-    var camY: Double
-        get() = camera.y
-        set(v) { camera.y = v }
-    var zoom: Double
-        get() = camera.zoom
-        set(v) { camera.zoom = v }
-    var showPheromones: Boolean = true
-    var pheromoneStrength: Double = 1.0
-    var antColor: Color = Color("#c4703a")
-    var dayNight: Boolean = true
-    var dayNightStrength: Double = 0.5
-    var cinema: Boolean = true
-    var renderer: RenderMode = RenderMode.D3
-    var cameraPitchDeg: Float = -70f
-    var bloomUser: Boolean = true
-    var ssaoUser: Boolean = true
-    var weatherUser: Boolean = true
-    var shadowsUser: Boolean = true
-    var grassDensity: Float = 1f
+    val view = ViewState()
+    val hud = HudState()
+    val cine = CinemaDirector()
+
+    val speeds: DoubleArray get() = clock.speeds
+    var speedIndex by clock::speedIndex
+    var paused by clock::paused
+    var tool by tools::tool
+    var inspectedAnt by tools::inspectedAnt
+    val inspect get() = tools.inspect
+    var camX by camera::x
+    var camY by camera::y
+    var zoom by camera::zoom
+
+    var showPheromones by view::showPheromones
+    var pheromoneStrength by view::pheromoneStrength
+    var antColor by view::antColor
+    var dayNight by view::dayNight
+    var dayNightStrength by view::dayNightStrength
+    var cinema by view::cinema
+    var renderer by view::renderer
+    var cameraPitchDeg by view::cameraPitchDeg
+    var bloomUser by view::bloomUser
+    var ssaoUser by view::ssaoUser
+    var weatherUser by view::weatherUser
+    var shadowsUser by view::shadowsUser
+    var grassDensity by view::grassDensity
+    var showGrafik by view::showGrafik
+    var showParams by view::showParams
+    var showStats by view::showStats
+    var showAnalyse by view::showAnalyse
+    var showAbout by view::showAbout
+
+    val hudFps get() = hud.fps
+    val hudPop get() = hud.pop
+    val hudFood get() = hud.food
+    val hudQueen get() = hud.queen
+    val history get() = hud.history
+
     var renderTierBias: Int = 0
     var userFollow: Boolean = false
     var nest3dActive: Boolean = false
@@ -87,127 +93,48 @@ class AppSession(launch: LaunchConfig) {
     var nestPresent: Scene? = null
     var uiScene: Scene? = null
     var nestTexture: Texture2d? = null
-    var inspectedAnt: Ant?
-        get() = tools.inspectedAnt
-        set(v) { tools.inspectedAnt = v }
     var screenshotRequested: Boolean = false
     var worldSerial: Int = 1
     var fpsShownPublic: Int = 0
     var gpuMs: Float = 0f
 
-    var showGrafik: Boolean = false
-    var showParams: Boolean = false
-    var showStats: Boolean = false
-    var showAnalyse: Boolean = false
-    var showAbout: Boolean = false
-
     val revision = mutableStateOf(0)
-    val hudFps = mutableStateOf("FPS: 0")
-    val hudPop = mutableStateOf("Population: 0")
-    val hudFood = mutableStateOf("Protein: 0 | Sugar: 0")
-    val hudQueen = mutableStateOf("Queen Age: 0m 0s")
-    val inspect get() = tools.inspect
     val analyseLines = ArrayList<AnalyseLine>()
-    val history = ArrayDeque<GraphSample>()
 
     var world: World
     val seed: Int
     private var deadFrames: Int = 0
-    private var fpsFrames: Int = 0
-    private var fpsStamp: Double = 0.0
-    private var fpsShown: Int = 0
+    private val fps = FpsCounter()
+    private val fpsShown: Int get() = fps.shown
     private val settings = SettingsStore()
-    private val overrides = HashMap<String, Double>()
-
-    private var cinePausedUntil: Double = 0.0
-    private var cineTargetX: Double = SimConfig.width / 2.0
-    private var cineTargetY: Double = SimConfig.height / 2.0
-    private var cineTargetZoom: Double = 1.0
-    private var cineNextPick: Double = 0.0
-    private var cinePhase: Double = 0.0
-    private var follow: Ant? = null
-    private val shotQueue = ArrayDeque<String>()
-    private val cineRandom = kotlin.random.Random(1)
+    private val overrides = TunerOverrides()
 
     init {
-        val saved = loadSettings()
+        val saved = settings.read()?.let { ViewState.parse(it) } ?: emptyMap()
         var colonies = 2
         var quality = QualityLevel.MEDIUM
         saved["colonies"]?.toIntOrNull()?.let { colonies = it.coerceIn(1, 2) }
         saved["quality"]?.let { parseQuality(it)?.let { q -> quality = q } }
         saved["speed"]?.toDoubleOrNull()?.let { clock.restoreSpeed(it) }
-        saved["pheromones"]?.toBooleanStrictOrNull()?.let { showPheromones = it }
-        saved["pheromoneIntensity"]?.toDoubleOrNull()?.let { pheromoneStrength = it }
-        saved["dayNight"]?.toBooleanStrictOrNull()?.let { dayNight = it }
-        saved["dayNightIntensity"]?.toDoubleOrNull()?.let { dayNightStrength = it }
-        saved["cinematic"]?.toBooleanStrictOrNull()?.let { cinema = it }
-        saved["renderer"]?.let { parseRenderMode(it)?.let { mode -> renderer = mode } }
-        saved["cameraPitch"]?.toFloatOrNull()?.let { cameraPitchDeg = it.coerceIn(-90f, -60f) }
-        saved["bloom"]?.toBooleanStrictOrNull()?.let { bloomUser = it }
-        saved["ssao"]?.toBooleanStrictOrNull()?.let { ssaoUser = it }
-        saved["weather"]?.toBooleanStrictOrNull()?.let { weatherUser = it }
-        saved["shadows"]?.toBooleanStrictOrNull()?.let { shadowsUser = it }
-        saved["grassDensity"]?.toFloatOrNull()?.let { grassDensity = it.coerceIn(0f, 1.5f) }
-        saved["antColor"]?.let { hex ->
-            try {
-                antColor = Color(hex)
-            } catch (_: Throwable) {
-                // keep the default worker tint
-            }
-        }
+        view.applySaved(saved)
         launch.colonies?.let { colonies = it.coerceIn(1, 2) }
         launch.quality?.let { quality = it }
         launch.renderer?.let { renderer = it }
-        for ((key, value) in saved) {
-            if (!key.startsWith("ov:")) continue
-            val number = value.toDoubleOrNull() ?: continue
-            try {
-                SimConfig.setNumber(key.removePrefix("ov:"), number)
-                overrides[key.removePrefix("ov:")] = number
-            } catch (_: Throwable) {
-                // unknown path from an older settings file
-            }
-        }
+        overrides.load(saved)
         seed = launch.seed ?: wallClockSeed()
         Rng.seed(seed)
         SimConfig.colonyCount = colonies
         PerformanceManager.setQuality(quality)
         world = World()
         resetCamera(fromUser = false)
-        applyShotPose()
-    }
-
-    private fun applyShotPose() {
-        when (shot) {
-            "day" -> {
-                world.age = (world.dayLength * 0.45).toInt()
-                world.timeOfDay = 0.45
-            }
-            "night" -> {
-                world.age = (world.dayLength * 0.92).toInt()
-                world.timeOfDay = (world.age % world.dayLength).toDouble() / world.dayLength.toDouble()
-            }
-            "rain" -> {
-                world.age = (world.dayLength * 0.45).toInt()
-                world.timeOfDay = 0.45
-                world.raining = true
-                world.rainTimer = 100000
-            }
-            "ant" -> {
-                world.age = (world.dayLength * 0.45).toInt()
-                world.timeOfDay = 0.45
-                zoom = 6.0
-            }
-            else -> Unit
-        }
+        ShotPose.apply(shot, world, camera)
     }
 
     fun applyRendererVisibility() {
         val classic = renderer == RenderMode.CLASSIC
         classicScene?.isVisible = classic
         worldScene?.isVisible = !classic
-        val showOverlay = !classic && !nest3dActive
-        nestOverlay?.isVisible = showOverlay
+        nestOverlay?.isVisible = !classic && !nest3dActive
         nestPresent?.isVisible = !classic && nest3dActive
     }
 
@@ -217,19 +144,12 @@ class AppSession(launch: LaunchConfig) {
         revision.value = revision.value + 1
     }
 
-    fun notifyInput() {
-        cinePausedUntil = Time.gameTime + 25.0
-    }
+    fun notifyInput() = cine.notifyInput(Time.gameTime)
 
     fun tick(dt: Float) {
         val now = Time.gameTime
-        fpsFrames++
-        if (fpsStamp == 0.0) fpsStamp = now
-        if (now - fpsStamp >= 1.0) {
-            fpsShown = fpsFrames
+        if (fps.frame(now)) {
             fpsShownPublic = fpsShown
-            fpsFrames = 0
-            fpsStamp = now
             PerformanceManager.monitorFps(fpsShown.toDouble(), (now * 1000.0).toLong())
         }
         if (!paused) {
@@ -242,64 +162,36 @@ class AppSession(launch: LaunchConfig) {
                 deadFrames = 0
             }
         }
-        updateCinema()
-        updateUserFollow()
-        syncHud()
+        if (!userFollow && cinema) cine.update(world, camera, now)
+        if (userFollow) inspectedAnt?.let { if (!cine.updateUserFollow(camera, it)) userFollow = false }
+        hud.sync(world, fpsShown)
     }
 
     private fun stepSim() {
         world.update()
-        if (world.age % 60 == 0) recordSample()
+        if (world.age % 60 == 0) hud.recordSample(world)
     }
 
     fun stepOnce() {
         if (!paused) return
         stepSim()
-        syncHud()
+        hud.sync(world, fpsShown)
         bump()
     }
 
-    fun togglePause() {
-        clock.togglePause()
-        notifyInput()
-        bump()
-    }
-
-    fun stepSpeed(dir: Int) {
-        clock.stepSpeed(dir)
-        save()
-        notifyInput()
-        bump()
-    }
-
-    fun zoomBy(factor: Double) {
-        zoomAt(factor, camX, camY)
-        notifyInput()
-    }
-
+    fun togglePause() { clock.togglePause(); notifyInput(); bump() }
+    fun stepSpeed(dir: Int) { clock.stepSpeed(dir); save(); notifyInput(); bump() }
+    fun zoomBy(factor: Double) { zoomAt(factor, camX, camY); notifyInput() }
     fun zoomAt(factor: Double, anchorX: Double, anchorY: Double) = camera.zoomAt(factor, anchorX, anchorY)
-
-    fun pan(dxPx: Float, dyPx: Float, fit: Float) {
-        if (camera.pan(dxPx, dyPx, fit)) notifyInput()
-    }
-
-    fun resetCamera(fromUser: Boolean = true) {
-        camera.reset()
-        if (fromUser) notifyInput()
-    }
-
+    fun pan(dxPx: Float, dyPx: Float, fit: Float) { if (camera.pan(dxPx, dyPx, fit)) notifyInput() }
+    fun resetCamera(fromUser: Boolean = true) { camera.reset(); if (fromUser) notifyInput() }
     fun clampCamera(leftW: Float, winH: Float) = camera.clamp(leftW, winH)
-
     fun fitScale(leftW: Float, winH: Float): Double = camera.fitScale(leftW, winH)
-
     fun screenToWorld(px: Float, py: Float, leftW: Float, winH: Float): Pair<Double, Double> =
         camera.screenToWorld(px, py, leftW, winH)
-
-    fun clickWorld(wx: Double, wy: Double) {
-        notifyInput()
-        tools.apply(world, wx, wy)
-        bump()
-    }
+    fun clickWorld(wx: Double, wy: Double) { notifyInput(); tools.apply(world, wx, wy); bump() }
+    /** Hit test for the 3D nest cutaway. Classic 2D still uses [clickWorld] only. */
+    fun inspectNest(nx: Double, ny: Double) { notifyInput(); tools.inspectNest(world, nx, ny); bump() }
 
     fun toggleRain() {
         if (world.raining) {
@@ -316,13 +208,12 @@ class AppSession(launch: LaunchConfig) {
     fun restart(fromUser: Boolean) {
         world = World()
         worldSerial++
-        follow = null
+        cine.follow = null
         userFollow = false
-        inspectedAnt = null
-        cineNextPick = 0.0
+        tools.clear()
+        cine.nextPick = 0.0
         deadFrames = 0
         history.clear()
-        inspect.value = ""
         resetCamera(fromUser = false)
         if (fromUser) notifyInput()
         bump()
@@ -335,42 +226,28 @@ class AppSession(launch: LaunchConfig) {
     }
 
     fun setQuality(level: QualityLevel) {
-        PerformanceManager.setQuality(level)
-        renderTierBias = 0
-        save()
-        notifyInput()
-        bump()
+        PerformanceManager.setQuality(level); renderTierBias = 0; save(); notifyInput(); bump()
     }
 
-    fun setPheromones(on: Boolean) {
-        showPheromones = on
+    /** Runs [change], persists settings, then bumps the UI revision when [bump] is true. */
+    private inline fun persist(bump: Boolean = true, change: () -> Unit) {
+        change()
         save()
-        bump()
+        if (bump) bump()
     }
 
-    fun updatePheromoneStrength(value: Double) {
-        pheromoneStrength = value.coerceIn(0.0, 1.5)
-        save()
-        bump()
-    }
-
-    fun updateDayNight(on: Boolean) {
-        dayNight = on
-        save()
-        bump()
-    }
-
-    fun updateDayNightStrength(value: Double) {
-        dayNightStrength = value.coerceIn(0.0, 1.0)
-        save()
-        bump()
-    }
-
-    fun updateCinema(on: Boolean) {
-        cinema = on
-        save()
-        bump()
-    }
+    fun setPheromones(on: Boolean) = persist { showPheromones = on }
+    fun updatePheromoneStrength(value: Double) = persist { pheromoneStrength = value.coerceIn(0.0, 1.5) }
+    fun updateDayNight(on: Boolean) = persist { dayNight = on }
+    fun updateDayNightStrength(value: Double) = persist { dayNightStrength = value.coerceIn(0.0, 1.0) }
+    fun updateCinema(on: Boolean) = persist { cinema = on }
+    fun chooseRenderer(mode: RenderMode) = persist { renderer = mode; applyRendererVisibility() }
+    fun choosePitch(deg: Float) = persist(bump = false) { cameraPitchDeg = deg.coerceIn(-90f, -60f) }
+    fun chooseBloom(on: Boolean) = persist { bloomUser = on }
+    fun chooseSsao(on: Boolean) = persist { ssaoUser = on }
+    fun chooseWeather(on: Boolean) = persist { weatherUser = on }
+    fun chooseShadows(on: Boolean) = persist { shadowsUser = on }
+    fun chooseGrassDensity(value: Float) = persist(bump = false) { grassDensity = value.coerceIn(0f, 1.5f) }
 
     fun setAntColor(hex: String) {
         try {
@@ -382,314 +259,38 @@ class AppSession(launch: LaunchConfig) {
         }
     }
 
+    fun openPanel(name: String) { view.openPanel(name); notifyInput(); bump() }
+
     fun refreshAnalyse() {
         analyseLines.clear()
-        val suggestions = world.observer.analyze()
-        if (suggestions.isEmpty()) {
-            analyseLines += AnalyseLine("(no suggestions)", null, 0.0)
-        }
-        for (s in suggestions) {
-            analyseLines += AnalyseLine("${s.severity} | ${s.metric}: ${s.suggestion}", null, 0.0)
-            analyseLines += AnalyseLine(s.effect, null, 0.0)
-            for (a in s.actions) {
-                analyseLines += AnalyseLine(a.label, a.path, a.to)
-            }
-        }
-        showGrafik = false
-        showParams = false
-        showStats = false
-        showAnalyse = true
+        analyseLines += buildAnalyseLines(world)
+        view.showOnlyAnalyse()
         bump()
     }
 
-    fun applyAnalyse(path: String, to: Double) {
-        setTunable(path, to)
-    }
+    fun applyAnalyse(path: String, to: Double) = setTunable(path, to)
 
     fun setTunable(path: String, value: Double) {
-        try {
-            SimConfig.setNumber(path, value)
-            overrides[path] = value
-            save()
-        } catch (_: Throwable) {
-            MyLog.add("APP", "Tuner path skipped: $path", LogLevel.DEBUG)
-        }
+        if (overrides.set(path, value)) save() else MyLog.add("APP", "Tuner path skipped: $path", LogLevel.DEBUG)
         bump()
     }
 
-    fun resetTunables() {
-        overrides.clear()
-        SimConfig.resetTunables()
-        save()
-        bump()
-    }
+    fun resetTunables() = persist { overrides.reset() }
 
-    fun requestScreenshot() {
-        screenshotRequested = true
-    }
-
-    fun chooseRenderer(mode: RenderMode) {
-        renderer = mode
-        applyRendererVisibility()
-        save()
-        bump()
-    }
-
-    fun choosePitch(deg: Float) {
-        cameraPitchDeg = deg.coerceIn(-90f, -60f)
-        save()
-    }
-
-    fun chooseBloom(on: Boolean) {
-        bloomUser = on
-        save()
-        bump()
-    }
-
-    fun chooseSsao(on: Boolean) {
-        ssaoUser = on
-        save()
-        bump()
-    }
-
-    fun chooseWeather(on: Boolean) {
-        weatherUser = on
-        save()
-        bump()
-    }
-
-    fun chooseShadows(on: Boolean) {
-        shadowsUser = on
-        save()
-        bump()
-    }
-
-    fun chooseGrassDensity(value: Float) {
-        grassDensity = value.coerceIn(0f, 1.5f)
-        save()
-    }
+    fun requestScreenshot() { screenshotRequested = true }
 
     fun toggleUserFollow() {
         userFollow = !userFollow
-        if (!userFollow) follow = null
+        if (!userFollow) cine.follow = null
         notifyInput()
         bump()
     }
 
-    fun noteDrag() {
-        userFollow = false
-        notifyInput()
-    }
+    fun noteDrag() { userFollow = false; notifyInput() }
 
-    fun speedLabel(): String {
-        val s = speeds[speedIndex]
-        return if (s == 0.5) "0.5x" else "${s.toInt()}x"
-    }
-
-    private fun recordSample() {
-        val ants = world.ants
-        val avg = if (ants.isEmpty()) 0.0 else ants.sumOf { it.energy } / ants.size
-        history.addLast(
-            GraphSample(
-                population = ants.size,
-                sugar = world.sugarStockpile,
-                protein = world.proteinStockpile,
-                energyPct = avg / SimConfig.antMaxEnergy,
-            ),
-        )
-        while (history.size > 180) history.removeFirst()
-    }
-
-    private fun syncHud() {
-        hudFps.value = "FPS: $fpsShown"
-        if (world.colonies.size > 1) {
-            val split = world.colonies.joinToString(" vs ") { it.ants.size.toString() }
-            hudPop.value = "Population: ${world.totalAntCount()} ($split)"
-        } else {
-            val ants = world.colonies[0].ants
-            val workers = ants.count { it.type == AntKind.WORKER }
-            val soldiers = ants.count { it.type == AntKind.SOLDIER }
-            hudPop.value = "Population: ${ants.size} (W:$workers S:$soldiers)"
-        }
-        hudFood.value = "Protein: ${floor(world.proteinStockpile).toInt()} | Sugar: ${floor(world.sugarStockpile).toInt()}"
-        val ageSeconds = world.queen.age / 60
-        hudQueen.value = "Queen Age: ${ageSeconds / 60}m ${ageSeconds % 60}s"
-    }
-
-    /** Hit test for the 3D nest cutaway. Classic 2D still uses [clickWorld] only. */
-    fun inspectNest(nx: Double, ny: Double) {
-        notifyInput()
-        tools.inspectNest(world, nx, ny)
-        bump()
-    }
-
-    private fun updateUserFollow() {
-        if (!userFollow) return
-        val ant = inspectedAnt ?: return
-        if (ant.location != AntPlace.WORLD || ant.energy <= 0.0) {
-            userFollow = false
-            return
-        }
-        val k = 0.12
-        camX += (ant.x - camX) * k
-        camY += (ant.y - camY) * k
-    }
-
-    private fun updateCinema() {
-        if (userFollow) return
-        if (!cinema) return
-        val now = Time.gameTime
-        if (now < cinePausedUntil) return
-        val ants = ArrayList<Ant>()
-        for (colony in world.colonies) {
-            for (ant in colony.ants) {
-                if (ant.location == AntPlace.WORLD) ants += ant
-            }
-        }
-        val followed = follow
-        val gone = followed != null && (followed.location != AntPlace.WORLD || followed.energy <= 0.0)
-        if (cineNextPick == 0.0 || now >= cineNextPick || gone) pickShot(ants, now)
-        follow?.let {
-            cineTargetX = it.x
-            cineTargetY = it.y
-        }
-        cinePhase += 0.004
-        val amp = if (follow != null) 2.0 else 7.0
-        val dx = cos(cinePhase) * amp
-        val dy = sin(cinePhase * 0.7) * amp * 0.7
-        val k = if (follow != null) 0.08 else 0.014
-        zoom += (cineTargetZoom - zoom) * k
-        camX += (cineTargetX + dx - camX) * k
-        camY += (cineTargetY + dy - camY) * k
-    }
-
-    private fun pickShot(ants: List<Ant>, now: Double) {
-        val events = ants.filter {
-            it.state == AntState.RAIDING || it.state == AntState.ATTACKING ||
-                it.state == AntState.FLEEING || it.state == AntState.MILKING
-        }
-        val kind = nextKind(events.isNotEmpty(), ants.isNotEmpty())
-        follow = null
-        var hold: Double
-        when (kind) {
-            "ENTRANCE" -> {
-                val colony = world.colonies[cineRandom.nextInt(world.colonies.size)]
-                cineTargetX = colony.entranceWorld.x
-                cineTargetY = colony.entranceWorld.y
-                cineTargetZoom = 2.1 + cineRandom.nextDouble() * 0.4
-                hold = 8.0 + cineRandom.nextDouble() * 3.0
-            }
-            "EVENT" -> {
-                val ant = events[cineRandom.nextInt(events.size)]
-                follow = ant
-                cineTargetX = ant.x
-                cineTargetY = ant.y
-                cineTargetZoom = if (ant.state == AntState.RAIDING) 2.6 else if (ant.state == AntState.MILKING) 3.2 else 3.0
-                hold = 7.0 + cineRandom.nextDouble() * 4.0
-            }
-            "FOLLOW" -> {
-                val carriers = ants.filter { it.carrying != com.neojou.myants.sim.CarryKind.NONE }
-                val pool = when {
-                    events.isNotEmpty() -> events
-                    carriers.isNotEmpty() -> carriers
-                    else -> ants
-                }
-                val ant = pickWithRunway(pool)
-                follow = ant
-                cineTargetX = ant.x
-                cineTargetY = ant.y
-                cineTargetZoom = 2.8 + cineRandom.nextDouble() * 0.4
-                hold = 8.0 + cineRandom.nextDouble() * 4.0
-            }
-            else -> {
-                var cx = SimConfig.width / 2.0
-                var cy = SimConfig.height / 2.0
-                if (ants.isNotEmpty()) {
-                    cx = ants.sumOf { it.x } / ants.size
-                    cy = ants.sumOf { it.y } / ants.size
-                }
-                cineTargetX = cx
-                cineTargetY = cy
-                cineTargetZoom = 1.05 + cineRandom.nextDouble() * 0.25
-                hold = 11.0 + cineRandom.nextDouble() * 4.0
-            }
-        }
-        cineNextPick = now + hold
-    }
-
-    private fun nextKind(hasEvents: Boolean, hasAnts: Boolean): String {
-        if (shotQueue.isEmpty()) {
-            shotQueue.addAll(listOf("FOLLOW", "ENTRANCE", "FOLLOW", "WIDE", "EVENT"))
-        }
-        val iter = shotQueue.iterator()
-        while (iter.hasNext()) {
-            val kind = iter.next()
-            if (kind == "EVENT" && !hasEvents) continue
-            if (kind == "FOLLOW" && !hasAnts) continue
-            iter.remove()
-            return kind
-        }
-        return "WIDE"
-    }
-
-    private fun pickWithRunway(pool: List<Ant>): Ant {
-        var best = pool[cineRandom.nextInt(pool.size)]
-        var bestD = -1.0
-        repeat(5) {
-            val ant = pool[cineRandom.nextInt(pool.size)]
-            val e = ant.colony.entranceWorld
-            val dx = ant.x - e.x
-            val dy = ant.y - e.y
-            val d = dx * dx + dy * dy
-            if (d > bestD) {
-                bestD = d
-                best = ant
-            }
-        }
-        return best
-    }
+    fun speedLabel(): String = HudState.speedLabel(speeds[speedIndex])
 
     private fun save() {
-        val text = buildString {
-            append("speed=").append(speeds[speedIndex]).append('\n')
-            append("colonies=").append(SimConfig.colonyCount).append('\n')
-            append("quality=").append(PerformanceManager.level.name).append('\n')
-            append("pheromones=").append(showPheromones).append('\n')
-            append("pheromoneIntensity=").append(pheromoneStrength).append('\n')
-            append("antColor=").append(hex(antColor)).append('\n')
-            append("dayNight=").append(dayNight).append('\n')
-            append("dayNightIntensity=").append(dayNightStrength).append('\n')
-            append("cinematic=").append(cinema).append('\n')
-            append("renderer=").append(if (renderer == RenderMode.D3) "3d" else "2d").append('\n')
-            append("cameraPitch=").append(cameraPitchDeg).append('\n')
-            append("bloom=").append(bloomUser).append('\n')
-            append("ssao=").append(ssaoUser).append('\n')
-            append("weather=").append(weatherUser).append('\n')
-            append("shadows=").append(shadowsUser).append('\n')
-            append("grassDensity=").append(grassDensity).append('\n')
-            for ((path, value) in overrides) {
-                append("ov:").append(path).append('=').append(value).append('\n')
-            }
-        }
-        settings.write(text)
-    }
-
-    private fun loadSettings(): Map<String, String> {
-        val text = settings.read() ?: return emptyMap()
-        val map = HashMap<String, String>()
-        for (line in text.lineSequence()) {
-            val i = line.indexOf('=')
-            if (i <= 0) continue
-            map[line.substring(0, i).trim()] = line.substring(i + 1).trim()
-        }
-        return map
-    }
-
-    private fun hex(color: Color): String {
-        fun ch(v: Float): String {
-            val n = (v * 255f).roundToInt().coerceIn(0, 255)
-            return n.toString(16).padStart(2, '0')
-        }
-        return "#${ch(color.r)}${ch(color.g)}${ch(color.b)}"
+        settings.write(view.encode(speeds[speedIndex], SimConfig.colonyCount, PerformanceManager.level.name, overrides.values))
     }
 }
