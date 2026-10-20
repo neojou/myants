@@ -15,9 +15,9 @@
 - 日期：2026-10-21
 - Agent：Grok Bot（Coder）
 - 版本：0.15.0（已發布；本分支未改版號）
-- Branch：`feat/7-split-appsession`（issue #7 第 1 步），基於 `origin/main` `75b6e84`
-- 內容：從 `AppSession` 拆出 `session/SimClock`（暫停、速度、累加器）和 `session/CameraState`（相機、縮放、clamp、座標換算）。`AppSession` 保留原本的 API 並轉呼叫新類別，其他檔案不用改。sim 沒改，HeadlessInvariantsTest 通過。
-- 下一步：#7 第 2 步拆 `ToolController`（工具、放置、Inspect）；第 3 步拆 `ViewState`（面板、HUD 文字、cinema／follow），把 `AppSession` 壓到 300 行以下。
+- Branch：`feat/7-tool-controller`（issue #7 第 2 步），基於 `feat/7-split-appsession`（PR #28，尚未合併）
+- 內容：第 1 步從 `AppSession` 拆出 `session/SimClock`、`session/CameraState`；第 2 步拆出 `session/ToolController`（SimTool、放置、Inspect 世界／巢穴判定）。`AppSession` 保留原本的 API 並轉呼叫新類別，其他檔案不用改。sim 沒改，HeadlessInvariantsTest 通過。
+- 下一步：#7 第 3 步拆 `ViewState`（面板、HUD 文字、cinema／follow）和設定存取，把 `AppSession` 壓到 300 行以下。
 
 已落地：
 
