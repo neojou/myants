@@ -15,9 +15,9 @@
 - 日期：2026-10-21
 - Agent：Grok Bot（Coder）
 - 版本：0.15.0（已發布；本分支未改版號）
-- Branch：`feat/7-view-state`（issue #7 第 3 步），基於 `feat/7-tool-controller`（PR #32）；合併順序 #28 → #32 → 本 PR
-- 內容：`AppSession` 拆成組合根（296 行）加上 `session/` 底下的 SimClock、CameraState、ToolController、ViewState（偏好、面板、設定檔格式）、HudState、CinemaDirector、ShotPose、TunerOverrides、FpsCounter。對外 API 不變，sim 沒改，HeadlessInvariantsTest 通過。
-- 下一步：#7 完成後依 PM 第 2 批：#10 PointerRouter、#8 拆 AntSimUi.kt。
+- Branch：`feat/10-pointer-router`（issue #10），基於 origin/main `2a9f7f9`
+- 內容：指標事件單一入口 `input/PointerRouter`（`PointerSample`/`PointerTarget`/`NestRect` 可單測），3D 仍走 `TopDownCamera.screenToGround`（OrthoGround，不用 unProjectScreen）。AntSimScene 的 `handlePointer` 移除。sim 沒改，HeadlessInvariantsTest 通過。
+- 下一步：#8 拆 AntSimUi.kt；`classic2d/` 繪製與 shader/texture 工具拆分（#10 設計說明的後半）待 PM 排程。
 
 已落地：
 

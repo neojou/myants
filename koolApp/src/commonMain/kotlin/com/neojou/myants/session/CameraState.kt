@@ -65,4 +65,10 @@ class CameraState {
         val wy = y + (py - winH / 2.0) / s
         return wx to wy
     }
+
+    /** Inverse of [screenToWorld]. */
+    fun worldToScreen(wx: Double, wy: Double, leftW: Float, winH: Float): Pair<Float, Float> {
+        val s = (fitScale(leftW, winH) * zoom).toFloat()
+        return (leftW / 2f + (wx - x).toFloat() * s) to (winH / 2f + (wy - y).toFloat() * s)
+    }
 }
