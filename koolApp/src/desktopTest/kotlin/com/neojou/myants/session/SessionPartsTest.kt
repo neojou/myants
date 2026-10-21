@@ -26,7 +26,7 @@ class SessionPartsTest {
     fun hudStringsMatchLegacyFormat() {
         val w = world()
         val h = HudState()
-        h.sync(w, 42)
+        h.sync(w, 42, 0.0)
         assertEquals("FPS: 42", h.fps.value)
         val ants = w.colonies[0].ants
         assertEquals(

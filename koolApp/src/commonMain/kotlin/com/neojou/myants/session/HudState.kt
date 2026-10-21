@@ -15,7 +15,19 @@ class HudState {
     val queen = mutableStateOf("Queen Age: 0m 0s")
     val history = ArrayDeque<GraphSample>()
 
-    fun sync(world: World, fpsShown: Int) {
+    private var nextSyncAt: Double = Double.NEGATIVE_INFINITY
+
+    /** Times [sync] actually wrote the HUD strings. Unit tests use this count. */
+    internal var syncPublishes: Int = 0
+
+    /**
+     * Writes the HUD strings at about 4 Hz. [force] writes immediately (single step).
+     * Graph samples stay on the 60-tick path in [recordSample].
+     */
+    fun sync(world: World, fpsShown: Int, nowSeconds: Double, force: Boolean = false) {
+        if (!force && nowSeconds < nextSyncAt) return
+        nextSyncAt = nowSeconds + HUD_PERIOD_SECONDS
+        syncPublishes++
         fps.value = "FPS: $fpsShown"
         if (world.colonies.size > 1) {
             val split = world.colonies.joinToString(" vs ") { it.ants.size.toString() }
@@ -47,6 +59,9 @@ class HudState {
     }
 
     companion object {
+        /** About 4 Hz. Issue #9. */
+        private const val HUD_PERIOD_SECONDS = 0.25
+
         fun speedLabel(s: Double): String = if (s == 0.5) "0.5x" else "${s.toInt()}x"
     }
 }

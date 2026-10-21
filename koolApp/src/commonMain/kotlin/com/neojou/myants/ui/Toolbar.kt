@@ -86,6 +86,6 @@ private fun UiScope.toolButton(session: AppSession, current: SimTool, tool: SimT
     ) {
         session.tool = tool
         session.notifyInput()
-        session.bump()
+        session.publishChrome()
     }
 }

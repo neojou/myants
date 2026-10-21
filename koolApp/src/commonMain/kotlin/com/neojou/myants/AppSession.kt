@@ -184,7 +184,7 @@ class AppSession(launch: LaunchConfig) {
         }
         if (!userFollow && cinema) cine.update(world, camera, now)
         if (userFollow) inspectedAnt?.let { if (!cine.updateUserFollow(camera, it)) userFollow = false }
-        hud.sync(world, fpsShown)
+        hud.sync(world, fpsShown, now)
     }
 
     private fun stepSim() {
@@ -195,12 +195,12 @@ class AppSession(launch: LaunchConfig) {
     fun stepOnce() {
         if (!paused) return
         stepSim()
-        hud.sync(world, fpsShown)
+        hud.sync(world, fpsShown, Time.gameTime, force = true)
         bump()
     }
 
-    fun togglePause() { clock.togglePause(); notifyInput(); bump() }
-    fun stepSpeed(dir: Int) { clock.stepSpeed(dir); save(); notifyInput(); bump() }
+    fun togglePause() { clock.togglePause(); notifyInput(); publishChrome() }
+    fun stepSpeed(dir: Int) { clock.stepSpeed(dir); save(); notifyInput(); publishChrome() }
     fun zoomBy(factor: Double) { zoomAt(factor, camX, camY); notifyInput() }
     fun zoomAt(factor: Double, anchorX: Double, anchorY: Double) = camera.zoomAt(factor, anchorX, anchorY)
     fun pan(dxPx: Float, dyPx: Float, fit: Float) { if (camera.pan(dxPx, dyPx, fit)) notifyInput() }
@@ -222,7 +222,7 @@ class AppSession(launch: LaunchConfig) {
             world.rainTimer = SimConfig.environment.rainMinDuration * 2
         }
         notifyInput()
-        bump()
+        publishChrome()
     }
 
     fun restart(fromUser: Boolean) {

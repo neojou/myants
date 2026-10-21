@@ -95,6 +95,43 @@ class AppSessionTest {
     }
 
     @Test
+    fun hudStringsPublishAtAboutFourHertz() {
+        val hud = s.hud
+        hud.sync(s.world, 30, 0.0)
+        assertEquals(1, hud.syncPublishes)
+        assertEquals("FPS: 30", s.hudFps.value)
+        hud.sync(s.world, 40, 0.1)
+        hud.sync(s.world, 50, 0.24)
+        assertEquals(1, hud.syncPublishes)
+        assertEquals("FPS: 30", s.hudFps.value)
+        hud.sync(s.world, 60, 0.25)
+        assertEquals(2, hud.syncPublishes)
+        assertEquals("FPS: 60", s.hudFps.value)
+
+        s.togglePause()
+        val before = hud.syncPublishes
+        s.stepOnce()
+        assertEquals(before + 1, hud.syncPublishes)
+    }
+
+    @Test
+    fun chromeOnlyActionsDoNotBumpPanelRevision() {
+        val rev = s.revision.value
+        s.stepSpeed(1)
+        s.togglePause()
+        s.toggleRain()
+        s.tool = SimTool.SUGAR
+        s.publishChrome()
+        assertEquals(rev, s.revision.value)
+        assertEquals("2x", s.speedLabelState.value)
+        assertTrue(s.pausedState.value)
+        assertTrue(s.rainingState.value)
+        assertEquals(SimTool.SUGAR, s.toolState.value)
+        s.setPheromones(!s.showPheromones)
+        assertEquals(rev + 1, s.revision.value)
+    }
+
+    @Test
     fun clockCameraAndViewDelegation() {
         s.togglePause()
         assertTrue(s.clock.paused)

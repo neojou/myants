@@ -18,6 +18,7 @@
 - 重構：Classic 2D 場景與巢穴 overlay 從 `AntSimScene.kt` 搬到 `classic2d/ClassicScene.kt`。指標輸入留在 `addAntSimInput`。行為不變（#36）
 - 重構：2D shader、費洛蒙貼圖與圓形貼圖抽到 `classic2d/ClassicShaders.kt`。行為不變（Closes #36）
 - 重構：工具列改訂閱暫停、速度、工具、下雨、群落數；HUD 的 inspect 在表面訂閱。About 不再訂閱全域 revision。側邊面板仍共用 revision，Grafik／Params／Stats／Analyse 才會跟著刷新（Refs #9）
+- 變更：HUD 的 FPS、族群、食物、蟻后字串約每 0.25 秒寫一次；暫停單步立即寫。`revision.use()` 從 4 處降到 1 處（只剩側邊面板）。暫停、速度、下雨、切工具不再增加 `revision`，所以只改速度時 Stats 與 About 的重組觸發次數不變；改費洛蒙仍會加 1。`HudState.syncPublishes` 在 0.25 秒內多次 sync 只加 1。沒有量 fps（Closes #9）
 
 ### 修正
 - 移除 `World.kt` 中被 Kotlin 內建成員遮蔽、實際不會被呼叫的 `Double.inc`／`Double.dec` 擴充函式，消除編譯警告；模擬行為不變（#31）
