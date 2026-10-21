@@ -1,6 +1,7 @@
 package com.neojou.myants
 
 import com.neojou.myants.ui.HudIcons
+import com.neojou.myants.ui.UiText
 import com.neojou.myants.ui.addAboutDialog
 import com.neojou.myants.ui.addHudPanel
 import com.neojou.myants.ui.addToolbar
@@ -18,10 +19,10 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
     HudIcons.loadAll(coroutineScope)
     val hud = addHudPanel(session)
     addToolbar(session)
-    val grafikPanel = sidePanel(session, "Grafik") { grafik(session) }
-    val paramsPanel = sidePanel(session, "Params") { params(session) }
-    val statsPanel = sidePanel(session, "Verlauf") { stats(session) }
-    val analysePanel = sidePanel(session, "Analyse") { analyse(session) }
+    val grafikPanel = sidePanel(session, UiText.GRAFIK) { grafik(session) }
+    val paramsPanel = sidePanel(session, UiText.PARAMS) { params(session) }
+    val statsPanel = sidePanel(session, UiText.STATS) { stats(session) }
+    val analysePanel = sidePanel(session, UiText.ANALYSE) { analyse(session) }
     val aboutPanel = addAboutDialog(session)
     aboutPanel.isVisible = false
     onUpdate {

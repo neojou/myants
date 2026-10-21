@@ -4,6 +4,8 @@ import com.neojou.myants.sim.SimConfig
 import kotlin.math.roundToInt
 import com.neojou.myants.AppSession
 import com.neojou.myants.ui.MyantsTheme
+import com.neojou.myants.ui.UiText
+import com.neojou.myants.ui.tr
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.scene.Scene
 
@@ -36,7 +38,7 @@ private val SLIDERS = listOf(
 )
 
 internal fun UiScope.params(session: AppSession) {
-    Button("Reset") {
+    Button(tr(UiText.RESET)) {
         modifier.margin(top = MyantsTheme.space.s2).onClick { session.resetTunables() }
     }
     ScrollArea(height = 360.dp, withHorizontalScrollbar = false) {

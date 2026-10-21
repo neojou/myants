@@ -2,14 +2,16 @@ package com.neojou.myants.ui.panels
 
 import com.neojou.myants.AppSession
 import com.neojou.myants.ui.MyantsTheme
+import com.neojou.myants.ui.UiText
 import com.neojou.myants.ui.applyControlRadius
+import com.neojou.myants.ui.tr
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.scene.Scene
 
 private val T = MyantsTheme.colors
 
 /** Shared side-panel frame: title row with `x` close, Theme tokens. */
-internal fun Scene.sidePanel(session: AppSession, title: String, block: UiScope.() -> Unit) =
+internal fun Scene.sidePanel(session: AppSession, title: UiText, block: UiScope.() -> Unit) =
     addPanelSurface(backgroundColor = { T.surfaceRaised }, width = FitContent, height = FitContent) {
         session.revision.use() // side panels still share one revision (#9)
         modifier
@@ -21,7 +23,7 @@ internal fun Scene.sidePanel(session: AppSession, title: String, block: UiScope.
             .border(RoundRectBorder(T.outline, MyantsTheme.radius.lg, MyantsTheme.stroke.selected))
             .onPointer { it.pointer.consume() }
         Row {
-            Text(title) { modifier.alignY(AlignmentY.Center).width(Grow.Std) }
+            Text(tr(title)) { modifier.alignY(AlignmentY.Center).width(Grow.Std) }
             Button("x") {
                 modifier.onClick {
                     session.closeSidePanels()

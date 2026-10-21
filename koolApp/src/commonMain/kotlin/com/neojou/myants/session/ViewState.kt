@@ -3,6 +3,7 @@ package com.neojou.myants.session
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.render3d.parseRenderMode
+import com.neojou.myants.ui.UiLanguage
 import de.fabmax.kool.util.Color
 import kotlin.math.roundToInt
 
@@ -24,6 +25,8 @@ class ViewState {
     var weatherUser: Boolean = true
     var shadowsUser: Boolean = true
     var grassDensity: Float = 1f
+    /** Missing from old settings files. Those files stay English. */
+    var language: UiLanguage = UiLanguage.EN
 
     var showGrafik: Boolean = false
     var showParams: Boolean = false
@@ -45,6 +48,9 @@ class ViewState {
         saved["weather"]?.toBooleanStrictOrNull()?.let { weatherUser = it }
         saved["shadows"]?.toBooleanStrictOrNull()?.let { shadowsUser = it }
         saved["grassDensity"]?.toFloatOrNull()?.let { grassDensity = it.coerceIn(0f, 1.5f) }
+        saved["language"]?.let { raw ->
+            UiLanguage.entries.firstOrNull { it.name == raw }?.let { language = it }
+        }
         saved["antColor"]?.let { hex ->
             try {
                 antColor = Color(hex)
@@ -72,6 +78,7 @@ class ViewState {
         append("weather=").append(weatherUser).append('\n')
         append("shadows=").append(shadowsUser).append('\n')
         append("grassDensity=").append(grassDensity).append('\n')
+        append("language=").append(language.name).append('\n')
         for ((path, value) in overrides) {
             append("ov:").append(path).append('=').append(value).append('\n')
         }

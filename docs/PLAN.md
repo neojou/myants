@@ -17,7 +17,7 @@
 - 版本：0.15.0
 - SHA：390d4b9（接手時的 `main`。本機 commit，尚未 push）
 - 內容：M1、M2 已在 v0.15.0。main 已含 #7（AppSession 拆分）、#8（AntSimUi 拆檔與 `Panel` enum）、#10 的 PointerRouter、#31（移除被遮蔽的 `Double.inc/dec`）。#22 的 PR #26 已關，要在 main 上重做，且不升級 Gradle。
-- 下一步：#24、#11，然後本機 tag v0.16.0。不 push。M4、M5 不做。#22、#39、#36、#9、#18、#17、#19 已在本機完成。
+- 下一步：#24 其餘字串、#11，然後本機 tag v0.16.0。不 push。M4、M5 不做。#22、#39、#36、#9、#18、#17、#19 已在本機完成。#24 的字串表與預設 English 已做。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
 已完成、仍有效的結構：
@@ -49,7 +49,7 @@ M3 剩餘工作。一個 Grok Build session 在本機 `main` commit，不開 PR�
 | 5 | #18 色值與 token | 本機已做 |
 | 6 | #17 按下縮放與數字欄寬 | 本機已做 |
 | 7 | #19 Stats 線型 | 本機已做 |
-| 8 | #24 English／繁體中文／Deutsch，預設 English | 未做 |
+| 8 | #24 English／繁體中文／Deutsch，預設 English | 進行中：字串表與存檔已做 |
 | 9 | #11 工具列分組、Restart 確認、快捷鍵 | 未做 |
 
 ## Next
@@ -86,7 +86,7 @@ M3 剩餘工作。一個 Grok Build session 在本機 `main` commit，不開 PR�
 
 - `com.neojou.myants.sim` 的行為。`HeadlessInvariantsTest` 黃金值不變：種子 12345，1000 tick 為 pop 21、sugar 673、protein 238、queenEnergy 2201、extraChambers 2；2500 tick 為 pop 23、sugar 711、protein 204、queenEnergy 2242。
 - kool 0.19.0、Kotlin、Gradle、JDK 的版本。不加 wasm、不加 Compose。
-- UI 文字維持 AntSim 的英文／德文。
+- 介面語言是設定：English／繁體中文／Deutsch，預設 English（#24）。舊檔沒有 `language` 時用 English。模擬句子、蟻群專有名詞、MIT 授權行不翻譯。不要改回「只能英德混用」。
 - 版本只透過 `./configure.sh version` 改。
 - 第一人稱與任何會寫回 sim 的玩家操作，直到出現在 Next。
 

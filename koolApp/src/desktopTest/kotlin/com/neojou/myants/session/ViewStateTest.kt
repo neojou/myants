@@ -1,6 +1,7 @@
 package com.neojou.myants.session
 
 import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.ui.UiLanguage
 import de.fabmax.kool.util.Color
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -28,6 +29,7 @@ class ViewStateTest {
             weather=true
             shadows=true
             grassDensity=1.0
+            language=EN
             ov:antSpeed=2.5
         """.trimIndent() + "\n"
         assertEquals(expected, text)
@@ -44,6 +46,23 @@ class ViewStateTest {
         val b = ViewState()
         b.applySaved(ViewState.parse(a.encode(2.0, 1, "LOW", emptyMap())))
         assertEquals(a.encode(2.0, 1, "LOW", emptyMap()), b.encode(2.0, 1, "LOW", emptyMap()))
+    }
+
+    @Test
+    fun languageDefaultsToEnglishAndIgnoresUnknown() {
+        val fresh = ViewState()
+        assertEquals(UiLanguage.EN, fresh.language)
+        fresh.applySaved(emptyMap())
+        assertEquals(UiLanguage.EN, fresh.language)
+        fresh.applySaved(mapOf("language" to "FR"))
+        assertEquals(UiLanguage.EN, fresh.language)
+        fresh.applySaved(mapOf("language" to "ZH_TW"))
+        assertEquals(UiLanguage.ZH_TW, fresh.language)
+        val restored = ViewState()
+        restored.applySaved(ViewState.parse(fresh.encode(1.0, 1, "MEDIUM", emptyMap())))
+        assertEquals(UiLanguage.ZH_TW, restored.language)
+        restored.applySaved(mapOf("language" to "DE"))
+        assertEquals(UiLanguage.DE, restored.language)
     }
 
     @Test

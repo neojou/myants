@@ -11,6 +11,8 @@ import com.neojou.myants.session.ShotPose
 import com.neojou.myants.session.TunerOverrides
 import com.neojou.myants.session.Panel
 import com.neojou.myants.session.ViewState
+import com.neojou.myants.ui.L10n
+import com.neojou.myants.ui.UiLanguage
 import com.neojou.myants.session.buildAnalyseLines
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.PerformanceManager
@@ -126,6 +128,7 @@ class AppSession(launch: LaunchConfig) {
         saved["quality"]?.let { parseQuality(it)?.let { q -> quality = q } }
         saved["speed"]?.toDoubleOrNull()?.let { clock.restoreSpeed(it) }
         view.applySaved(saved)
+        L10n.language.value = view.language
         launch.colonies?.let { colonies = it.coerceIn(1, 2) }
         launch.quality?.let { quality = it }
         launch.renderer?.let { renderer = it }
@@ -294,6 +297,13 @@ class AppSession(launch: LaunchConfig) {
 
     fun setTunable(path: String, value: Double) {
         if (overrides.set(path, value)) save() else MyLog.add("APP", "Tuner path skipped: $path", LogLevel.DEBUG)
+        bump()
+    }
+
+    fun setLanguage(lang: UiLanguage) {
+        view.language = lang
+        L10n.language.value = lang
+        save()
         bump()
     }
 

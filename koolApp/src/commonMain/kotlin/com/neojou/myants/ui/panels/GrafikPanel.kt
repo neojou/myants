@@ -6,7 +6,11 @@ import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.QualityLevel
 import de.fabmax.kool.util.Color
 import com.neojou.myants.AppSession
+import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.MyantsTheme
+import com.neojou.myants.ui.UiLanguage
+import com.neojou.myants.ui.UiText
+import com.neojou.myants.ui.tr
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.scene.Scene
 
@@ -14,6 +18,24 @@ private val ANT_COLORS = MyantsTheme.Data.antColorChoices
 private val T = MyantsTheme.colors
 
 internal fun UiScope.grafik(session: AppSession) {
+    Text(tr(UiText.LANGUAGE)) { modifier.margin(top = MyantsTheme.space.s2) }
+    val lang = L10n.language.use()
+    Row {
+        for (choice in UiLanguage.entries) {
+            Button(choice.endonym) {
+                modifier.margin(end = MyantsTheme.space.s2).onClick { session.setLanguage(choice) }
+                if (lang == choice) {
+                    modifier.colors(
+                        buttonColor = T.primary,
+                        buttonHoverColor = T.primary,
+                        textColor = T.primaryContainer,
+                        textHoverColor = T.primaryContainer,
+                    )
+                    modifier.border(selectedBorder())
+                }
+            }
+        }
+    }
     Text("Qualität") { modifier.margin(top = MyantsTheme.space.s2) }
     ComboBox {
         modifier

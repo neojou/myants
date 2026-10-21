@@ -33,6 +33,7 @@
 - 設定與調參覆寫共用一個儲存。Desktop 是 `~/.myants/antsim.ui.v1.txt`，JS 是 `localStorage` key `antsim.ui.v1`。覆寫行是 `ov:path=value`。來源把覆寫放在另一個 `antsim.overrides.v1`。`applyTunerAction` 只改記憶體中的 `SimConfig`；存檔由 `AppSession.save()` 負責。
 - 啟動參數 `--seed=`、`--colonies=`、`--quality=`（JS 用網址 query）覆蓋已存的族群數與品質。
 - 按鈕用 ASCII（`||`、`>|`、`?`、`S`、`P`、`E`）。Fira MSDF 沒有 emoji，德文變音符號有。WebGL 與 Bloom 核取方塊顯示但鎖定。滑桿沒有 step，量化做在 `onChange`。
+- 介面語言可選 English、繁體中文、Deutsch，預設 English。舊設定檔沒有 `language` 時也是 English。AntSim 介面是英德混用，這是刻意不同。模擬產出的句子、蟻群專有名詞（例如 Rivalenkolonie）、以及 `Based on AntSim_V2 by nilsgollub (MIT)` 不翻譯。Fira 沒有中文字；繁體中文要等字型圖集，否則那些字顯示不出來。
 - HUD 的 Protein / Sugar 用 `floor`，與來源 `Math.floor` 相同。
 - `HelloCubeScene.kt`、`AppUi.kt` 與 `KoolStudyApp.kt` 已移除。入口是 `myantsApp()`。About 在 `AntSimUi.kt`，含 `Based on AntSim_V2 by nilsgollub (MIT)`。
 - 3D 世界在 `com.neojou.myants.render3d`。模擬套件不呼叫渲染，渲染不呼叫 `Rng`。裝飾用的高度、散布、雨與電影鏡頭用 `kotlin.random.Random`。

@@ -1,6 +1,8 @@
 package com.neojou.myants
 
 import com.neojou.myants.session.Panel
+import com.neojou.myants.ui.L10n
+import com.neojou.myants.ui.UiLanguage
 import com.neojou.myants.sim.FoodKind
 import com.neojou.myants.sim.SimConfig
 import java.io.File
@@ -36,6 +38,7 @@ class AppSessionTest {
         System.setProperty("user.home", oldHome!!)
         home.deleteRecursively()
         SimConfig.resetTunables()
+        L10n.language.value = UiLanguage.EN
     }
 
     @Test
@@ -145,5 +148,19 @@ class AppSessionTest {
         s.stepSpeed(1)
         assertEquals("2x", s.speedLabel())
         assertTrue(File(home, ".myants/antsim.ui.v1.txt").readText().startsWith("speed=2.0\n"))
+    }
+
+    @Test
+    fun languagePersistsAndReloads() {
+        assertEquals(UiLanguage.EN, s.view.language)
+        val rev = s.revision.value
+        s.setLanguage(UiLanguage.ZH_TW)
+        assertEquals(UiLanguage.ZH_TW, L10n.language.value)
+        assertEquals(rev + 1, s.revision.value)
+        val text = File(home, ".myants/antsim.ui.v1.txt").readText()
+        assertTrue("language=ZH_TW" in text)
+        val again = AppSession(LaunchConfig(seed = 1, colonies = 1))
+        assertEquals(UiLanguage.ZH_TW, again.view.language)
+        again.setLanguage(UiLanguage.EN)
     }
 }
