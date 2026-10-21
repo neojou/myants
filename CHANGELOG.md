@@ -11,6 +11,9 @@
 - 重構：`AntSimUi.kt` 拆成 `ui/HudPanel`、`Toolbar`、`AboutDialog` 與 `ui/panels/*`（共用 `PanelFrame`）；面板改用 `Panel` enum，移除 `openPanel("...")` 字串；行為不變（#37，Closes #8）
 - 重構：指標輸入改由 `input/PointerRouter` 單一入口處理（左側世界 2D/3D 座標換算與工具分派、右側巢穴 Inspect），`CameraState` 新增 `worldToScreen`；行為不變，附單元測試（#10）
 
+### 修正
+- 移除 `World.kt` 中被 Kotlin 內建成員遮蔽、實際不會被呼叫的 `Double.inc`／`Double.dec` 擴充函式，消除編譯警告；模擬行為不變（#31）
+
 ## [0.15.0] - 2026-10-21
 
 涵蓋 M1（試跑流程）與 M2（HUD 圖示）。
