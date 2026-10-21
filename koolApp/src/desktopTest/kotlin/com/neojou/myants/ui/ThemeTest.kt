@@ -21,6 +21,12 @@ class ThemeTest {
     @Test
     fun dataColorsUnchanged() {
         assertEquals(listOf("#c4703a", "#222222", "#d9bf52", "#88c0a0", "#6fa8dc"), MyantsTheme.Data.antColors)
+        val choices = MyantsTheme.Data.antColorChoices
+        assertEquals(MyantsTheme.Data.antColors, choices.map { it.hex })
+        assertEquals(listOf("Kupfer", "Schwarz", "Gold", "Salbei", "Blau"), choices.map { it.name })
+        assertEquals(choices.size, choices.map { it.name }.toSet().size)
+        val rival = MyantsTheme.Data.rivalColonyLabel
+        assertTrue("2" in rival && "Gold" in rival && "#d9bf52" in rival)
     }
 
     /**

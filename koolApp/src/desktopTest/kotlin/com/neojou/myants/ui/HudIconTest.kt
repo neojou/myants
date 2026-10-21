@@ -43,6 +43,12 @@ class HudIconTest {
     }
 
     @Test
+    fun pauseUsesFilledGlyphEvenWhenUnselected() {
+        assertEquals("icons/pause_fill.svg", HudIcon.PAUSE.assetPath(filled = false))
+        assertEquals("icons/pause_fill.svg", HudIcon.PAUSE.assetPath(filled = true))
+    }
+
+    @Test
     fun allSvgAssetsExistAndRasterizeWhite() {
         for (path in HudIcon.allAssetPaths()) {
             val f = File(assetsDir, path)

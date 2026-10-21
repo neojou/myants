@@ -15,6 +15,7 @@ HUD toolbar icons (Speed, Zoom, Tool rows) are Material Symbols Rounded SVGs (op
 - `cookie.svg`
 - `cookie_fill.svg`
 - `pause.svg`
+- `pause_fill.svg`
 - `photo_camera.svg`
 - `play_arrow_fill.svg`
 - `rainy.svg`

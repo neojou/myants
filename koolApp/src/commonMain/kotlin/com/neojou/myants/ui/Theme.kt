@@ -29,9 +29,25 @@ object MyantsTheme {
         val success = Color("#6FDF6F")
     }
 
+    /** One own-colony color preset. [name] is the non-color label (German until #24). */
+    data class AntColorChoice(val hex: String, val name: String)
+
     /** Data colors: moved here, values must match AntSim and never change. */
     object Data {
-        val antColors = listOf("#c4703a", "#222222", "#d9bf52", "#88c0a0", "#6fa8dc")
+        val antColorChoices = listOf(
+            AntColorChoice("#c4703a", "Kupfer"),
+            AntColorChoice("#222222", "Schwarz"),
+            AntColorChoice("#d9bf52", "Gold"),
+            AntColorChoice("#88c0a0", "Salbei"),
+            AntColorChoice("#6fa8dc", "Blau"),
+        )
+        val antColors = antColorChoices.map { it.hex }
+
+        /**
+         * Colony 1 (the rival) keeps worker tint #d9bf52.
+         * Name plus number, so that team is not identified by color alone.
+         */
+        const val rivalColonyLabel = "Rivalenkolonie 2 · Gold #d9bf52"
     }
 
     object radius {

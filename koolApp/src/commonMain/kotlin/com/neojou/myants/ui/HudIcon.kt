@@ -17,7 +17,7 @@ enum class HudIcon(
 ) {
     SLOWER("remove", "-", "Slower", "Langsamer"),
     FASTER("add", "+", "Faster", "Schneller"),
-    PAUSE("pause", "||", "Pause/Resume (Space)", "Pause/Fortsetzen (Leertaste)"),
+    PAUSE("pause_fill", "||", "Pause/Resume (Space)", "Pause/Fortsetzen (Leertaste)"),
     RESUME("play_arrow_fill", ">", "Pause/Resume (Space)", "Pause/Fortsetzen (Leertaste)"),
     STEP("skip_next_fill", ">|", "Single Step", "Einzelschritt"),
     ZOOM_IN("zoom_in", "+", "Zoom in (+)", "Hineinzoomen (+)"),

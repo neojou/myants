@@ -10,7 +10,7 @@ import com.neojou.myants.ui.MyantsTheme
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.scene.Scene
 
-private val ANT_COLORS = MyantsTheme.Data.antColors
+private val ANT_COLORS = MyantsTheme.Data.antColorChoices
 private val T = MyantsTheme.colors
 
 internal fun UiScope.grafik(session: AppSession) {
@@ -40,17 +40,37 @@ internal fun UiScope.grafik(session: AppSession) {
     Slider(session.pheromoneStrength.toFloat(), 0f, 1.5f) {
         modifier.width(Grow.Std).onChange { session.updatePheromoneStrength(it.toDouble()) }
     }
-    Text("Ameisenfarbe") { modifier.margin(top = MyantsTheme.space.s2) }
+    Text("Ameisenfarbe (eigene Kolonie)") { modifier.margin(top = MyantsTheme.space.s2) }
     Row {
-        for (hex in ANT_COLORS) {
-            Button(hex) {
-                modifier.margin(end = MyantsTheme.space.s2).onClick { session.setAntColor(hex) }
-                if (session.antColor == Color(hex)) {
-                    modifier.colors(buttonColor = T.primary, buttonHoverColor = T.primary, textColor = T.primaryContainer, textHoverColor = T.primaryContainer)
-                    modifier.border(selectedBorder())
+        for (choice in ANT_COLORS) {
+            val selected = session.antColor == Color(choice.hex)
+            Column {
+                modifier.margin(end = MyantsTheme.space.s2).onClick { session.setAntColor(choice.hex) }
+                Box {
+                    modifier
+                        .size(MyantsTheme.size.button, MyantsTheme.size.button)
+                        .alignX(AlignmentX.Center)
+                        .background(RoundRectBackground(Color(choice.hex), MyantsTheme.radius.md))
+                    if (selected) modifier.border(selectedBorder())
                 }
+                Text(choice.name) {
+                    modifier
+                        .alignX(AlignmentX.Center)
+                        .margin(top = MyantsTheme.space.s1)
+                        .font(sizes.smallText)
+                        .textColor(if (selected) T.primaryContainer else T.onSurface)
+                }
+                Tooltip(
+                    "${choice.name} ${choice.hex}",
+                    tooltipState = remember { TooltipState(MyantsTheme.motion.tooltipDelaySec) },
+                    backgroundColor = T.surfaceRaised,
+                    borderColor = T.outline,
+                )
             }
         }
+    }
+    Text(MyantsTheme.Data.rivalColonyLabel) {
+        modifier.margin(top = MyantsTheme.space.s1).font(sizes.smallText).textColor(T.onSurfaceVar)
     }
     Row {
         modifier.margin(top = MyantsTheme.space.s2)
