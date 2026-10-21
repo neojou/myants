@@ -12,18 +12,19 @@
 
 ## Status
 
-- 日期：2026-10-21
-- Agent：Grok Bot（Coder）
-- 版本：0.15.0（已發布；本分支未改版號）
-- Branch：`feat/8-split-antsimui`（PR #37，issue #8），基於 origin/main，已 merge `feat/10-pointer-router`（依賴 #35，請先合併 #35）
-- 內容：`AntSimUi.kt` 只留組合（35 行），HUD、工具列、About、各面板拆到 `ui/` 與 `ui/panels/`，每檔 < 200 行；面板改用 `session/Panel` enum。sim 沒改，HeadlessInvariantsTest 通過。
-- 下一步：等 Neo 補 macOS 前後截圖，再由 QE／Artist 驗收；#36（classic2d 拆分、shader 工具）。
-- Branch：`feat/10-pointer-router`（issue #10），基於 origin/main `2a9f7f9`
-- 內容：指標事件單一入口 `input/PointerRouter`（`PointerSample`/`PointerTarget`/`NestRect` 可單測），3D 仍走 `TopDownCamera.screenToGround`（OrthoGround，不用 unProjectScreen）。AntSimScene 的 `handlePointer` 移除。sim 沒改，HeadlessInvariantsTest 通過。
-- 下一步：#8 拆 AntSimUi.kt；`classic2d/` 繪製與 shader/texture 工具拆分（#10 設計說明的後半）待 PM 排程。
-- 先前（main，PR #38）：`feat/31-world-shadowed-ext`（issue #31），已 merge `origin/main` `2a9f7f9`（含 #7 拆分 AppSession：#28/#32/#33，及 #30）
-- 內容：移除 `sim/World.kt` 中被遮蔽的 `Double.inc/dec` 擴充函式（死碼，消除警告）。行為不變，HeadlessInvariantsTest 通過。
-- 先前（main）：`AppSession` 拆成組合根（296 行）加上 `session/` 底下的 SimClock、CameraState、ToolController、ViewState、HudState、CinemaDirector、ShotPose、TunerOverrides、FpsCounter；#7 已完成。
+- 日期：2026-10-22
+- Agent：Grok Build（單人模式）
+- 版本：0.15.0
+- SHA：390d4b9（接手時的 `main`。本機 commit，尚未 push）
+- 內容：M1、M2 已在 v0.15.0。main 已含 #7（AppSession 拆分）、#8（AntSimUi 拆檔與 `Panel` enum）、#10 的 PointerRouter、#31（移除被遮蔽的 `Double.inc/dec`）。#22 的 PR #26 已關，要在 main 上重做，且不升級 Gradle。
+- 下一步：#22、#39、#36、#9、#18、#17、#19、#24、#11，然後本機 tag v0.16.0。不 push。M4、M5 不做。
+- 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
+
+已完成、仍有效的結構：
+
+- `AppSession` 是組合根，加上 `session/` 底下的 SimClock、CameraState、ToolController、ViewState、HudState、CinemaDirector、ShotPose、TunerOverrides、FpsCounter。
+- `AntSimUi.kt` 只留組合。HUD、工具列、About、各面板在 `ui/` 與 `ui/panels/`。面板用 `session/Panel` enum。
+- 指標事件走 `input/PointerRouter`。3D 地面拾取用 `TopDownCamera.screenToGround`（OrthoGround，不用 unProjectScreen）。
 
 已落地：
 
@@ -37,7 +38,19 @@
 
 ## Now
 
-M1 試跑流程：#1 CI（PR #2 待審）。
+M3 剩餘工作。一個 Grok Build session 在本機 `main` commit，不開 PR，不 push。順序與範圍在 `handoff.md` 第 3 節。
+
+| 順序 | Issue | 狀態 |
+|---|---|---|
+| 1 | #22 建置維護（不升級 Gradle） | 未做 |
+| 2 | #39 `noteDrag` 測試 | 未做 |
+| 3 | #36 Classic 2D 拆到 `classic2d/` | 未做 |
+| 4 | #9 細粒度 state | 未做 |
+| 5 | #18 色值與 token | 未做 |
+| 6 | #17 按下縮放與數字欄寬 | 未做 |
+| 7 | #19 Stats 線型 | 未做 |
+| 8 | #24 English／繁體中文／Deutsch，預設 English | 未做 |
+| 9 | #11 工具列分組、Restart 確認、快捷鍵 | 未做 |
 
 ## Next
 
@@ -92,3 +105,4 @@ M1 試跑流程：#1 CI（PR #2 待審）。
 ## Log
 
 - 2026-10-20 Grok Build：建立本檔與 `docs/programming/README.md`，並把產品目標寫進 `AGENTS.md`。程式仍是 `2859ffe` / 0.14.0。Next 空白。
+- 2026-10-22 Grok Build：改單人模式。接手點 `390d4b9`。工作方式寫進 `handoff.md` 與 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
