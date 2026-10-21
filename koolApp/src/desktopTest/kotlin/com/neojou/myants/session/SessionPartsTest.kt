@@ -7,7 +7,9 @@ import com.neojou.myants.sim.Rng
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
 import com.neojou.myants.ui.HudSlots
+import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.MyantsTheme
+import com.neojou.myants.ui.UiLanguage
 import com.neojou.myants.ui.hudNumberWidth
 import de.fabmax.kool.modules.ui2.Dp
 import kotlin.test.AfterTest
@@ -24,7 +26,10 @@ class SessionPartsTest {
     }
 
     @AfterTest
-    fun tearDown() = SimConfig.resetTunables()
+    fun tearDown() {
+        SimConfig.resetTunables()
+        L10n.language.value = UiLanguage.EN
+    }
 
     @Test
     fun hudStringsMatchLegacyFormat() {
@@ -49,6 +54,26 @@ class SessionPartsTest {
         assertTrue(h.proteinDigits.value.isNotEmpty() && h.sugarDigits.value.isNotEmpty())
         assertEquals("0.5x", HudState.speedLabel(0.5))
         assertEquals("8x", HudState.speedLabel(8.0))
+    }
+
+    @Test
+    fun hudStringsFollowLanguage() {
+        val w = world()
+        val h = HudState()
+        L10n.language.value = UiLanguage.DE
+        h.sync(w, 42, 0.0, force = true)
+        assertTrue("Zucker" in h.food.value, h.food.value)
+        assertEquals("Königinnenalter: 0min 0s", h.queen.value)
+        assertTrue(h.pop.value.startsWith("Bevölkerung:"), h.pop.value)
+        L10n.language.value = UiLanguage.ZH_TW
+        h.sync(w, 42, 0.0, force = true)
+        assertTrue(h.pop.value.startsWith("族群:"), h.pop.value)
+        assertTrue("糖" in h.food.value, h.food.value)
+        L10n.language.value = UiLanguage.EN
+        h.sync(w, 42, 0.0, force = true)
+        assertTrue("Sugar" in h.food.value, h.food.value)
+        assertEquals("Queen Age: 0m 0s", h.queen.value)
+        assertTrue(h.pop.value.startsWith("Population:"), h.pop.value)
     }
 
     @Test

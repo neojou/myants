@@ -36,7 +36,7 @@ internal fun UiScope.grafik(session: AppSession) {
             }
         }
     }
-    Text("Qualität") { modifier.margin(top = MyantsTheme.space.s2) }
+    Text(tr(UiText.QUALITY)) { modifier.margin(top = MyantsTheme.space.s2) }
     ComboBox {
         modifier
             .width(Grow.Std)
@@ -44,11 +44,11 @@ internal fun UiScope.grafik(session: AppSession) {
             .selectedIndex(PerformanceManager.level.ordinal)
             .onItemSelected { session.setQuality(QualityLevel.entries[it]) }
     }
-    Text("Renderer") { modifier.margin(top = MyantsTheme.space.s2) }
+    Text(tr(UiText.RENDERER)) { modifier.margin(top = MyantsTheme.space.s2) }
     ComboBox {
         modifier
             .width(Grow.Std)
-            .items(listOf("3D", "Classic 2D"))
+            .items(listOf("3D", tr(UiText.CLASSIC_2D)))
             .selectedIndex(if (session.renderer == RenderMode.D3) 0 else 1)
             .onItemSelected { session.chooseRenderer(if (it == 0) RenderMode.D3 else RenderMode.CLASSIC) }
     }
@@ -57,12 +57,12 @@ internal fun UiScope.grafik(session: AppSession) {
         Checkbox(session.showPheromones) {
             modifier.onToggle { session.setPheromones(it) }
         }
-        Text("Pheromon-Spuren") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
+        Text(tr(UiText.PHEROMONES)) { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     Slider(session.pheromoneStrength.toFloat(), 0f, 1.5f) {
         modifier.width(Grow.Std).onChange { session.updatePheromoneStrength(it.toDouble()) }
     }
-    Text("Ameisenfarbe (eigene Kolonie)") { modifier.margin(top = MyantsTheme.space.s2) }
+    Text(tr(UiText.ANT_COLOR)) { modifier.margin(top = MyantsTheme.space.s2) }
     Row {
         for (choice in ANT_COLORS) {
             val selected = session.antColor == Color(choice.hex)
@@ -75,7 +75,7 @@ internal fun UiScope.grafik(session: AppSession) {
                         .background(RoundRectBackground(Color(choice.hex), MyantsTheme.radius.md))
                     if (selected) modifier.border(selectedBorder())
                 }
-                Text(choice.name) {
+                Text(choice.name(lang)) {
                     modifier
                         .alignX(AlignmentX.Center)
                         .margin(top = MyantsTheme.space.s1)
@@ -83,7 +83,7 @@ internal fun UiScope.grafik(session: AppSession) {
                         .textColor(if (selected) T.primaryContainer else T.onSurface)
                 }
                 Tooltip(
-                    "${choice.name} ${choice.hex}",
+                    "${choice.name(lang)} ${choice.hex}",
                     tooltipState = remember { TooltipState(MyantsTheme.motion.tooltipDelaySec) },
                     backgroundColor = T.surfaceRaised,
                     borderColor = T.outline,
@@ -91,13 +91,13 @@ internal fun UiScope.grafik(session: AppSession) {
             }
         }
     }
-    Text(MyantsTheme.Data.rivalColonyLabel) {
+    Text(MyantsTheme.Data.rivalColonyLabel(lang)) {
         modifier.margin(top = MyantsTheme.space.s1).font(sizes.smallText).textColor(T.onSurfaceVar)
     }
     Row {
         modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.dayNight) { modifier.onToggle { session.updateDayNight(it) } }
-        Text("Tag/Nacht-Tönung") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
+        Text(tr(UiText.DAY_NIGHT)) { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     Slider(session.dayNightStrength.toFloat(), 0f, 1f) {
         modifier.width(Grow.Std).onChange { session.updateDayNightStrength(it.toDouble()) }
@@ -105,7 +105,7 @@ internal fun UiScope.grafik(session: AppSession) {
     Row {
         modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.cinema) { modifier.onToggle { session.updateCinema(it) } }
-        Text("Kino-Kamera") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
+        Text(tr(UiText.CINEMA)) { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     val bloomOk = bloomAllowed(session)
     Row {
@@ -113,7 +113,7 @@ internal fun UiScope.grafik(session: AppSession) {
         Checkbox(session.bloomUser && bloomOk) {
             modifier.onToggle { if (bloomOk) session.chooseBloom(it) }
         }
-        Text(if (bloomOk) "Bloom / Glühen" else "Bloom / Glühen (off)") {
+        Text(if (bloomOk) tr(UiText.BLOOM) else tr(UiText.BLOOM_OFF)) {
             modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2)
         }
     }
@@ -125,18 +125,18 @@ internal fun UiScope.grafik(session: AppSession) {
     Row {
         modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.shadowsUser) { modifier.onToggle { session.chooseShadows(it) } }
-        Text("Schatten") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
+        Text(tr(UiText.SHADOWS)) { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     Row {
         modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.weatherUser) { modifier.onToggle { session.chooseWeather(it) } }
-        Text("Wetter-Effekte") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
+        Text(tr(UiText.WEATHER)) { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
-    Text("Gras-Dichte ${session.grassDensity}") { modifier.margin(top = MyantsTheme.space.s2) }
+    Text("${tr(UiText.GRASS)} ${session.grassDensity}") { modifier.margin(top = MyantsTheme.space.s2) }
     Slider(session.grassDensity, 0f, 1.5f) {
         modifier.width(Grow.Std).onChange { session.chooseGrassDensity(it) }
     }
-    Text("Kamera-Neigung ${session.cameraPitchDeg.toInt()}") { modifier.margin(top = MyantsTheme.space.s2) }
+    Text("${tr(UiText.PITCH)} ${session.cameraPitchDeg.toInt()}") { modifier.margin(top = MyantsTheme.space.s2) }
     Slider(session.cameraPitchDeg, -90f, -60f) {
         modifier.width(Grow.Std).onChange { session.choosePitch(it) }
     }

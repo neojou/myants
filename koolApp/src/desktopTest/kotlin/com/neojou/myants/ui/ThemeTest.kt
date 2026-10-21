@@ -23,10 +23,14 @@ class ThemeTest {
         assertEquals(listOf("#c4703a", "#222222", "#d9bf52", "#88c0a0", "#6fa8dc"), MyantsTheme.Data.antColors)
         val choices = MyantsTheme.Data.antColorChoices
         assertEquals(MyantsTheme.Data.antColors, choices.map { it.hex })
-        assertEquals(listOf("Kupfer", "Schwarz", "Gold", "Salbei", "Blau"), choices.map { it.name })
-        assertEquals(choices.size, choices.map { it.name }.toSet().size)
-        val rival = MyantsTheme.Data.rivalColonyLabel
-        assertTrue("2" in rival && "Gold" in rival && "#d9bf52" in rival)
+        assertEquals(listOf("Copper", "Black", "Gold", "Sage", "Blue"), choices.map { it.name(UiLanguage.EN) })
+        assertEquals(listOf("Kupfer", "Schwarz", "Gold", "Salbei", "Blau"), choices.map { it.name(UiLanguage.DE) })
+        assertEquals(listOf("銅", "黑", "金", "鼠尾草綠", "藍"), choices.map { it.name(UiLanguage.ZH_TW) })
+        assertEquals(choices.size, choices.map { it.name(UiLanguage.EN) }.toSet().size)
+        assertEquals("Rival colony 2 · Gold #d9bf52", MyantsTheme.Data.rivalColonyLabel(UiLanguage.EN))
+        assertEquals("Rivalenkolonie 2 · Gold #d9bf52", MyantsTheme.Data.rivalColonyLabel(UiLanguage.DE))
+        val zhRival = MyantsTheme.Data.rivalColonyLabel(UiLanguage.ZH_TW)
+        assertTrue("2" in zhRival && "金" in zhRival && "#d9bf52" in zhRival && "Gold" !in zhRival)
     }
 
     /**

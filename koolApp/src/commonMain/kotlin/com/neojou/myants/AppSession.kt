@@ -303,6 +303,7 @@ class AppSession(launch: LaunchConfig) {
     fun setLanguage(lang: UiLanguage) {
         view.language = lang
         L10n.language.value = lang
+        hud.sync(world, fpsShown, Time.gameTime, force = true)
         save()
         bump()
     }

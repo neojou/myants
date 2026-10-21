@@ -8,18 +8,26 @@ import de.fabmax.kool.pipeline.TexFormat
 import de.fabmax.kool.pipeline.Texture2d
 import de.fabmax.kool.util.Uint8Buffer
 import com.neojou.myants.AppSession
+import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.MyantsTheme
+import com.neojou.myants.ui.UiLanguage
+import com.neojou.myants.ui.UiText
+import com.neojou.myants.ui.tr
 import de.fabmax.kool.modules.ui2.*
 
-/** German names until #24 moves them into the string table. */
-internal val STATS_SERIES_NAMES = listOf("Pop", "Zucker", "Protein", "Energie")
+private val SERIES_KEYS = listOf(
+    UiText.SERIES_POP,
+    UiText.SERIES_SUGAR,
+    UiText.SERIES_PROTEIN,
+    UiText.SERIES_ENERGY,
+)
 
 internal fun UiScope.stats(session: AppSession) {
     StatsChart.paint(session.history)
     Image(StatsChart.tex) {
         modifier.margin(top = MyantsTheme.space.s2).imageSize(ImageSize.Stretch).size(280.dp, 130.dp)
     }
-    Text(STATS_SERIES_NAMES.joinToString("  ")) { modifier.margin(top = MyantsTheme.space.s2) }
+    Text(SERIES_KEYS.joinToString("  ") { tr(it) }) { modifier.margin(top = MyantsTheme.space.s2) }
 }
 
 internal enum class StatsStroke { SOLID, DASH, DOT, DASH_DOT }
@@ -89,11 +97,12 @@ private object StatsChart {
 internal fun drawStatsChart(buf: Uint8Buffer, w: Int, h: Int, samples: List<GraphSample>) {
     fill(buf, 0x11, 0x11, 0x11, 255)
     if (samples.size < 2) return
+    val names = SERIES_KEYS.map { statsBitmapLabel(it) }
     val series = listOf(
-        Series({ it.population.toDouble() }, 0, 0xdd, 0xdd, 0xdd, StatsStroke.SOLID, STATS_SERIES_NAMES[0]),
-        Series({ it.sugar }, 0, 0x6f, 0xdf, 0x6f, StatsStroke.DASH, STATS_SERIES_NAMES[1]),
-        Series({ it.protein }, 0, 0xdf, 0x6f, 0x6f, StatsStroke.DOT, STATS_SERIES_NAMES[2]),
-        Series({ it.energyPct }, 1, 0x6f, 0xb0, 0xdf, StatsStroke.DASH_DOT, STATS_SERIES_NAMES[3]),
+        Series({ it.population.toDouble() }, 0, 0xdd, 0xdd, 0xdd, StatsStroke.SOLID, names[0]),
+        Series({ it.sugar }, 0, 0x6f, 0xdf, 0x6f, StatsStroke.DASH, names[1]),
+        Series({ it.protein }, 0, 0xdf, 0x6f, 0x6f, StatsStroke.DOT, names[2]),
+        Series({ it.energyPct }, 1, 0x6f, 0xb0, 0xdf, StatsStroke.DASH_DOT, names[3]),
     )
     val endY = IntArray(series.size)
     for (s in series.indices) {
@@ -195,7 +204,16 @@ internal fun statsPixel(buf: Uint8Buffer, w: Int, x: Int, y: Int): Int {
     return (channel(0) shl 16) or (channel(1) shl 8) or channel(2)
 }
 
-/** 5x7 glyphs, bit 4 is the left pixel. Only the stats names. */
+/**
+ * Chart pixels cannot draw Chinese. Missing glyphs fall back to the English short name.
+ * The caption under the chart still uses the real string-table name.
+ */
+internal fun statsBitmapLabel(key: UiText, lang: UiLanguage = L10n.language.value): String {
+    val localized = L10n.string(key, lang)
+    return if (localized.all { it in GLYPHS }) localized else L10n.string(key, UiLanguage.EN)
+}
+
+/** 5x7 glyphs, bit 4 is the left pixel. Covers the English and German series names. */
 private val GLYPHS: Map<Char, IntArray> = mapOf(
     'P' to intArrayOf(0b11110, 0b10001, 0b10001, 0b11110, 0b10000, 0b10000, 0b10000),
     'o' to intArrayOf(0b00000, 0b01110, 0b10001, 0b10001, 0b10001, 0b01110, 0b00000),
@@ -211,6 +229,9 @@ private val GLYPHS: Map<Char, IntArray> = mapOf(
     'n' to intArrayOf(0b00000, 0b11010, 0b10101, 0b10001, 0b10001, 0b10001, 0b00000),
     'E' to intArrayOf(0b11111, 0b10000, 0b10000, 0b11110, 0b10000, 0b10000, 0b11111),
     'g' to intArrayOf(0b00000, 0b01111, 0b10001, 0b01111, 0b00001, 0b00001, 0b01110),
+    'S' to intArrayOf(0b01111, 0b10000, 0b10000, 0b01110, 0b00001, 0b00001, 0b11110),
+    'a' to intArrayOf(0b00000, 0b00000, 0b01110, 0b00001, 0b01111, 0b10001, 0b01111),
+    'y' to intArrayOf(0b00000, 0b10001, 0b10001, 0b01010, 0b00100, 0b00100, 0b01000),
 )
 
 private fun text(buf: Uint8Buffer, w: Int, h: Int, x: Int, y: Int, label: String, r: Int, g: Int, b: Int) {

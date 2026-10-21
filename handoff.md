@@ -50,8 +50,8 @@
 4. #9 細粒度 state：本機已做。工具列與 HUD 訂閱各自的 state。HUD 字串約每 0.25 秒寫一次，暫停單步立即寫。暫停、速度、下雨、切工具不增加 revision。側邊面板仍共用一個 revision。`syncPublishes` 計次，沒有量 fps。
 5. #18 色值與 token：本機已做。WorldPalette、圓角與對比註解、實心 `pause_fill`、蟻色色塊的名稱與 tooltip。色值不變。
 6. #17 按下縮到 0.96、HUD 數字固定寬度靠右：本機已做。字型仍是 Fira。
-7. #19 Stats 線型與線尾標籤：本機已做。顏色不變。標籤仍是德文，#24 再進字串表。
-8. #24 介面語言：字串表、預設 English、Grafik 切換與設定檔已做。其餘介面句子、圖示 tooltip、Stats 線尾尚未進字串表。Fira 沒有中文字。
+7. #19 Stats 線型與線尾標籤：本機已做。顏色不變。線尾標籤在 #24 進字串表。英文是 Sugar。
+8. #24 介面語言：本機已做。預設 English。Grafik、HUD、About 的 Version、圖示 tooltip、蟻色名稱、敵群行、Stats 圖下標籤都走字串表。圖上的點陣字沒有中文，繁中時線尾改畫英文。Fira 沒有中文字。
 9. #11 工具列分組、Restart 確認、快捷鍵 Space、`.`、`+`／`-`、`1`–`4`。不加 `[`、`]`。About 改走 `openPanel(Panel.ABOUT)`。
 
 ## 4. 後續

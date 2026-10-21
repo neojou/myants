@@ -1,6 +1,8 @@
 package com.neojou.myants.ui.panels
 
 import com.neojou.myants.GraphSample
+import com.neojou.myants.ui.UiLanguage
+import com.neojou.myants.ui.UiText
 import de.fabmax.kool.util.Uint8Buffer
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -47,6 +49,17 @@ class StatsChartTest {
         }
         assertTrue(on > 0 && off > 0, "dash on=$on off=$off")
         assertTrue((0 until w).any { x -> (0 until h).any { y -> statsPixel(dashed, w, x, y) == 0x6fdf6f && x >= w - 48 } })
+    }
+
+    @Test
+    fun bitmapFallsBackToEnglishWhenAGlyphIsMissing() {
+        assertEquals("Sugar", statsBitmapLabel(UiText.SERIES_SUGAR, UiLanguage.EN))
+        assertEquals("Zucker", statsBitmapLabel(UiText.SERIES_SUGAR, UiLanguage.DE))
+        assertEquals("Sugar", statsBitmapLabel(UiText.SERIES_SUGAR, UiLanguage.ZH_TW))
+        assertEquals("Energy", statsBitmapLabel(UiText.SERIES_ENERGY, UiLanguage.EN))
+        assertEquals("Energie", statsBitmapLabel(UiText.SERIES_ENERGY, UiLanguage.DE))
+        assertEquals("Energy", statsBitmapLabel(UiText.SERIES_ENERGY, UiLanguage.ZH_TW))
+        assertEquals("Protein", statsBitmapLabel(UiText.SERIES_PROTEIN, UiLanguage.ZH_TW))
     }
 
     @Test

@@ -19,7 +19,7 @@ internal fun Scene.addAboutDialog(session: AppSession) = addPanelSurface(backgro
     Text(AppVersion.APP_NAME) {
         modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s3).font(sizes.largeText.derive(MyantsTheme.text.lg))
     }
-    Text("Version ${AppVersion.NAME}") {
+    Text("${tr(UiText.VERSION)} ${AppVersion.NAME}") {
         modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s2)
     }
     Text("Based on AntSim_V2 by nilsgollub (MIT)") {

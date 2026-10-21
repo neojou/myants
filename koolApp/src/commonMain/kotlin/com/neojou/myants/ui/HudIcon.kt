@@ -1,8 +1,5 @@
 package com.neojou.myants.ui
 
-/** UI language for tooltips. AntSim UI copy is German by default. */
-enum class UiLang { EN, DE }
-
 /**
  * HUD toolbar icons (Speed / Zoom / Tool rows), spec #5 §3.
  * [file] is the Material Symbols Rounded SVG under `assets/icons/`; [fallback] is the
@@ -11,31 +8,30 @@ enum class UiLang { EN, DE }
 enum class HudIcon(
     val file: String,
     val fallback: String,
-    val tooltipEn: String,
-    val tooltipDe: String,
+    val tip: UiText,
     val filledFile: String? = null,
 ) {
-    SLOWER("remove", "-", "Slower", "Langsamer"),
-    FASTER("add", "+", "Faster", "Schneller"),
-    PAUSE("pause_fill", "||", "Pause/Resume (Space)", "Pause/Fortsetzen (Leertaste)"),
-    RESUME("play_arrow_fill", ">", "Pause/Resume (Space)", "Pause/Fortsetzen (Leertaste)"),
-    STEP("skip_next_fill", ">|", "Single Step", "Einzelschritt"),
-    ZOOM_IN("zoom_in", "+", "Zoom in (+)", "Hineinzoomen (+)"),
-    ZOOM_OUT("zoom_out", "-", "Zoom out (\u2212)", "Herauszoomen (\u2212)"),
-    RESET_CAMERA("center_focus_strong", "o", "Reset Camera", "Kamera zurücksetzen"),
-    SCREENSHOT("photo_camera", "PNG", "Screenshot PNG", "Bildschirmfoto (PNG)"),
-    INSPECT("search", "?", "Inspect", "Untersuchen", "search_fill"),
-    SUGAR("cookie", "S", "Place Sugar", "Zucker platzieren", "cookie_fill"),
-    PROTEIN("set_meal", "P", "Place Protein", "Protein platzieren", "set_meal_fill"),
-    ENEMY("skull", "E", "Spawn Enemy", "Feind erzeugen", "skull_fill"),
-    RAIN("rainy", "Rain", "Rain on/off", "Regen an/aus", "rainy_fill");
+    SLOWER("remove", "-", UiText.TIP_SLOWER),
+    FASTER("add", "+", UiText.TIP_FASTER),
+    PAUSE("pause_fill", "||", UiText.TIP_PAUSE),
+    RESUME("play_arrow_fill", ">", UiText.TIP_PAUSE),
+    STEP("skip_next_fill", ">|", UiText.TIP_STEP),
+    ZOOM_IN("zoom_in", "+", UiText.TIP_ZOOM_IN),
+    ZOOM_OUT("zoom_out", "-", UiText.TIP_ZOOM_OUT),
+    RESET_CAMERA("center_focus_strong", "o", UiText.TIP_RESET_CAMERA),
+    SCREENSHOT("photo_camera", "PNG", UiText.TIP_SCREENSHOT),
+    INSPECT("search", "?", UiText.TIP_INSPECT, "search_fill"),
+    SUGAR("cookie", "S", UiText.TIP_SUGAR, "cookie_fill"),
+    PROTEIN("set_meal", "P", UiText.TIP_PROTEIN, "set_meal_fill"),
+    ENEMY("skull", "E", UiText.TIP_ENEMY, "skull_fill"),
+    RAIN("rainy", "Rain", UiText.TIP_RAIN, "rainy_fill");
 
     fun assetPath(filled: Boolean = false): String = "icons/${if (filled && filledFile != null) filledFile else file}.svg"
 
-    fun tooltip(lang: UiLang, disabled: Boolean = false): String {
-        val base = if (lang == UiLang.DE) tooltipDe else tooltipEn
+    fun tooltip(lang: UiLanguage, disabled: Boolean = false): String {
+        val base = L10n.string(tip, lang)
         if (!disabled) return base
-        return base + if (lang == UiLang.DE) " (nur pausiert)" else " (paused only)"
+        return "$base ${L10n.string(UiText.TIP_PAUSED_ONLY, lang)}"
     }
 
     /** Text shown in the button: the ASCII fallback when the icon texture is not available. */

@@ -19,7 +19,6 @@ object HudIcons {
     private val textures = mutableMapOf<String, Texture2d>()
     /** Bumped whenever a texture finishes loading, so UI recomposes. */
     val loadedCount = mutableStateOf(0)
-    var lang: UiLang = UiLang.DE
 
     fun texture(path: String): Texture2d? = textures[path]
 
@@ -168,7 +167,7 @@ fun UiScope.IconButton(
             }
         }
         Tooltip(
-            icon.tooltip(HudIcons.lang, disabled = !enabled),
+            icon.tooltip(L10n.language.use(), disabled = !enabled),
             tooltipState = remember { TooltipState(MyantsTheme.motion.tooltipDelaySec) },
             backgroundColor = c.surfaceRaised,
             borderColor = c.outline,

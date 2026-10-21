@@ -13,16 +13,19 @@ class HudIconTest {
     @Test
     fun everyIconHasEnAndDeTooltip() {
         for (icon in HudIcon.entries) {
-            assertTrue(icon.tooltip(UiLang.EN).isNotBlank(), "$icon EN")
-            assertTrue(icon.tooltip(UiLang.DE).isNotBlank(), "$icon DE")
+            for (lang in UiLanguage.entries) {
+                assertTrue(icon.tooltip(lang).isNotBlank(), "$icon $lang")
+            }
         }
-        assertEquals("Einzelschritt (nur pausiert)", HudIcon.STEP.tooltip(UiLang.DE, disabled = true))
+        assertEquals("Single Step (paused only)", HudIcon.STEP.tooltip(UiLanguage.EN, disabled = true))
+        assertEquals("Einzelschritt (nur pausiert)", HudIcon.STEP.tooltip(UiLanguage.DE, disabled = true))
+        assertTrue(HudIcon.STEP.tooltip(UiLanguage.ZH_TW, disabled = true).isNotBlank())
     }
 
     @Test
     fun noUnboundBracketShortcutsInTooltips() {
         for (icon in HudIcon.entries) {
-            val t = icon.tooltip(UiLang.EN) + icon.tooltip(UiLang.DE)
+            val t = UiLanguage.entries.joinToString("") { icon.tooltip(it) }
             assertTrue('[' !in t && ']' !in t, "$icon must not advertise [ ] shortcuts (#11)")
         }
     }

@@ -23,7 +23,7 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
         .onPointer { it.pointer.consume() }
     val hud = session.hud
     Row {
-        Text("FPS: ") { }
+        Text("${tr(UiText.HUD_FPS)}: ") { }
         hudDigits(hud.fpsDigits.use(), HudSlots.FPS)
     }
     if (hud.popMany.use()) {
@@ -32,37 +32,37 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
         }
     } else if (hud.popSplit.use()) {
         Row {
-            Text("Population: ") { }
+            Text("${tr(UiText.POPULATION)}: ") { }
             hudDigits(hud.popDigits.use(), HudSlots.POP)
             Text(" (") { }
             hudDigits(hud.colonyA.use(), HudSlots.POP)
-            Text(" vs ") { }
+            Text(" ${tr(UiText.VERSUS)} ") { }
             hudDigits(hud.colonyB.use(), HudSlots.POP)
             Text(")") { }
         }
     } else {
         Row {
-            Text("Population: ") { }
+            Text("${tr(UiText.POPULATION)}: ") { }
             hudDigits(hud.popDigits.use(), HudSlots.POP)
-            Text(" (W:") { }
+            Text(" (${tr(UiText.WORKERS)}:") { }
             hudDigits(hud.workers.use(), HudSlots.POP)
-            Text(" S:") { }
+            Text(" ${tr(UiText.SOLDIERS)}:") { }
             hudDigits(hud.soldiers.use(), HudSlots.POP)
             Text(")") { }
         }
     }
     Row {
-        Text("Protein: ") { }
+        Text("${tr(UiText.PROTEIN)}: ") { }
         hudDigits(hud.proteinDigits.use(), HudSlots.STOCK)
-        Text(" | Sugar: ") { }
+        Text(" | ${tr(UiText.SUGAR)}: ") { }
         hudDigits(hud.sugarDigits.use(), HudSlots.STOCK)
     }
     Row {
-        Text("Queen Age: ") { }
+        Text("${tr(UiText.QUEEN_AGE)}: ") { }
         hudDigits(hud.queenMin.use(), HudSlots.QUEEN_MIN)
-        Text("m ") { }
+        Text("${tr(UiText.UNIT_MIN)} ") { }
         hudDigits(hud.queenSec.use(), HudSlots.QUEEN_SEC)
-        Text("s") { }
+        Text(tr(UiText.UNIT_SEC)) { }
     }
     Text("v${AppVersion.NAME}") { modifier.font(sizes.smallText) }
     if (inspect.isNotEmpty()) {

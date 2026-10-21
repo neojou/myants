@@ -1,6 +1,8 @@
 package com.neojou.myants.session
 
 import com.neojou.myants.GraphSample
+import com.neojou.myants.ui.L10n
+import com.neojou.myants.ui.UiText
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
@@ -44,17 +46,16 @@ class HudState {
         syncPublishes++
         val fpsText = fpsShown.toString()
         fpsDigits.value = fpsText
-        fps.value = "FPS: $fpsText"
+        fps.value = L10n.fpsLine(fpsText)
         if (world.colonies.size > 1) {
             val counts = world.colonies.map { it.ants.size.toString() }
             val total = world.totalAntCount().toString()
-            val split = counts.joinToString(" vs ")
             popSplit.value = true
             popMany.value = counts.size != 2
             popDigits.value = total
             colonyA.value = counts[0]
-            colonyB.value = if (counts.size == 2) counts[1] else counts.drop(1).joinToString(" vs ")
-            pop.value = "Population: $total ($split)"
+            colonyB.value = if (counts.size == 2) counts[1] else counts.drop(1).joinToString(" ${L10n.string(UiText.VERSUS)} ")
+            pop.value = L10n.populationLine(total, L10n.populationSplitDetail(counts))
         } else {
             val ants = world.colonies[0].ants
             val workerCount = ants.count { it.type == AntKind.WORKER }
@@ -64,19 +65,22 @@ class HudState {
             popDigits.value = ants.size.toString()
             workers.value = workerCount.toString()
             soldiers.value = soldierCount.toString()
-            pop.value = "Population: ${ants.size} (W:$workerCount S:$soldierCount)"
+            pop.value = L10n.populationLine(
+                ants.size.toString(),
+                L10n.populationSingleDetail(workers.value, soldiers.value),
+            )
         }
         val protein = floor(world.proteinStockpile).toInt()
         val sugar = floor(world.sugarStockpile).toInt()
         proteinDigits.value = protein.toString()
         sugarDigits.value = sugar.toString()
-        food.value = "Protein: $protein | Sugar: $sugar"
+        food.value = L10n.foodLine(protein, sugar)
         val ageSeconds = world.queen.age / 60
         val minutes = ageSeconds / 60
         val seconds = ageSeconds % 60
         queenMin.value = minutes.toString()
         queenSec.value = seconds.toString()
-        queen.value = "Queen Age: ${minutes}m ${seconds}s"
+        queen.value = L10n.queenLine(minutes, seconds)
     }
 
     /** Appends one graph sample; keeps the last 180. */

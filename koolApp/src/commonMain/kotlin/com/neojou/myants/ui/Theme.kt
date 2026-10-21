@@ -29,25 +29,36 @@ object MyantsTheme {
         val success = Color("#6FDF6F")
     }
 
-    /** One own-colony color preset. [name] is the non-color label (German until #24). */
-    data class AntColorChoice(val hex: String, val name: String)
+    /**
+     * One own-colony color preset. Hex values stay fixed.
+     * [name] follows the interface language so the swatch is not identified by color alone.
+     */
+    data class AntColorChoice(val hex: String, val en: String, val zh: String, val de: String) {
+        fun name(lang: UiLanguage): String = when (lang) {
+            UiLanguage.EN -> en
+            UiLanguage.ZH_TW -> zh
+            UiLanguage.DE -> de
+        }
+    }
 
     /** Data colors: moved here, values must match AntSim and never change. */
     object Data {
         val antColorChoices = listOf(
-            AntColorChoice("#c4703a", "Kupfer"),
-            AntColorChoice("#222222", "Schwarz"),
-            AntColorChoice("#d9bf52", "Gold"),
-            AntColorChoice("#88c0a0", "Salbei"),
-            AntColorChoice("#6fa8dc", "Blau"),
+            AntColorChoice("#c4703a", "Copper", "銅", "Kupfer"),
+            AntColorChoice("#222222", "Black", "黑", "Schwarz"),
+            AntColorChoice("#d9bf52", "Gold", "金", "Gold"),
+            AntColorChoice("#88c0a0", "Sage", "鼠尾草綠", "Salbei"),
+            AntColorChoice("#6fa8dc", "Blue", "藍", "Blau"),
         )
         val antColors = antColorChoices.map { it.hex }
 
         /**
          * Colony 1 (the rival) keeps worker tint #d9bf52.
          * Name plus number, so that team is not identified by color alone.
+         * Gold is preset index 2. Clicking that swatch still changes colony 0 only.
          */
-        const val rivalColonyLabel = "Rivalenkolonie 2 · Gold #d9bf52"
+        fun rivalColonyLabel(lang: UiLanguage): String =
+            "${L10n.string(UiText.RIVAL_COLONY, lang)} 2 · ${antColorChoices[2].name(lang)} #d9bf52"
     }
 
     object radius {

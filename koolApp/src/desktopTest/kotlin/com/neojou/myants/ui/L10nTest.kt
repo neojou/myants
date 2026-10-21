@@ -16,5 +16,11 @@ class L10nTest {
         assertEquals("速度", L10n.string(UiText.SPEED, UiLanguage.ZH_TW))
         assertEquals("Tempo", L10n.string(UiText.SPEED, UiLanguage.DE))
         assertEquals("Verlauf", L10n.string(UiText.STATS, UiLanguage.DE))
+        assertEquals("Protein: 3 | Sugar: 4", L10n.foodLine(3, 4, UiLanguage.EN))
+        assertEquals("Protein: 3 | Zucker: 4", L10n.foodLine(3, 4, UiLanguage.DE))
+        assertEquals("Queen Age: 1m 2s", L10n.queenLine(1, 2, UiLanguage.EN))
+        assertEquals("Königinnenalter: 1min 2s", L10n.queenLine(1, 2, UiLanguage.DE))
+        assertEquals("Sugar", L10n.string(UiText.SERIES_SUGAR, UiLanguage.EN))
+        assertEquals("Zucker", L10n.string(UiText.SERIES_SUGAR, UiLanguage.DE))
     }
 }

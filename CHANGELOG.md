@@ -21,11 +21,12 @@
 - 變更：HUD 的 FPS、族群、食物、蟻后字串約每 0.25 秒寫一次；暫停單步立即寫。`revision.use()` 從 4 處降到 1 處（只剩側邊面板）。暫停、速度、下雨、切工具不再增加 `revision`，所以只改速度時 Stats 與 About 的重組觸發次數不變；改費洛蒙仍會加 1。`HudState.syncPublishes` 在 0.25 秒內多次 sync 只加 1。沒有量 fps（Closes #9）
 - 重構：場景材質色收進 `render3d/WorldPalette`。2D 與 3D 原本不同的顏色各自保留，數值不變。蟻色預設改引用同一處。UI 色仍在 `MyantsTheme`（Refs #18）
 - 變更：HUD、工具列、About、側邊面板改用 `radius.lg` 圓角與 `outline` 邊。Button／ComboBox 的圓角改跟選取外框一樣用 `radius.md`（6dp）。對比 6.63:1 是次文字疊在 surfaceRaised 上，7.44:1 是同一段文字疊在 surface 且 α 用 0.86；兩者都超過 4.5，色值不變（Refs #18）
-- 變更：暫停圖示改為實心 `pause_fill.svg`（Material Symbols Rounded FILL 1，路徑填 `#FFFFFF`）。`pause.svg` 仍留在 assets。Grafik 蟻色改成色塊，名稱在色塊下方，tooltip 含名稱與色碼；色值不變。敵群寫成「Rivalenkolonie 2 · Gold #d9bf52」，不只靠顏色（Closes #18）
+- 變更：暫停圖示改為實心 `pause_fill.svg`（Material Symbols Rounded FILL 1，路徑填 `#FFFFFF`）。`pause.svg` 仍留在 assets。Grafik 蟻色改成色塊，名稱在色塊下方，tooltip 含名稱與色碼；色值不變。敵群寫出色號與名稱，不只靠顏色。德文是「Rivalenkolonie 2 · Gold #d9bf52」（Closes #18）
 - 變更：圖示按鈕按下時內容縮到 0.96，放開回到 1，不彈跳。點擊範圍維持 28dp，版面不位移。停用的按鈕不縮（Refs #17）
 - 變更：HUD 的 FPS、族群、食物、蟻后數字放在固定寬度欄位並靠右。字型仍是 Fira。位數變多時標籤不左右移動（Closes #17）
-- 變更：Stats 四條線顏色不變，改為實線、虛線、點線、點劃線，線尾標 Pop、Zucker、Protein、Energie。標籤太近時會錯開（Closes #19）
-- 新增：介面語言 English／繁體中文／Deutsch，預設 English。工具列、面板標題、OK、Reset 走字串表。Grafik 可切換，寫入設定檔 `language`。舊檔沒有這個鍵時維持 English。模擬句子、Rivalenkolonie、MIT 授權行不翻譯（Refs #24）
+- 變更：Stats 四條線顏色不變，改為實線、虛線、點線、點劃線。標籤太近時會錯開（Closes #19）
+- 新增：介面語言 English／繁體中文／Deutsch，預設 English。工具列、面板標題、OK、Reset 走字串表。Grafik 可切換，寫入設定檔 `language`。舊檔沒有這個鍵時維持 English。模擬句子、Rivalenkolonie 核取方塊、MIT 授權行不翻譯（Refs #24）
+- 變更：Grafik 其餘標籤、HUD、About 的 Version、圖示 tooltip、蟻色名稱與敵群行改走字串表。Stats 圖下標籤跟著語言；英文糖線是 Sugar，德文仍是 Zucker。圖上的點陣字沒有中文，繁中時線尾改畫英文。Fira 仍沒有中文字（Closes #24）
 
 ### 修正
 - 移除 `World.kt` 中被 Kotlin 內建成員遮蔽、實際不會被呼叫的 `Double.inc`／`Double.dec` 擴充函式，消除編譯警告；模擬行為不變（#31）
