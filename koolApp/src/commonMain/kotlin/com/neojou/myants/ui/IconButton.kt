@@ -4,6 +4,7 @@ import com.neojou.tools.LogLevel
 import com.neojou.tools.MyLog
 import de.fabmax.kool.Assets
 import de.fabmax.kool.loadTexture2d
+import de.fabmax.kool.math.Easing
 import de.fabmax.kool.math.Vec2i
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.pipeline.Texture2d
@@ -99,6 +100,10 @@ fun iconButtonVisual(
     )
 }
 
+/** Target content scale. Disabled buttons stay at 1 so a dead control does not dip. */
+fun iconPressScale(pressed: Boolean, enabled: Boolean): Float =
+    if (pressed && enabled) MyantsTheme.motion.pressScale else 1f
+
 /**
  * 28x28dp icon button with tooltip (spec #5 §4/§5). Colors come from [MyantsTheme].
  * Falls back to the ASCII label when the icon texture is not loaded.
@@ -115,7 +120,18 @@ fun UiScope.IconButton(
     Box {
         val hovered = remember { mutableStateOf(false) }
         val pressed = remember { mutableStateOf(false) }
-        val v = iconButtonVisual(icon, selected, enabled, hovered.use(), pressed.use()) { HudIcons.texture(it) != null }
+        val pressedNow = pressed.use()
+        val v = iconButtonVisual(icon, selected, enabled, hovered.use(), pressedNow) { HudIcons.texture(it) != null }
+        // kool 0.19 has no layout scale. The inner box animates; this 28dp box stays the hit target.
+        val pressAnim = remember { FloatAnimator(MyantsTheme.motion.pressSeconds, Easing.smooth, initial = 1f) }
+        val lastTarget = remember { floatArrayOf(1f) }
+        val target = iconPressScale(pressedNow, enabled)
+        if (lastTarget[0] != target) {
+            lastTarget[0] = target
+            pressAnim.start(target)
+        }
+        pressAnim.animatable.use()
+        val scale = pressAnim.update()
         modifier
             .size(MyantsTheme.size.button, MyantsTheme.size.button)
             .margin(start = startMargin)
@@ -130,20 +146,25 @@ fun UiScope.IconButton(
                 pressed.set(false)
                 if (v.clickable) onClick()
             }
-        modifier.background(v.background?.let { RoundRectBackground(it, MyantsTheme.radius.md) })
-        if (v.outlined) modifier.border(RoundRectBorder(c.primaryContainer, MyantsTheme.radius.md, MyantsTheme.stroke.selected))
-        val tex = v.assetPath?.let { HudIcons.texture(it) }
-        if (tex != null) {
-            Image(tex) {
-                modifier
-                    .size(MyantsTheme.size.icon, MyantsTheme.size.icon)
-                    .align(AlignmentX.Center, AlignmentY.Center)
-                    .imageSize(ImageSize.Stretch)
-                    .tint(v.foreground)
-            }
-        } else {
-            Text(v.text) {
-                modifier.align(AlignmentX.Center, AlignmentY.Center).textColor(v.foreground)
+        Box {
+            modifier
+                .size(MyantsTheme.size.button * scale, MyantsTheme.size.button * scale)
+                .align(AlignmentX.Center, AlignmentY.Center)
+                .background(v.background?.let { RoundRectBackground(it, MyantsTheme.radius.md) })
+            if (v.outlined) modifier.border(RoundRectBorder(c.primaryContainer, MyantsTheme.radius.md, MyantsTheme.stroke.selected))
+            val tex = v.assetPath?.let { HudIcons.texture(it) }
+            if (tex != null) {
+                Image(tex) {
+                    modifier
+                        .size(MyantsTheme.size.icon * scale, MyantsTheme.size.icon * scale)
+                        .align(AlignmentX.Center, AlignmentY.Center)
+                        .imageSize(ImageSize.Stretch)
+                        .tint(v.foreground)
+                }
+            } else {
+                Text(v.text) {
+                    modifier.align(AlignmentX.Center, AlignmentY.Center).textColor(v.foreground)
+                }
             }
         }
         Tooltip(

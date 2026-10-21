@@ -47,7 +47,7 @@ M3 剩餘工作。一個 Grok Build session 在本機 `main` commit，不開 PR�
 | 3 | #36 Classic 2D 拆到 `classic2d/` | 本機已做 |
 | 4 | #9 細粒度 state | 本機已做 |
 | 5 | #18 色值與 token | 本機已做 |
-| 6 | #17 按下縮放與數字欄寬 | 未做 |
+| 6 | #17 按下縮放與數字欄寬 | 進行中：按下 0.96 已做 |
 | 7 | #19 Stats 線型 | 未做 |
 | 8 | #24 English／繁體中文／Deutsch，預設 English | 未做 |
 | 9 | #11 工具列分組、Restart 確認、快捷鍵 | 未做 |

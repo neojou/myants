@@ -53,6 +53,14 @@ class IconButtonTest {
     }
 
     @Test
+    fun pressScaleIs096OnlyWhileEnabledAndPressed() {
+        assertEquals(MyantsTheme.motion.pressScale, iconPressScale(pressed = true, enabled = true))
+        assertEquals(0.96f, iconPressScale(pressed = true, enabled = true))
+        assertEquals(1f, iconPressScale(pressed = false, enabled = true))
+        assertEquals(1f, iconPressScale(pressed = true, enabled = false))
+    }
+
+    @Test
     fun disabledIsDimmedNotClickableAndIgnoresHover() {
         val r = v(HudIcon.STEP, enabled = false, hovered = true, pressed = true)
         assertEquals(c.onSurfaceDisabled, r.foreground)

@@ -64,6 +64,10 @@ object MyantsTheme {
     object motion {
         /** Tooltip delay; issue #6 requires < 0.5s. */
         const val tooltipDelaySec = 0.45
+        /** Icon button content scale while pressed. Spec: 0.96, no bounce. */
+        const val pressScale = 0.96f
+        /** Matches the 120 ms hover fade in the HUD spec. */
+        const val pressSeconds = 0.12f
     }
 
     object stroke {
