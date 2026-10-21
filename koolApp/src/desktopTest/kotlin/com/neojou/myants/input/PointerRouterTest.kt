@@ -1,8 +1,12 @@
 package com.neojou.myants.input
 
+import com.neojou.myants.AppSession
+import com.neojou.myants.LaunchConfig
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.session.CameraState
+import com.neojou.myants.sim.SimConfig
 import de.fabmax.kool.math.Vec2f
+import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -113,6 +117,39 @@ class PointerRouterTest {
         val t = Fake(RenderMode.D3)
         route(PointerSample(110f, 100f, dx = 10f, leftDown = true, drag = 20f), t)
         assertEquals(listOf("panGround -20.0 0.0"), t.log)
+    }
+
+    /** #39: 3D drag goes through sessionTarget.panGround into noteDrag. 2D pan does not. */
+    @Test
+    fun drag3dClearsUserFollowAndClassicDragDoesNot() {
+        val home = Files.createTempDirectory("myants-notedrag").toFile()
+        val oldHome = System.getProperty("user.home")
+        System.setProperty("user.home", home.absolutePath)
+        try {
+            val session = AppSession(LaunchConfig(seed = 1, colonies = 1))
+            session.userFollow = true
+            val beforeX = session.camX
+            PointerRouter.route(
+                PointerSample(110f, 100f, dx = 10f, leftDown = true, drag = 20f),
+                session.sessionTarget(),
+                leftW, winH, pick, nest,
+            )
+            assertFalse(session.userFollow)
+            assertTrue(session.camX != beforeX)
+
+            session.renderer = RenderMode.CLASSIC
+            session.userFollow = true
+            PointerRouter.route(
+                PointerSample(100f, 100f, dx = 3f, leftDown = true, drag = 6f),
+                session.sessionTarget(),
+                leftW, winH, pick, nest,
+            )
+            assertTrue(session.userFollow)
+        } finally {
+            System.setProperty("user.home", oldHome)
+            home.deleteRecursively()
+            SimConfig.resetTunables()
+        }
     }
 
     @Test

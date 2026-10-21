@@ -18,6 +18,7 @@
 
 ### 修正
 - 移除 `World.kt` 中被 Kotlin 內建成員遮蔽、實際不會被呼叫的 `Double.inc`／`Double.dec` 擴充函式，消除編譯警告；模擬行為不變（#31）
+- 測試：3D 拖曳經 `sessionTarget` 會呼叫 `noteDrag`（清掉 `userFollow`）；2D 拖曳不會（#39）
 
 ## [0.15.0] - 2026-10-21
 
