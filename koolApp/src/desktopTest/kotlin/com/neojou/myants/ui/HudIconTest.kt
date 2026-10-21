@@ -37,6 +37,8 @@ class HudIconTest {
         assertEquals("", HudIcon.STEP.label(iconLoaded = true))
         assertEquals(listOf("?", "S", "P", "E"),
             listOf(HudIcon.INSPECT, HudIcon.SUGAR, HudIcon.PROTEIN, HudIcon.ENEMY).map { it.fallback })
+        assertEquals("Aa", HudIcon.LANGUAGE.fallback)
+        assertEquals("icons/language.svg", HudIcon.LANGUAGE.assetPath())
     }
 
     @Test

@@ -30,7 +30,19 @@ import de.fabmax.kool.util.Time
 
 enum class SimTool { INSPECT, SUGAR, PROTEIN, ENEMY }
 
-class AnalyseLine(val text: String, val path: String?, val to: Double)
+/**
+ * One analysis row. [copyId] is resolved from the string table at draw time,
+ * so a language change updates an open panel. [literal] is the action label,
+ * or the fallback when [copyId] is unknown.
+ */
+class AnalyseLine(
+    val copyId: String?,
+    val severity: String?,
+    val effect: Boolean,
+    val literal: String,
+    val path: String?,
+    val to: Double,
+)
 
 class GraphSample(val population: Int, val sugar: Double, val protein: Double, val energyPct: Double)
 
@@ -79,6 +91,9 @@ class AppSession(launch: LaunchConfig) {
 
     /** Restart confirmation. Not saved. Cancel leaves the world alone. */
     var restartPrompt: Boolean = false
+
+    /** Language menu. Not saved. Choosing a language does not rebuild the world. */
+    val languageMenu = mutableStateOf(false)
 
     val hudFps get() = hud.fps
     val hudPop get() = hud.pop
@@ -326,7 +341,16 @@ class AppSession(launch: LaunchConfig) {
         bump()
     }
 
+    fun toggleLanguageMenu() {
+        languageMenu.value = !languageMenu.value
+    }
+
+    fun closeLanguageMenu() {
+        languageMenu.value = false
+    }
+
     fun setLanguage(lang: UiLanguage) {
+        languageMenu.value = false
         view.language = lang
         L10n.language.value = lang
         hud.sync(world, fpsShown, Time.gameTime, force = true)

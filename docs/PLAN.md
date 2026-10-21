@@ -15,8 +15,8 @@
 - 日期：2026-10-22
 - Agent：Grok Build（單人模式）
 - 版本：0.16.0
-- SHA：390d4b9 是接手時的 `main`。v0.16.0 是本機 release commit，尚未 push。
-- 內容：M1、M2 在 v0.15.0。M3 在本機 v0.16.0（#7、#8、#10、#22、#39、#36、#9、#18、#17、#19、#24、#11）。尚未 push。
+- SHA：390d4b9 是接手時的 `main`。v0.16.0（642f082）的 commit 與 tag 已在 origin。
+- 內容：M1、M2 在 v0.15.0。M3 在 v0.16.0（642f082）。其後本機另有工具列調整：下雨在骷髏頭右邊；右上角地球圖示切 English／繁體中文／日本語／Deutsch。不另升版，尚未 push。
 - 下一步：M4 Inspect（#12），之後 M5 glTF（#13）。這次不做。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
@@ -38,7 +38,7 @@
 
 ## Now
 
-M3 已在本機 v0.16.0 完成，尚未 push。順序與範圍在 `handoff.md` 第 3 節。
+M3 已在 origin 的 v0.16.0（642f082）。順序與範圍在 `handoff.md` 第 3 節。
 
 | 順序 | Issue | 狀態 |
 |---|---|---|
@@ -86,7 +86,7 @@ M3 已在本機 v0.16.0 完成，尚未 push。順序與範圍在 `handoff.md` �
 
 - `com.neojou.myants.sim` 的行為。`HeadlessInvariantsTest` 黃金值不變：種子 12345，1000 tick 為 pop 21、sugar 673、protein 238、queenEnergy 2201、extraChambers 2；2500 tick 為 pop 23、sugar 711、protein 204、queenEnergy 2242。
 - kool 0.19.0、Kotlin、Gradle、JDK 的版本。不加 wasm、不加 Compose。
-- 介面語言是設定：English／繁體中文／Deutsch，預設 English（#24）。舊檔沒有 `language` 時用 English。模擬句子、蟻群專有名詞、MIT 授權行不翻譯。不要改回「只能英德混用」。
+- 介面語言是設定：English／繁體中文／日本語／Deutsch，預設 English。舊檔沒有 `language` 時用 English。切換不重建世界。可見文字跟所選語言走；MIT 授權行保持英文。不要改回「只能英德混用」。
 - 版本只透過 `./configure.sh version` 改。
 - 第一人稱與任何會寫回 sim 的玩家操作，直到出現在 Next。
 

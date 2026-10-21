@@ -98,4 +98,8 @@ tasks.named<ProcessResources>("jsProcessResources") {
     from(layout.projectDirectory.dir("assets/icons")) {
         into("assets/icons")
     }
+    from(layout.projectDirectory.dir("src/commonMain/resources/fonts")) {
+        include("noto-sans-cjk.json", "noto-sans-cjk.png")
+        into("assets/fonts")
+    }
 }

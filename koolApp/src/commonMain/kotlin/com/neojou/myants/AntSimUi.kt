@@ -1,9 +1,12 @@
 package com.neojou.myants
 
 import com.neojou.myants.ui.HudIcons
+import com.neojou.myants.ui.UiFonts
 import com.neojou.myants.ui.UiText
 import com.neojou.myants.ui.addAboutDialog
 import com.neojou.myants.ui.addHudPanel
+import com.neojou.myants.ui.addLanguageMenu
+import com.neojou.myants.ui.addLanguageScrim
 import com.neojou.myants.ui.addRestartDialog
 import com.neojou.myants.ui.addToolbar
 import com.neojou.myants.ui.panels.analyse
@@ -18,6 +21,7 @@ import de.fabmax.kool.addUiScene
 fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
     session.uiScene = this
     HudIcons.loadAll(coroutineScope)
+    UiFonts.load(coroutineScope)
     val hud = addHudPanel(session)
     addToolbar(session)
     val grafikPanel = sidePanel(session, UiText.GRAFIK) { grafik(session) }
@@ -26,8 +30,12 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
     val analysePanel = sidePanel(session, UiText.ANALYSE) { analyse(session) }
     val aboutPanel = addAboutDialog(session)
     val restartPanel = addRestartDialog(session)
+    val languageScrim = addLanguageScrim(session)
+    val languageMenu = addLanguageMenu(session)
     aboutPanel.isVisible = false
     restartPanel.isVisible = false
+    languageScrim.isVisible = false
+    languageMenu.isVisible = false
     onUpdate {
         grafikPanel.isVisible = session.showGrafik
         paramsPanel.isVisible = session.showParams
@@ -35,6 +43,9 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
         analysePanel.isVisible = session.showAnalyse
         aboutPanel.isVisible = session.showAbout
         restartPanel.isVisible = session.restartPrompt
+        val languageOpen = session.languageMenu.value
+        languageScrim.isVisible = languageOpen
+        languageMenu.isVisible = languageOpen
     }
     hud.isVisible = true
 }

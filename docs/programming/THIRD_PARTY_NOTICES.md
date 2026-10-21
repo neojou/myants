@@ -14,6 +14,7 @@ HUD toolbar icons (Speed, Zoom, Tool rows) are Material Symbols Rounded SVGs (op
 - `center_focus_strong.svg`
 - `cookie.svg`
 - `cookie_fill.svg`
+- `language.svg`
 - `pause.svg`
 - `pause_fill.svg`
 - `photo_camera.svg`
@@ -31,9 +32,15 @@ HUD toolbar icons (Speed, Zoom, Tool rows) are Material Symbols Rounded SVGs (op
 - `zoom_in.svg`
 - `zoom_out.svg`
 
-License: https://www.apache.org/licenses/LICENSE-2.0 . If an icon is missing or fails to load, the button falls back to its ASCII label (`-`, `+`, `||`, `>`, `>|`, `o`, `PNG`, `?`, `S`, `P`, `E`, `Rain`) and a WARN log is written.
+License: https://www.apache.org/licenses/LICENSE-2.0 . If an icon is missing or fails to load, the button falls back to its ASCII label (`-`, `+`, `||`, `>`, `>|`, `o`, `PNG`, `?`, `S`, `P`, `E`, `Rain`, `Aa`) and a WARN log is written.
 
 No kool-demo shader source was copied.
+
+## Fonts
+
+English and German interface text, and the HUD digit slots, use kool's bundled Fira Sans MSDF.
+
+Traditional Chinese and Japanese use an MSDF atlas generated from Noto Sans CJK TC (also known as Source Han Sans), weight 400. Copyright 2014-2021 Adobe. Reserved Font Names include "Source Han Sans" and "Noto Sans CJK". Licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org). The full font file is not in this repository. The atlas is `koolApp/src/commonMain/resources/fonts/noto-sans-cjk.json` and `noto-sans-cjk.png`, and it contains only glyphs the interface draws.
 
 ## AntSim_V2
 

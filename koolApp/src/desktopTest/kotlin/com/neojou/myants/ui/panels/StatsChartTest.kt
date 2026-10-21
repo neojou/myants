@@ -60,6 +60,8 @@ class StatsChartTest {
         assertEquals("Energie", statsBitmapLabel(UiText.SERIES_ENERGY, UiLanguage.DE))
         assertEquals("Energy", statsBitmapLabel(UiText.SERIES_ENERGY, UiLanguage.ZH_TW))
         assertEquals("Protein", statsBitmapLabel(UiText.SERIES_PROTEIN, UiLanguage.ZH_TW))
+        assertEquals("Sugar", statsBitmapLabel(UiText.SERIES_SUGAR, UiLanguage.JA))
+        assertEquals("Energy", statsBitmapLabel(UiText.SERIES_ENERGY, UiLanguage.JA))
     }
 
     @Test

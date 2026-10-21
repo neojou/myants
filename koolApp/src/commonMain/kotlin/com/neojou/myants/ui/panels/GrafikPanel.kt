@@ -8,7 +8,6 @@ import de.fabmax.kool.util.Color
 import com.neojou.myants.AppSession
 import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.MyantsTheme
-import com.neojou.myants.ui.UiLanguage
 import com.neojou.myants.ui.UiText
 import com.neojou.myants.ui.tr
 import de.fabmax.kool.modules.ui2.*
@@ -18,29 +17,12 @@ private val ANT_COLORS = MyantsTheme.Data.antColorChoices
 private val T = MyantsTheme.colors
 
 internal fun UiScope.grafik(session: AppSession) {
-    Text(tr(UiText.LANGUAGE)) { modifier.margin(top = MyantsTheme.space.s2) }
     val lang = L10n.language.use()
-    Row {
-        for (choice in UiLanguage.entries) {
-            Button(choice.endonym) {
-                modifier.margin(end = MyantsTheme.space.s2).onClick { session.setLanguage(choice) }
-                if (lang == choice) {
-                    modifier.colors(
-                        buttonColor = T.primary,
-                        buttonHoverColor = T.primary,
-                        textColor = T.primaryContainer,
-                        textHoverColor = T.primaryContainer,
-                    )
-                    modifier.border(selectedBorder())
-                }
-            }
-        }
-    }
     Text(tr(UiText.QUALITY)) { modifier.margin(top = MyantsTheme.space.s2) }
     ComboBox {
         modifier
             .width(Grow.Std)
-            .items(QualityLevel.entries.map { it.name })
+            .items(QualityLevel.entries.map { qualityName(it) })
             .selectedIndex(PerformanceManager.level.ordinal)
             .onItemSelected { session.setQuality(QualityLevel.entries[it]) }
     }
@@ -140,6 +122,14 @@ internal fun UiScope.grafik(session: AppSession) {
     Slider(session.cameraPitchDeg, -90f, -60f) {
         modifier.width(Grow.Std).onChange { session.choosePitch(it) }
     }
+}
+
+private fun UiScope.qualityName(level: QualityLevel): String = when (level) {
+    QualityLevel.ULTRA_LOW -> tr(UiText.QUALITY_ULTRA_LOW)
+    QualityLevel.LOW -> tr(UiText.QUALITY_LOW)
+    QualityLevel.MEDIUM -> tr(UiText.QUALITY_MEDIUM)
+    QualityLevel.HIGH -> tr(UiText.QUALITY_HIGH)
+    QualityLevel.ULTRA -> tr(UiText.QUALITY_ULTRA)
 }
 
 /** Non-color cue for selected state (color-vision deficiency, #4): 1dp primaryContainer outline. */

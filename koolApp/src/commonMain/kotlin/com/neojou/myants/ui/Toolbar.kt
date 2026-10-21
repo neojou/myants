@@ -17,6 +17,7 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
     width = FitContent,
     height = FitContent,
 ) {
+    installLanguageFont()
     val paused = session.pausedState.use()
     val speedLabel = session.speedLabelState.use()
     val tool = session.toolState.use()
@@ -30,6 +31,7 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
         .border(RoundRectBorder(T.outline, MyantsTheme.radius.lg, MyantsTheme.stroke.selected))
         .onPointer { it.pointer.consume() }
     Row {
+        modifier.width(Grow.Std)
         Text(tr(UiText.SPEED)) { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.gapInGroup) }
         IconButton(HudIcon.SLOWER) { session.stepSpeed(-1) }
         Text(speedLabel) { modifier.alignY(AlignmentY.Center).margin(horizontal = MyantsTheme.space.gapInGroup) }
@@ -38,6 +40,8 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
             session.togglePause()
         }
         IconButton(HudIcon.STEP, enabled = paused, startMargin = MyantsTheme.space.gapInGroup) { session.stepOnce() }
+        Box { modifier.width(Grow.Std).height(Dp(1f)) }
+        IconButton(HudIcon.LANGUAGE, selected = session.languageMenu.use()) { session.toggleLanguageMenu() }
     }
     Row {
         modifier.margin(top = MyantsTheme.space.gapGroup)
@@ -53,13 +57,14 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
         toolButton(session, tool, SimTool.SUGAR, HudIcon.SUGAR)
         toolButton(session, tool, SimTool.PROTEIN, HudIcon.PROTEIN)
         toolButton(session, tool, SimTool.ENEMY, HudIcon.ENEMY)
+        IconButton(HudIcon.RAIN, selected = raining, startMargin = MyantsTheme.space.gapGroup) {
+            session.toggleRain()
+        }
     }
     Row {
         modifier.margin(top = MyantsTheme.space.gapGroup)
-        IconButton(HudIcon.RAIN, selected = raining) { session.toggleRain() }
         Button(tr(UiText.RESTART)) {
             modifier
-                .margin(start = MyantsTheme.space.gapInGroup)
                 .colors(
                     buttonColor = T.danger,
                     buttonHoverColor = T.danger,
@@ -73,7 +78,7 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
                 session.setColonies(if (it) 2 else 1)
             }
         }
-        Text("Rivalenkolonie") { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
+        Text(tr(UiText.RIVAL_COLONY)) { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
     Row {
         modifier.margin(top = MyantsTheme.space.gapGroup)

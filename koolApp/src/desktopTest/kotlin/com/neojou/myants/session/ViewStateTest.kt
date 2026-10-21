@@ -63,6 +63,11 @@ class ViewStateTest {
         assertEquals(UiLanguage.ZH_TW, restored.language)
         restored.applySaved(mapOf("language" to "DE"))
         assertEquals(UiLanguage.DE, restored.language)
+        restored.applySaved(mapOf("language" to "JA"))
+        assertEquals(UiLanguage.JA, restored.language)
+        val jaFile = ViewState()
+        jaFile.applySaved(ViewState.parse(restored.encode(1.0, 1, "MEDIUM", emptyMap())))
+        assertEquals(UiLanguage.JA, jaFile.language)
     }
 
     @Test

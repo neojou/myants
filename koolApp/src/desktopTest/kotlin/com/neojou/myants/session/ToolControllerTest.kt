@@ -10,6 +10,8 @@ import com.neojou.myants.sim.InsectKind
 import com.neojou.myants.sim.Rng
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
+import com.neojou.myants.ui.L10n
+import com.neojou.myants.ui.UiLanguage
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,6 +26,7 @@ class ToolControllerTest {
 
     @BeforeTest
     fun setUp() {
+        L10n.language.value = UiLanguage.EN
         Rng.seed(1)
         SimConfig.colonyCount = 1
         world = World()

@@ -33,10 +33,11 @@ object MyantsTheme {
      * One own-colony color preset. Hex values stay fixed.
      * [name] follows the interface language so the swatch is not identified by color alone.
      */
-    data class AntColorChoice(val hex: String, val en: String, val zh: String, val de: String) {
+    data class AntColorChoice(val hex: String, val en: String, val zh: String, val ja: String, val de: String) {
         fun name(lang: UiLanguage): String = when (lang) {
             UiLanguage.EN -> en
             UiLanguage.ZH_TW -> zh
+            UiLanguage.JA -> ja
             UiLanguage.DE -> de
         }
     }
@@ -44,11 +45,11 @@ object MyantsTheme {
     /** Data colors: moved here, values must match AntSim and never change. */
     object Data {
         val antColorChoices = listOf(
-            AntColorChoice("#c4703a", "Copper", "銅", "Kupfer"),
-            AntColorChoice("#222222", "Black", "黑", "Schwarz"),
-            AntColorChoice("#d9bf52", "Gold", "金", "Gold"),
-            AntColorChoice("#88c0a0", "Sage", "鼠尾草綠", "Salbei"),
-            AntColorChoice("#6fa8dc", "Blue", "藍", "Blau"),
+            AntColorChoice("#c4703a", "Copper", "銅", "銅", "Kupfer"),
+            AntColorChoice("#222222", "Black", "黑", "黒", "Schwarz"),
+            AntColorChoice("#d9bf52", "Gold", "金", "金", "Gold"),
+            AntColorChoice("#88c0a0", "Sage", "鼠尾草綠", "セージ", "Salbei"),
+            AntColorChoice("#6fa8dc", "Blue", "藍", "青", "Blau"),
         )
         val antColors = antColorChoices.map { it.hex }
 

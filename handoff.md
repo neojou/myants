@@ -31,9 +31,9 @@
 
 ## 1. 目前版本與 milestone
 
-- 版本：**0.16.0**（本機 tag，尚未 push）。v0.15.0 涵蓋 M1＋M2。接手時 `main` 為 `390d4b9`。
+- 版本：**0.16.0**（commit 與 tag 已在 origin）。v0.15.0 涵蓋 M1＋M2。接手時 `main` 為 `390d4b9`。
 - M1、M2：已關閉。
-- **M3 UI/UX 與架構整理**：本機完成，tag `v0.16.0`。尚未 push，也尚未建 GitHub Release。
+- **M3 UI/UX 與架構整理**：已在 origin，tag `v0.16.0`（642f082）。GitHub Release 這次沒有查。
 - M4 Tool - Inspect（epic #12）、M5 glTF（epic #13）：這次不做。
 
 ## 2. 開著的 PR
@@ -56,6 +56,7 @@
 
 ## 4. 後續
 
+- 介面語言現為 English／繁體中文／日本語／Deutsch，預設 English。入口在工具列右上角的地球圖示，Grafik 不再有語言按鈕。下雨在骷髏頭右邊。敵群、Params、品質、分析、Inspect 跟所選語言走。MIT 行仍是英文。繁中與日文用 Noto Sans CJK 圖集，HUD 數字仍是 Fira。切換語言不重建世界。
 - **M4 Inspect（#12）**：點選螞蟻／食物／巢／地形，顯示類型與狀態。做在 PointerRouter 之上。不得把玩家操作寫回模擬。M3 已完成，這次仍不做。
 - **M5 glTF（#13）**：單位與物件改用 glTF 2.0。這次不做。
 

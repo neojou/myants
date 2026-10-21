@@ -24,7 +24,8 @@ enum class HudIcon(
     SUGAR("cookie", "S", UiText.TIP_SUGAR, "cookie_fill"),
     PROTEIN("set_meal", "P", UiText.TIP_PROTEIN, "set_meal_fill"),
     ENEMY("skull", "E", UiText.TIP_ENEMY, "skull_fill"),
-    RAIN("rainy", "Rain", UiText.TIP_RAIN, "rainy_fill");
+    RAIN("rainy", "Rain", UiText.TIP_RAIN, "rainy_fill"),
+    LANGUAGE("language", "Aa", UiText.LANGUAGE);
 
     fun assetPath(filled: Boolean = false): String = "icons/${if (filled && filledFile != null) filledFile else file}.svg"
 

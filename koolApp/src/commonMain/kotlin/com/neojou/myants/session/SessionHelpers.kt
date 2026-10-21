@@ -37,13 +37,13 @@ fun buildAnalyseLines(world: World): List<AnalyseLine> {
     val lines = ArrayList<AnalyseLine>()
     val suggestions = world.observer.analyze()
     if (suggestions.isEmpty()) {
-        lines += AnalyseLine("(no suggestions)", null, 0.0)
+        lines += AnalyseLine("empty", null, false, "", null, 0.0)
     }
     for (s in suggestions) {
-        lines += AnalyseLine("${s.severity} | ${s.metric}: ${s.suggestion}", null, 0.0)
-        lines += AnalyseLine(s.effect, null, 0.0)
+        lines += AnalyseLine(s.id, s.severity, false, "${s.severity} | ${s.metric}: ${s.suggestion}", null, 0.0)
+        lines += AnalyseLine(s.id, null, true, s.effect, null, 0.0)
         for (a in s.actions) {
-            lines += AnalyseLine(a.label, a.path, a.to)
+            lines += AnalyseLine(null, null, false, a.label, a.path, a.to)
         }
     }
     return lines

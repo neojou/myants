@@ -1,6 +1,7 @@
 package com.neojou.myants.session
 
 import com.neojou.myants.SimTool
+import com.neojou.myants.ui.InspectCopy
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.FoodKind
@@ -53,10 +54,10 @@ class ToolController {
             }
         }
         for (food in world.foods) {
-            consider(food.x, food.y, "${food.type} ${food.amount.toInt()}")
+            consider(food.x, food.y, InspectCopy.foodLine(food.type, food.amount.toInt()))
         }
         for (insect in world.insects) {
-            consider(insect.x, insect.y, "${insect.type} hp ${insect.health.toInt()}")
+            consider(insect.x, insect.y, InspectCopy.insectLine(insect.type, insect.health.toInt()))
         }
         inspect.value = text
     }
@@ -83,13 +84,11 @@ class ToolController {
         val qdy = queen.y - ny
         val qd = qdx * qdx + qdy * qdy
         if (qd < best && qd <= 40.0 * 40.0) {
-            text = "Queen e=${queen.energy.toInt()} age=${queen.age}"
+            text = InspectCopy.queenLine(queen.energy.toInt(), queen.age)
             inspectedAnt = null
         }
         inspect.value = text
     }
 
-    fun antLine(ant: Ant): String {
-        return "Ant ${ant.type} ${ant.state} e=${ant.energy.toInt()} h=${ant.health.toInt()} ${ant.carrying}"
-    }
+    fun antLine(ant: Ant): String = InspectCopy.antLine(ant)
 }

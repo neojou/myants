@@ -12,6 +12,7 @@ data class TunerAction(
 )
 
 data class TunerSuggestion(
+    val id: String,
     val metric: String,
     val observed: String,
     val target: String,
@@ -222,6 +223,7 @@ class SimObserver {
         val results = ArrayList<TunerSuggestion>()
         if (snapshots.size < 2) {
             results.add(TunerSuggestion(
+                id = "wait",
                 metric = "Datenmenge",
                 observed = "${snapshots.size} / $WINDOW_SIZE Snapshots",
                 target = "≥ 2 Snapshots",
@@ -239,6 +241,7 @@ class SimObserver {
         val growthRate = (latest.antCount - first.antCount).toDouble() / maxOf(1, first.antCount).toDouble()
         if (growthRate < -0.25) {
             results.add(TunerSuggestion(
+                id = "pop-fall",
                 metric = "Populationstrend",
                 observed = "${jsToFixed(growthRate * 100.0, 0)} % Rückgang",
                 target = "≥ 0 % (stabil)",
@@ -249,6 +252,7 @@ class SimObserver {
             ))
         } else if (growthRate < -0.05) {
             results.add(TunerSuggestion(
+                id = "pop-dip",
                 metric = "Populationstrend",
                 observed = "${jsToFixed(growthRate * 100.0, 0)} % Rückgang",
                 target = "> −5 %",
@@ -259,6 +263,7 @@ class SimObserver {
             ))
         } else if (growthRate > 0.5) {
             results.add(TunerSuggestion(
+                id = "pop-boom",
                 metric = "Populationstrend",
                 observed = "+${jsToFixed(growthRate * 100.0, 0)} % Wachstum (sehr schnell)",
                 target = "< 50 % pro Fenster",
@@ -269,6 +274,7 @@ class SimObserver {
             ))
         } else if (growthRate > 0.05) {
             results.add(TunerSuggestion(
+                id = "pop-good",
                 metric = "Populationstrend",
                 observed = "+${jsToFixed(growthRate * 100.0, 0)} % Wachstum",
                 target = "0–5 %",
@@ -280,6 +286,7 @@ class SimObserver {
         val avgEnergyRatio = latest.avgEnergy / SimConfig.antMaxEnergy
         if (avgEnergyRatio < 0.3) {
             results.add(TunerSuggestion(
+                id = "energy-low",
                 metric = "Durchschnittliche Energie",
                 observed = "${jsToFixed(avgEnergyRatio * 100.0, 0)} % von Max",
                 target = "> 50 %",
@@ -290,6 +297,7 @@ class SimObserver {
             ))
         } else if (avgEnergyRatio < 0.5) {
             results.add(TunerSuggestion(
+                id = "energy-mid",
                 metric = "Durchschnittliche Energie",
                 observed = "${jsToFixed(avgEnergyRatio * 100.0, 0)} % von Max",
                 target = "> 50 %",
@@ -300,6 +308,7 @@ class SimObserver {
             ))
         } else if (avgEnergyRatio > 0.85) {
             results.add(TunerSuggestion(
+                id = "energy-high",
                 metric = "Durchschnittliche Energie",
                 observed = "${jsToFixed(avgEnergyRatio * 100.0, 0)} % von Max",
                 target = "50–85 %",
@@ -312,6 +321,7 @@ class SimObserver {
         val activeFrac = if (latest.workerCount > 0) latest.foragingCount.toDouble() / latest.workerCount.toDouble() else 0.0
         if (activeFrac > 0.85) {
             results.add(TunerSuggestion(
+                id = "forage-high",
                 metric = "Sammelquote",
                 observed = "${jsToFixed(activeFrac * 100.0, 0)} % der Worker sammeln",
                 target = "40–75 %",
@@ -322,6 +332,7 @@ class SimObserver {
             ))
         } else if (activeFrac < 0.2 && latest.antCount > 20) {
             results.add(TunerSuggestion(
+                id = "forage-low",
                 metric = "Sammelquote",
                 observed = "${jsToFixed(activeFrac * 100.0, 0)} % der Worker sammeln",
                 target = "40–75 %",
@@ -336,6 +347,7 @@ class SimObserver {
         } else 0.0
         if (combatRatio > 0.35) {
             results.add(TunerSuggestion(
+                id = "combat-high",
                 metric = "Kampfbelastung",
                 observed = "${jsToFixed(combatRatio * 100.0, 0)} % kämpfen/fliehen",
                 target = "< 25 %",
@@ -346,6 +358,7 @@ class SimObserver {
             ))
         } else if (combatRatio < 0.02 && latest.antCount > 30 && span >= 6) {
             results.add(TunerSuggestion(
+                id = "combat-low",
                 metric = "Kampfbelastung",
                 observed = "${jsToFixed(combatRatio * 100.0, 0)} % kämpfen/fliehen",
                 target = "2–25 %",
@@ -358,6 +371,7 @@ class SimObserver {
         val queenRatio = latest.queenEnergy / SimConfig.antMaxEnergy
         if (queenRatio < 0.3) {
             results.add(TunerSuggestion(
+                id = "queen-energy",
                 metric = "Königinnen-Energie",
                 observed = "${jsToFixed(queenRatio * 100.0, 0)} % von Max",
                 target = "> 50 %",
@@ -369,6 +383,7 @@ class SimObserver {
         }
         if (latest.queenStress > 20.0) {
             results.add(TunerSuggestion(
+                id = "queen-stress",
                 metric = "Königinnen-Stress",
                 observed = "Stress: ${jsToFixed(latest.queenStress, 1)}",
                 target = "< 15",
@@ -381,6 +396,7 @@ class SimObserver {
         val broodRatio = if (latest.antCount > 0) latest.broodCount.toDouble() / latest.antCount.toDouble() else 0.0
         if (broodRatio < 0.2 && latest.antCount > 10) {
             results.add(TunerSuggestion(
+                id = "brood-low",
                 metric = "Brut-Pipeline",
                 observed = "${jsToFixed(broodRatio, 2)}× Koloniengröße",
                 target = "> 0.3×",
@@ -393,6 +409,7 @@ class SimObserver {
         val soldierFrac = if (latest.antCount > 0) latest.soldierCount.toDouble() / latest.antCount.toDouble() else 0.0
         if (soldierFrac > 0.40) {
             results.add(TunerSuggestion(
+                id = "soldiers-high",
                 metric = "Soldatenanteil",
                 observed = "${jsToFixed(soldierFrac * 100.0, 0)} %",
                 target = "10–30 %",
@@ -403,6 +420,7 @@ class SimObserver {
             ))
         } else if (soldierFrac < 0.05 && latest.antCount > 40) {
             results.add(TunerSuggestion(
+                id = "soldiers-low",
                 metric = "Soldatenanteil",
                 observed = "${jsToFixed(soldierFrac * 100.0, 0)} %",
                 target = "10–30 %",
@@ -415,6 +433,7 @@ class SimObserver {
         val sugarPerAnt = if (latest.antCount > 0) latest.sugarStockpile / latest.antCount.toDouble() else 0.0
         if (sugarPerAnt < 5.0 && latest.antCount > 15) {
             results.add(TunerSuggestion(
+                id = "sugar-low",
                 metric = "Zucker-Vorrat pro Ameise",
                 observed = "${jsToFixed(sugarPerAnt, 1)} Einheiten",
                 target = "> 10",
@@ -427,6 +446,7 @@ class SimObserver {
         val sugarGrowth = latest.sugarStockpile - first.sugarStockpile
         if (sugarGrowth > 200.0 && latest.sugarStockpile > 1500.0) {
             results.add(TunerSuggestion(
+                id = "sugar-high",
                 metric = "Zucker-Überschuss",
                 observed = "+${jsToFixed(sugarGrowth, 0)} (jetzt ${jsToFixed(latest.sugarStockpile, 0)})",
                 target = "stabil",
@@ -439,6 +459,7 @@ class SimObserver {
         val proteinGrowth = latest.proteinStockpile - first.proteinStockpile
         if (proteinGrowth > 100.0 && latest.proteinStockpile > 800.0) {
             results.add(TunerSuggestion(
+                id = "protein-high",
                 metric = "Protein-Überschuss",
                 observed = "+${jsToFixed(proteinGrowth, 0)} (jetzt ${jsToFixed(latest.proteinStockpile, 0)})",
                 target = "stabil",
@@ -450,6 +471,7 @@ class SimObserver {
         }
         if (results.isEmpty() || results.all { it.severity == "good" }) {
             results.add(TunerSuggestion(
+                id = "overall",
                 metric = "Gesamtzustand",
                 observed = "Alles im grünen Bereich",
                 target = "–",

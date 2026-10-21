@@ -12,6 +12,7 @@ internal fun Scene.addRestartDialog(session: AppSession) = addPanelSurface(
     width = FitContent,
     height = FitContent,
 ) {
+    installLanguageFont()
     modifier
         .size(420.dp, 220.dp)
         .align(AlignmentX.Center, AlignmentY.Center)

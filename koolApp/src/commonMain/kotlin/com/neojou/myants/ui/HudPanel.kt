@@ -13,6 +13,7 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
     width = FitContent,
     height = FitContent,
 ) {
+    installLanguageFont()
     val inspect = session.inspect.use()
     modifier
         .align(AlignmentX.Start, AlignmentY.Top)
@@ -85,6 +86,7 @@ internal fun hudNumberWidth(digits: Int) = MyantsTheme.size.hudDigit * digits
 private fun UiScope.hudDigits(value: String, digits: Int) {
     Text(value) {
         modifier
+            .font(UiFonts.firaDigits())
             .width(hudNumberWidth(digits))
             .textAlignX(AlignmentX.End)
             .alignY(AlignmentY.Center)
