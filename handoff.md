@@ -46,7 +46,7 @@
 
 1. #22 建置維護：本機已做。Dependabot ignore 含 `gradle` 與 `gradle-wrapper`，並排除 Kotlin 與 kool。Gradle 仍是 9.3.0。
 2. #39 PointerRouter 的 `noteDrag` 測試：本機已做。3D 拖曳清掉 `userFollow`，2D 拖曳不呼叫 `noteDrag`。
-3. #36 Classic 2D 繪製拆到 `classic2d/`，shader 工具獨立。#10 的後半。
+3. #36 Classic 2D：繪製已搬到 `classic2d/ClassicScene.kt`。shader 與貼圖工具還在同一檔，下一個 commit 抽出。
 4. #9 細粒度 state 取代全域 revision。HUD 數字約 4 Hz。
 5. #18 寫死色值收進 token（場景色用 WorldPalette，數值不變）、圓角、對比差異註解、`pause_fill`、蟻色名稱。
 6. #17 按下縮到 0.96，HUD 數字固定寬度、靠右。

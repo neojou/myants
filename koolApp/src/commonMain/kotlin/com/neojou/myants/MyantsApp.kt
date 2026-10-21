@@ -1,5 +1,7 @@
 package com.neojou.myants
 
+import com.neojou.myants.classic2d.addAntSimScene
+import com.neojou.myants.classic2d.addLegacyNestOverlay
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.addWorldScene
 import com.neojou.myants.render3d.nest.addNestPresent
