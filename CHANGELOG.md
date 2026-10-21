@@ -6,8 +6,10 @@
 
 ### 新增
 - 文件：Grok Build 單人開發方式，寫入 `handoff.md` 第 0 節與 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。session 只在本機 commit，不 push
+- Dependabot 每週檢查 github-actions 與 gradle。ignore 同時包含 `gradle` 與 `gradle-wrapper`，並排除 Kotlin（`org.jetbrains.kotlin*`）與 kool（`de.fabmax.kool*`）。不升級 Gradle（仍 9.3.0）（#22）
 
 ### 變更
+- 編譯加上 `-Xexpect-actual-classes`，CI 的 Gradle 指令加上 `--warning-mode all`（#22）。Kotlin Gradle Plugin 自帶的 `url.parse()`／`punycode` 與 archives configuration 棄用警告不靠升級消除，只記錄
 - 重構：`AppSession` 的時序（暫停、速度、60 Hz 累加器）拆到 `session/SimClock`，相機拆到 `session/CameraState`；行為不變（#7 第 1 步）
 - 重構：工具、放置與 Inspect 判定拆到 `session/ToolController`；行為不變（#7 第 2 步）
 - 重構：面板與偏好設定（含設定檔格式）拆到 `session/ViewState`，HUD 字串與圖表歷史拆到 `session/HudState`，電影鏡頭與跟隨拆到 `session/CinemaDirector`，另拆出 `ShotPose`、`TunerOverrides`、`FpsCounter`；`AppSession` 降到 296 行，行為不變（#7 第 3 步，Closes #7）

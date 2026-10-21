@@ -17,7 +17,7 @@
 - 版本：0.15.0
 - SHA：390d4b9（接手時的 `main`。本機 commit，尚未 push）
 - 內容：M1、M2 已在 v0.15.0。main 已含 #7（AppSession 拆分）、#8（AntSimUi 拆檔與 `Panel` enum）、#10 的 PointerRouter、#31（移除被遮蔽的 `Double.inc/dec`）。#22 的 PR #26 已關，要在 main 上重做，且不升級 Gradle。
-- 下一步：#22、#39、#36、#9、#18、#17、#19、#24、#11，然後本機 tag v0.16.0。不 push。M4、M5 不做。
+- 下一步：#39、#36、#9、#18、#17、#19、#24、#11，然後本機 tag v0.16.0。不 push。M4、M5 不做。#22 已在本機完成。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
 已完成、仍有效的結構：
@@ -42,7 +42,7 @@ M3 剩餘工作。一個 Grok Build session 在本機 `main` commit，不開 PR�
 
 | 順序 | Issue | 狀態 |
 |---|---|---|
-| 1 | #22 建置維護（不升級 Gradle） | 未做 |
+| 1 | #22 建置維護（不升級 Gradle） | 本機已做 |
 | 2 | #39 `noteDrag` 測試 | 未做 |
 | 3 | #36 Classic 2D 拆到 `classic2d/` | 未做 |
 | 4 | #9 細粒度 state | 未做 |

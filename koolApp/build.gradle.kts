@@ -38,6 +38,10 @@ kotlin {
     }
     jvmToolchain(25)
 
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     js {
         outputModuleName.set(appRootName)
         browser {

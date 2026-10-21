@@ -44,7 +44,7 @@
 
 單人模式依這個順序做，做完才發 v0.16.0：
 
-1. #22 建置維護（PR #26 已關，在 main 重做；不升級 Gradle）。
+1. #22 建置維護：本機已做。Dependabot ignore 含 `gradle` 與 `gradle-wrapper`，並排除 Kotlin 與 kool。Gradle 仍是 9.3.0。
 2. #39 PointerRouter 的 `noteDrag` 測試。只補 3D 拖曳會清掉 `userFollow`。2D 拖曳本來就不呼叫 `noteDrag`。
 3. #36 Classic 2D 繪製拆到 `classic2d/`，shader 工具獨立。#10 的後半。
 4. #9 細粒度 state 取代全域 revision。HUD 數字約 4 Hz。
