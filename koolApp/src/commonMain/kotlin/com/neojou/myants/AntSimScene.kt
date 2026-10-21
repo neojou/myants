@@ -1,8 +1,7 @@
 package com.neojou.myants
 
+import com.neojou.myants.input.PointerRouter
 import com.neojou.myants.render3d.RenderMode
-import com.neojou.myants.render3d.WorldInput
-import com.neojou.myants.render3d.nest.NestFrame
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.AntState
@@ -16,7 +15,6 @@ import com.neojou.myants.sim.SimConfig
 import de.fabmax.kool.KoolApplication
 import de.fabmax.kool.addScene
 import de.fabmax.kool.input.KeyboardInput
-import de.fabmax.kool.input.PointerInput
 import de.fabmax.kool.input.UniversalKeyCode
 import de.fabmax.kool.math.MutableMat4f
 import de.fabmax.kool.math.MutableVec3f
@@ -401,73 +399,14 @@ fun KoolApplication.addAntSimInput(session: AppSession) = addScene {
     onUpdate {
         val winW = it.ctx.window.size.x.toFloat().coerceAtLeast(1f)
         val winH = it.ctx.window.size.y.toFloat().coerceAtLeast(1f)
-        handlePointer(session, winW * 0.74f, winH)
+        PointerRouter.handle(session, winW, winH)
         shotFrames = shotFrame(session, shotFrames)
         captureFrame(session)
     }
 }
 
-private fun handlePointer(session: AppSession, leftW: Float, winH: Float) {
-    val p = PointerInput.primaryPointer
-    if (!p.isValid || p.isConsumed()) return
-    val drag = sqrt(p.dragMovement.x * p.dragMovement.x + p.dragMovement.y * p.dragMovement.y)
-    if (session.renderer == RenderMode.D3 && session.nest3dActive && p.pos.x > leftW && p.pos.y in 0f..winH) {
-        if (p.isLeftButtonClicked && drag <= 5f && NestFrame.fit > 0f) {
-            val nx = (p.pos.x - NestFrame.ox) / NestFrame.fit
-            val ny = (p.pos.y - NestFrame.oy) / NestFrame.fit
-            session.inspectNest(nx.toDouble(), ny.toDouble())
-            p.consume()
-        }
-        return
-    }
-    val inside = p.pos.x in 0f..leftW && p.pos.y in 0f..winH
-    if (!inside) return
-    if (session.renderer == RenderMode.D3) {
-        val hit = WorldInput.screenToGround?.invoke(p.pos.x, p.pos.y)
-        if (p.scroll.y != 0f && hit != null) {
-            val factor = if (p.scroll.y > 0f) 1.1 else 1.0 / 1.1
-            session.zoomAt(factor, hit.x.toDouble(), hit.y.toDouble())
-            session.notifyInput()
-            p.consume(PointerInput.CONSUMED_SCROLL_Y)
-        }
-        if (p.isLeftButtonDown && drag > 5f) {
-            val prev = WorldInput.screenToGround?.invoke(p.pos.x - p.delta.x, p.pos.y - p.delta.y)
-            if (hit != null && prev != null) {
-                session.camX += (prev.x - hit.x).toDouble()
-                session.camY += (prev.y - hit.y).toDouble()
-                session.noteDrag()
-            }
-        }
-        if (p.isLeftButtonClicked && drag <= 5f && hit != null) {
-            session.clickWorld(hit.x.toDouble(), hit.y.toDouble())
-            p.consume()
-        }
-        return
-    }
-    if (p.scroll.y != 0f) {
-        val (wx, wy) = session.screenToWorld(p.pos.x, p.pos.y, leftW, winH)
-        val factor = if (p.scroll.y > 0f) 1.1 else 1.0 / 1.1
-        session.zoomAt(factor, wx, wy)
-        session.notifyInput()
-        p.consume(PointerInput.CONSUMED_SCROLL_Y)
-    }
-    if (p.isLeftButtonDown && drag > 5f) {
-        val fit = session.fitScale(leftW, winH).toFloat()
-        session.pan(p.delta.x, p.delta.y, fit)
-    }
-    if (p.isLeftButtonClicked && drag <= 5f) {
-        val (wx, wy) = session.screenToWorld(p.pos.x, p.pos.y, leftW, winH)
-        session.clickWorld(wx, wy)
-        p.consume()
-    }
-}
-
-private fun AppSession.worldToScreen(wx: Double, wy: Double, leftW: Float, winH: Float): Pair<Float, Float> {
-    val s = (fitScale(leftW, winH) * zoom).toFloat()
-    val sx = leftW / 2f + (wx - camX).toFloat() * s
-    val sy = winH / 2f + (wy - camY).toFloat() * s
-    return sx to sy
-}
+private fun AppSession.worldToScreen(wx: Double, wy: Double, leftW: Float, winH: Float): Pair<Float, Float> =
+    camera.worldToScreen(wx, wy, leftW, winH)
 
 private fun placeQuad(mesh: Mesh<*>, cx: Float, cy: Float, w: Float, h: Float) {
     val t = mesh.transform as TrsTransformF
