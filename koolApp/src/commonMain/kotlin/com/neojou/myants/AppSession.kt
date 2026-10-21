@@ -210,7 +210,10 @@ class AppSession(launch: LaunchConfig) {
 
     private fun stepSim() {
         world.update()
-        if (world.age % 60 == 0) hud.recordSample(world)
+        if (world.age % 60 == 0) {
+            tools.refresh(world)
+            hud.recordSample(world)
+        }
     }
 
     fun stepOnce() {
@@ -353,6 +356,7 @@ class AppSession(launch: LaunchConfig) {
         languageMenu.value = false
         view.language = lang
         L10n.language.value = lang
+        tools.refresh(world)
         hud.sync(world, fpsShown, Time.gameTime, force = true)
         save()
         bump()

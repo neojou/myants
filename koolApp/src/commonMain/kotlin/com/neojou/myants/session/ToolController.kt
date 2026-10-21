@@ -1,12 +1,12 @@
 package com.neojou.myants.session
 
 import com.neojou.myants.SimTool
-import com.neojou.myants.ui.InspectCopy
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.FoodKind
 import com.neojou.myants.sim.InsectKind
 import com.neojou.myants.sim.World
+import com.neojou.myants.ui.InspectPanel
 import de.fabmax.kool.modules.ui2.mutableStateOf
 
 /**
@@ -16,7 +16,10 @@ import de.fabmax.kool.modules.ui2.mutableStateOf
 class ToolController {
     var tool: SimTool = SimTool.INSPECT
     var inspectedAnt: Ant? = null
+    /** Historical one-line text. Tests lock the English wording. The HUD shows [inspectPanel]. */
     val inspect = mutableStateOf("")
+    internal val inspectPanel = mutableStateOf<InspectPanel?>(null)
+    private var target: InspectTarget? = null
 
     /** Applies the current tool at world position ([wx], [wy]). */
     fun apply(world: World, wx: Double, wy: Double) {
@@ -29,44 +32,62 @@ class ToolController {
     }
 
     fun clear() {
+        target = null
         inspectedAnt = null
         inspect.value = ""
+        inspectPanel.value = null
+    }
+
+    /**
+     * Rewrites the line and panel from the stored pick.
+     * Returns whether the shown text changed. Call about once a sim second, not every frame.
+     */
+    fun refresh(world: World): Boolean {
+        val current = target ?: return false
+        if (!current.present(world)) {
+            clear()
+            return true
+        }
+        val line = current.line()
+        val next = current.panel()
+        val changed = line != inspect.value || next != inspectPanel.value
+        inspectedAnt = current.ant
+        inspect.value = line
+        inspectPanel.value = next
+        return changed
     }
 
     fun inspectNearest(world: World, wx: Double, wy: Double) {
         var best = Double.MAX_VALUE
-        var text = ""
-        inspectedAnt = null
-        fun consider(x: Double, y: Double, label: String, ant: Ant? = null) {
+        var picked: InspectTarget? = null
+        fun consider(x: Double, y: Double, candidate: InspectTarget) {
             val dx = x - wx
             val dy = y - wy
             val d = dx * dx + dy * dy
             if (d < best && d <= 30.0 * 30.0) {
                 best = d
-                text = label
-                inspectedAnt = ant
+                picked = candidate
             }
         }
         for (colony in world.colonies) {
             for (ant in colony.ants) {
                 if (ant.location != AntPlace.WORLD) continue
-                consider(ant.x, ant.y, antLine(ant), ant)
+                consider(ant.x, ant.y, InspectTarget.WorldAnt(ant))
             }
         }
         for (food in world.foods) {
-            consider(food.x, food.y, InspectCopy.foodLine(food.type, food.amount.toInt()))
+            consider(food.x, food.y, InspectTarget.FoodItem(food))
         }
         for (insect in world.insects) {
-            consider(insect.x, insect.y, InspectCopy.insectLine(insect.type, insect.health.toInt()))
+            consider(insect.x, insect.y, InspectTarget.InsectItem(insect))
         }
-        inspect.value = text
+        show(picked)
     }
 
     /** Hit test for the 3D nest cutaway (colony 0, nest coordinates). */
     fun inspectNest(world: World, nx: Double, ny: Double) {
         var best = Double.MAX_VALUE
-        var text = ""
-        inspectedAnt = null
+        var picked: InspectTarget? = null
         val colony = world.colonies[0]
         for (ant in colony.ants) {
             if (ant.location != AntPlace.NEST) continue
@@ -75,20 +96,21 @@ class ToolController {
             val d = dx * dx + dy * dy
             if (d < best && d <= 30.0 * 30.0) {
                 best = d
-                text = antLine(ant)
-                inspectedAnt = ant
+                picked = InspectTarget.NestAnt(ant)
             }
         }
         val queen = colony.queen
         val qdx = queen.x - nx
         val qdy = queen.y - ny
         val qd = qdx * qdx + qdy * qdy
-        if (qd < best && qd <= 40.0 * 40.0) {
-            text = InspectCopy.queenLine(queen.energy.toInt(), queen.age)
-            inspectedAnt = null
-        }
-        inspect.value = text
+        if (qd < best && qd <= 40.0 * 40.0) picked = InspectTarget.QueenTarget(colony)
+        show(picked)
     }
 
-    fun antLine(ant: Ant): String = InspectCopy.antLine(ant)
+    private fun show(picked: InspectTarget?) {
+        target = picked
+        inspectedAnt = picked?.ant
+        inspect.value = picked?.line() ?: ""
+        inspectPanel.value = picked?.panel()
+    }
 }

@@ -11,6 +11,9 @@ import com.neojou.myants.sim.InsectKind
  * Inspect lines. English keeps the historical enum wording so existing tests stay valid.
  * Other languages use this table, including kind and state names.
  */
+/** Structured inspect rows. The one-line [InspectCopy] text stays for tests. */
+internal data class InspectPanel(val title: String, val rows: List<String>)
+
 internal object InspectCopy {
     fun antLine(ant: Ant, lang: UiLanguage = L10n.language.value): String {
         if (lang == UiLanguage.EN) {
@@ -39,6 +42,37 @@ internal object InspectCopy {
         if (lang == UiLanguage.EN) return "$type hp $health"
         return "${insect(type, lang)} ${word(UiText.INSPECT_HP, lang)} $health"
     }
+
+    fun antPanel(ant: Ant, lang: UiLanguage = L10n.language.value): InspectPanel {
+        val title = if (lang == UiLanguage.EN) "Ant ${ant.type}" else "${word(UiText.INSPECT_ANT, lang)} ${kind(ant.type, lang)}"
+        return InspectPanel(
+            title,
+            listOf(
+                state(ant.state, lang),
+                "${word(UiText.INSPECT_ENERGY, lang)}=${ant.energy.toInt()}",
+                "${word(UiText.INSPECT_HEALTH, lang)}=${ant.health.toInt()}",
+                carry(ant.carrying, lang),
+            ),
+        )
+    }
+
+    fun queenPanel(energy: Int, age: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
+        word(UiText.INSPECT_QUEEN, lang),
+        listOf(
+            "${word(UiText.INSPECT_ENERGY, lang)}=$energy",
+            "${word(UiText.INSPECT_AGE, lang)}=$age",
+        ),
+    )
+
+    fun foodPanel(type: FoodKind, amount: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
+        if (lang == UiLanguage.EN) type.name else food(type, lang),
+        listOf(amount.toString()),
+    )
+
+    fun insectPanel(type: InsectKind, health: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
+        if (lang == UiLanguage.EN) type.name else insect(type, lang),
+        listOf("${word(UiText.INSPECT_HP, lang)} $health"),
+    )
 
     fun kind(kind: AntKind, lang: UiLanguage): String = name(KIND, kind.name, lang)
     fun state(state: AntState, lang: UiLanguage): String = name(STATE, state.name, lang)

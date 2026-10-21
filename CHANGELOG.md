@@ -5,6 +5,7 @@
 ## [Unreleased]
 
 ### 新增
+- Inspect 點到世界螞蟻、食物、昆蟲、巢內螞蟻或蟻后後，HUD 顯示類型與狀態，約每模擬秒重讀。物件離開原本的清單就清空。不寫回模擬。英文一行仍留給測試。地形、房室、卵幼蟲與 3D 高亮尚未做（Refs #12）
 - 介面語言加上日本語。工具列第一列最右是地球圖示（Material Symbols Rounded `language`，缺檔退回 `Aa`）。選單為 English、繁體中文、日本語、Deutsch，預設 English。寫入既有的 `language=`。Grafik 不再另有一排語言按鈕。切換不重建世界
 
 ### 變更

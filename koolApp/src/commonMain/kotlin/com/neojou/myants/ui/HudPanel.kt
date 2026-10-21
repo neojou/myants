@@ -7,14 +7,14 @@ import de.fabmax.kool.scene.Scene
 
 private val T = MyantsTheme.colors
 
-/** Top-left status HUD (fps, population, food, queen, version, inspect). */
+/** Top-left status HUD (fps, population, food, queen, version) plus the inspect rows. */
 internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
     backgroundColor = { T.surface },
     width = FitContent,
     height = FitContent,
 ) {
     installLanguageFont()
-    val inspect = session.inspect.use()
+    val inspect = session.tools.inspectPanel.use()
     modifier
         .align(AlignmentX.Start, AlignmentY.Top)
         .margin(MyantsTheme.space.screenEdge)
@@ -66,8 +66,11 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
         Text(tr(UiText.UNIT_SEC)) { }
     }
     Text("v${AppVersion.NAME}") { modifier.font(sizes.smallText) }
-    if (inspect.isNotEmpty()) {
-        Text(inspect) { modifier.margin(top = MyantsTheme.space.s2) }
+    if (inspect != null) {
+        Text(inspect.title) { modifier.margin(top = MyantsTheme.space.s2) }
+        for (row in inspect.rows) {
+            Text(row) { modifier.font(sizes.smallText) }
+        }
     }
 }.also { it.applyControlRadius() }
 

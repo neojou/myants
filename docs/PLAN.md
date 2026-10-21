@@ -17,7 +17,7 @@
 - 版本：0.16.0
 - SHA：390d4b9 是接手時的 `main`。v0.16.0（642f082）的 commit 與 tag 已在 origin。
 - 內容：M1、M2 在 v0.15.0。M3 在 v0.16.0（642f082）。其後本機 40aa960：下雨在骷髏頭右邊；右上角地球圖示切 English／繁體中文／日本語／Deutsch。不另升版，尚未 push。
-- 下一步：M4 Inspect（#12），之後 M5 glTF（#13）。這次不做。
+- 下一步：M4 Inspect（#12）進行中。第一片是現有命中的 HUD 類型與狀態，約每模擬秒更新。地形、房室、卵幼蟲、3D 高亮之後再做。M5 glTF（#13）這次不做。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
 已完成、仍有效的結構：

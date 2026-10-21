@@ -15,6 +15,7 @@ import com.neojou.myants.ui.UiLanguage
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -102,11 +103,41 @@ class ToolControllerTest {
     }
 
     @Test
+    fun refreshRewritesTheLineAndClearsWhenTheAntIsGone() {
+        val ant = Ant(px, py, AntKind.WORKER).apply {
+            location = AntPlace.WORLD
+            x = px
+            y = py
+            energy = 11.0
+            health = 7.0
+        }
+        world.colonies[0].ants.add(ant)
+        val t = ToolController()
+        t.inspectNearest(world, px, py)
+        assertTrue(t.inspect.value.contains("e=11"), t.inspect.value)
+        assertEquals("Ant WORKER", t.inspectPanel.value?.title)
+        ant.energy = 4.0
+        assertTrue(t.refresh(world))
+        assertTrue(t.inspect.value.contains("e=4"), t.inspect.value)
+        assertTrue(t.inspectPanel.value!!.rows.any { it.contains("e=4") })
+        assertFalse(t.refresh(world))
+        L10n.language.value = UiLanguage.ZH_TW
+        assertTrue(t.refresh(world))
+        assertEquals("螞蟻 工蟻", t.inspectPanel.value?.title)
+        world.colonies[0].ants.remove(ant)
+        assertTrue(t.refresh(world))
+        assertEquals("", t.inspect.value)
+        assertNull(t.inspectedAnt)
+        assertNull(t.inspectPanel.value)
+    }
+
+    @Test
     fun clearResetsInspect() {
         val t = ToolController()
         t.inspect.value = "x"
         t.clear()
         assertEquals("", t.inspect.value)
         assertNull(t.inspectedAnt)
+        assertNull(t.inspectPanel.value)
     }
 }
