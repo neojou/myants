@@ -1,6 +1,7 @@
 package com.neojou.myants.session
 
 import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.render3d.parseRenderMode
 import de.fabmax.kool.util.Color
 import kotlin.math.roundToInt
@@ -12,7 +13,7 @@ import kotlin.math.roundToInt
 class ViewState {
     var showPheromones: Boolean = true
     var pheromoneStrength: Double = 1.0
-    var antColor: Color = Color("#c4703a")
+    var antColor: Color = WorldPalette.worker
     var dayNight: Boolean = true
     var dayNightStrength: Double = 0.5
     var cinema: Boolean = true

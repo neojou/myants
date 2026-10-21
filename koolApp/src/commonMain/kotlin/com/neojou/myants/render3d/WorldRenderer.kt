@@ -77,7 +77,7 @@ private val SEGMENTS = intArrayOf(
 )
 
 fun KoolApplication.addWorldScene(session: AppSession) = addScene {
-    clearColor = ClearColorFill(Color(0.45f, 0.62f, 0.82f, 1f))
+    clearColor = ClearColorFill(WorldPalette.sky)
     WorldRenderer(this, session).install()
 }
 
@@ -227,9 +227,9 @@ class WorldRenderer(
         val env = sky?.environmentMap ?: try {
             EnvironmentMap.fromGradientColor(
                 ColorGradient(
-                    Color(0.03f, 0.04f, 0.08f),
-                    Color(0.45f, 0.62f, 0.85f),
-                    Color(0.95f, 0.86f, 0.7f),
+                    WorldPalette.skyZenith,
+                    WorldPalette.skyHorizon,
+                    WorldPalette.skyGround,
                 ),
             )
         } catch (err: Throwable) {
@@ -309,7 +309,7 @@ class WorldRenderer(
             cos(azRad) * cos(elevRad),
         )
         val night = bright < 0.2f
-        val color = if (night) Color(0.55f, 0.62f, 0.8f, 1f) else Color(1f, 0.95f, 0.85f, 1f)
+        val color = if (night) WorldPalette.moonLight else WorldPalette.sunLight
         val intensity = if (night) 0.35f else 0.4f + bright * 3.2f
         light.setup(dir).setColor(color, intensity)
         val cube = sky
@@ -331,10 +331,10 @@ class WorldRenderer(
         if (tex != null) shader.emissionMap = tex
         val bright = if (session.dayNight) session.world.dayBrightness().toFloat() else 1f
         val boost = if (!show) 0f else 1.6f + (1f - bright) * 2.4f
-        shader.emission = Color(boost, boost, boost, 1f)
+        shader.emission = WorldPalette.emission(boost)
         val wet = session.world.raining && session.weatherUser
         val k = 0.28f + 0.72f * bright
-        shader.color = if (wet) Color(k * 0.62f, k * 0.7f, k * 0.78f, 1f) else Color(k, k, k, 1f)
+        shader.color = WorldPalette.groundTint(k, wet)
         shader.roughness = if (wet) 0.28f else 0.92f
     }
 
@@ -417,7 +417,7 @@ class WorldRenderer(
             color { instanceColor(layout.color) }
             emission {
                 instanceColor(layout.color)
-                constColor(Color(4f, 4f, 4f), blendMode = ColorBlockConfig.BlendMode.Multiply)
+                constColor(WorldPalette.foodGlow, blendMode = ColorBlockConfig.BlendMode.Multiply)
             }
             roughness(0.35f)
         }
@@ -436,7 +436,7 @@ class WorldRenderer(
             isFrustumChecked = false
             generate { uvSphere { radius = 1f; steps = 10 } }
             shader = deferredKslPbrShader {
-                color { uniformColor(Color(0.42f, 0.4f, 0.36f, 1f)) }
+                color { uniformColor(WorldPalette.clockStone) }
                 roughness(0.85f)
             }
             (transform as TrsTransformF).scale.set(SimConfig.clock.radius.toFloat(), 36f, SimConfig.clock.radius.toFloat() * 0.72f)
@@ -463,7 +463,7 @@ class WorldRenderer(
             shader = rainShader
         }
         val ringShader = KslUnlitShader {
-            color { uniformColor(Color("#6750A4")) }
+            color { uniformColor(WorldPalette.selectRing) }
             pipeline {
                 cullMethod = CullMethod.NO_CULLING
                 depthTest = DepthCompareOp.LESS
@@ -655,7 +655,7 @@ class WorldRenderer(
             val yaw = extraGrass[i + 2] * 6.2f + if (sway) sin(time * 1.7f + x * 0.02f) * 0.25f else 0f
             val h = 3f + extraGrass[i + 3] * 4f
             val y = GroundHeight.at(x, z) + h * 0.5f
-            pose(grass, x, y, z, yaw, 0f, 0f, 0f, 0.35f, h, 0.7f, Color(0.18f, 0.42f + extraGrass[i + 3] * 0.2f, 0.14f, 1f))
+            pose(grass, x, y, z, yaw, 0f, 0f, 0f, 0.35f, h, 0.7f, WorldPalette.scatterGrass(extraGrass[i + 3]))
             i += 4
         }
         i = 0
@@ -663,28 +663,23 @@ class WorldRenderer(
             val x = pebbles[i]; val z = pebbles[i + 1]
             val s = 1.5f + pebbles[i + 2] * 4f
             val y = GroundHeight.at(x, z) + s * 0.35f
-            pose(rocks, x, y, z, pebbles[i + 3] * 3f, 0f, 0f, 0f, s, s * 0.6f, s * 0.8f, Color(0.35f, 0.33f, 0.3f, 1f))
+            pose(rocks, x, y, z, pebbles[i + 3] * 3f, 0f, 0f, 0f, s, s * 0.6f, s * 0.8f, WorldPalette.pebble)
             i += 4
         }
         i = 0
         while (i < leafPos.size) {
             val x = leafPos[i]; val z = leafPos[i + 1]
             val y = GroundHeight.at(x, z) + 0.2f
-            pose(leaves, x, y, z, leafPos[i + 2] * 6f, 0f, 0f, 0f, 2.2f, 0.15f, 1f, Color(0.45f, 0.32f, 0.12f, 1f))
+            pose(leaves, x, y, z, leafPos[i + 2] * 6f, 0f, 0f, 0f, 2.2f, 0.15f, 1f, WorldPalette.leaf)
             i += 4
         }
         i = 0
-        val petal = arrayOf(
-            Color(0.85f, 0.35f, 0.45f, 1f),
-            Color(0.95f, 0.85f, 0.35f, 1f),
-            Color(0.65f, 0.4f, 0.75f, 1f),
-            Color(0.95f, 0.95f, 0.95f, 1f),
-        )
+        val petal = WorldPalette.petals
         while (i < flowerPos.size) {
             val x = flowerPos[i]; val z = flowerPos[i + 1]
             val y = GroundHeight.at(x, z) + 1.6f
             pose(flowers, x, y, z, 0f, 0f, 0f, 0f, 1.4f, 1.4f, 1.4f, petal[(flowerPos[i + 2] * 4f).toInt().coerceIn(0, 3)])
-            pose(bits, x, y - 1.3f, z, 0f, 0f, 0f, 0f, 0.15f, 1.6f, 0.15f, Color(0.2f, 0.45f, 0.16f, 1f))
+            pose(bits, x, y - 1.3f, z, 0f, 0f, 0f, 0f, 0.15f, 1.6f, 0.15f, WorldPalette.stem)
             i += 4
         }
     }
@@ -698,7 +693,7 @@ class WorldRenderer(
             val h = (tuft.size * 3.0).toFloat().coerceAtLeast(1.5f)
             val yaw = WorldFrames.yawRad(tuft.angle.toFloat()) + if (sway) sin(time * 1.5f + x) * 0.2f else 0f
             val y = GroundHeight.at(x, z) + h * 0.5f
-            pose(grass, x, y, z, yaw, 0f, 0f, 0f, tuft.size.toFloat().coerceAtLeast(0.4f), h, 0.6f, Color(0.22f, 0.48f, 0.18f, 1f))
+            pose(grass, x, y, z, yaw, 0f, 0f, 0f, tuft.size.toFloat().coerceAtLeast(0.4f), h, 0.6f, WorldPalette.simGrass)
         }
     }
 
@@ -708,7 +703,7 @@ class WorldRenderer(
             val z = obs.y.toFloat()
             val r = obs.radius.toFloat()
             val y = GroundHeight.at(x, z) + r * 0.35f
-            pose(rocks, x, y, z, 0.4f, 0f, 0f, 0f, r * 1.4f, r * 0.7f, r * 1.1f, Color(0.32f, 0.3f, 0.27f, 1f))
+            pose(rocks, x, y, z, 0.4f, 0f, 0f, 0f, r * 1.4f, r * 0.7f, r * 1.1f, WorldPalette.rock)
         }
     }
 
@@ -723,7 +718,7 @@ class WorldRenderer(
         var x = stone.x.toFloat() - total * 0.5f + dw * 0.5f
         val z = stone.y.toFloat() + stone.radius.toFloat() * 0.15f
         val y = GroundHeight.at(stone.x.toFloat(), stone.y.toFloat()) + 48f
-        val color = Color(0.95f, 0.78f, 0.42f, 1f)
+        val color = WorldPalette.digit3d
         for (i in text.indices) {
             if (i == 2) {
                 val dot = h * 0.12f
@@ -766,11 +761,7 @@ class WorldRenderer(
             val z = item.y.toFloat()
             val r = max(6.0, sqrt(item.amount) * 0.85).toFloat()
             val y = GroundHeight.at(x, z) + r * 0.45f
-            val color = when (item.type) {
-                FoodKind.SUGAR -> Color(1f, 0.84f, 0.2f, 1f)
-                FoodKind.PROTEIN -> Color(0.8f, 0.25f, 0.22f, 1f)
-                else -> Color(0.35f, 0.32f, 0.28f, 1f)
-            }
+            val color = WorldPalette.food3d(item.type)
             pose(food, x, y, z, 0f, 0f, 0f, 0f, r, r * 0.65f, r, color)
             if (n < lights.size && item.type != FoodKind.CORPSE) {
                 val light = lights[n]
@@ -812,14 +803,14 @@ class WorldRenderer(
                 } else {
                     pose(
                         insects, x, ground + size * 0.35f, z, yaw,
-                        0f, 0f, 0f, size, size * 0.45f, size * 0.7f, APHID_FALLBACK,
+                        0f, 0f, 0f, size, size * 0.45f, size * 0.7f, WorldPalette.aphidFallback,
                     )
                 }
                 pushAphidTraces(insect.seq, x, ground, z, yaw, size)
                 continue
             }
             val y = GroundHeight.at(x, z) + size * 0.35f
-            pose(insects, x, y, z, yaw, 0f, 0f, 0f, size, size * 0.45f, size * 0.7f, insectTint(insect.type))
+            pose(insects, x, y, z, yaw, 0f, 0f, 0f, size, size * 0.45f, size * 0.7f, WorldPalette.insect(insect.type))
         }
         aphidPrevX.keys.retainAll(seen)
         aphidPrevZ.keys.retainAll(seen)
@@ -832,14 +823,14 @@ class WorldRenderer(
         val flakeYaw = ((bits shr 16) and 255u).toFloat() / 255f * (PI.toFloat() * 2f)
         pose(
             molts, x + cos(ang) * dist, ground + 0.05f, z + sin(ang) * dist, flakeYaw,
-            0f, 0f, 0f, 3.1f, 0.8f, 1.35f, MOLT,
+            0f, 0f, 0f, 3.1f, 0.8f, 1.35f, WorldPalette.molt,
         )
         if (seq and 1 == 0) {
             val side = if ((bits and 1u) == 0u) 0.55f else -0.45f
             pose(
                 honey, x, ground, z, yaw,
                 -length * 0.62f, 0.28f, side,
-                0.36f, 0.30f, 0.36f, HONEY,
+                0.36f, 0.30f, 0.36f, WorldPalette.honey,
             )
         }
     }
@@ -867,13 +858,13 @@ class WorldRenderer(
                         outdoorAntTint(colony.id), mat, scale,
                     )
                     if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
-                        val carry = if (ant.carrying == CarryKind.SUGAR) Color(1f, 0.84f, 0.2f, 1f) else Color(0.8f, 0.25f, 0.22f, 1f)
+                        val carry = WorldPalette.food3d(if (ant.carrying == CarryKind.SUGAR) FoodKind.SUGAR else FoodKind.PROTEIN)
                         pose(bits, x, y, z, yaw, len * 0.46f, len * 0.07f, 0f, len * 0.18f, len * 0.18f, len * 0.18f, carry)
                     }
                 } else {
                     val y = GroundHeight.at(x, z) + len * 0.18f
                     pose(bodies, x, y, z, yaw, 0f, 0f, 0f, len, len * 0.28f, len * 0.36f, tint)
-                    val headColor = if (ant.type == AntKind.SOLDIER) Color(0.75f, 0.1f, 0.08f, 1f) else tint
+                    val headColor = if (ant.type == AntKind.SOLDIER) WorldPalette.soldierHead3d else tint
                     pose(heads, x, y, z, yaw, len * 0.42f, len * 0.05f, 0f, len * 0.28f, len * 0.28f, len * 0.28f, headColor)
                     if (preset.legAnimation) {
                         val along = floatArrayOf(0.22f, 0f, -0.22f)
@@ -893,7 +884,7 @@ class WorldRenderer(
                         }
                     }
                     if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
-                        val carry = if (ant.carrying == CarryKind.SUGAR) Color(1f, 0.84f, 0.2f, 1f) else Color(0.8f, 0.25f, 0.22f, 1f)
+                        val carry = WorldPalette.food3d(if (ant.carrying == CarryKind.SUGAR) FoodKind.SUGAR else FoodKind.PROTEIN)
                         pose(bits, x, y, z, yaw, -len * 0.15f, len * 0.16f, 0f, len * 0.22f, len * 0.22f, len * 0.22f, carry)
                     }
                 }
@@ -907,7 +898,7 @@ class WorldRenderer(
             val x = p.x.toFloat()
             val z = p.y.toFloat()
             val y = GroundHeight.at(x, z) + 1.5f
-            pose(bits, x, y, z, 0f, 0f, 0f, 0f, 1.2f, 1.2f, 1.2f, colorOr(p.color, Color(0.8f, 0.8f, 0.8f, 1f)))
+            pose(bits, x, y, z, 0f, 0f, 0f, 0f, 1.2f, 1.2f, 1.2f, colorOr(p.color, WorldPalette.particle))
         }
     }
 
@@ -922,7 +913,7 @@ class WorldRenderer(
             rainPhase = FloatArray(preset.rainStreaks) { rnd.nextFloat() }
         }
         val t = Time.gameTime.toFloat()
-        val color = Color(0.65f, 0.75f, 0.95f, 0.35f)
+        val color = WorldPalette.rain3d
         for (i in rainX.indices) {
             val drop = ((t * 0.35f + rainPhase[i]) % 1f)
             val y = 80f - drop * 80f
@@ -948,12 +939,8 @@ class WorldRenderer(
 private fun soilColor(ix: Int, iz: Int): Color {
     val h = (ix * 73856093) xor (iz * 19349663)
     val n = (h and 255) / 255f
-    return Color(0.32f + n * 0.12f, 0.22f + n * 0.06f, 0.12f + n * 0.04f, 1f)
+    return WorldPalette.soil(n)
 }
-
-private val APHID_FALLBACK = Color(0.50f, 0.78f, 0.26f, 1f)
-private val MOLT = Color(0.96f, 0.95f, 0.92f, 1f)
-private val HONEY = Color(0.95f, 0.78f, 0.28f, 1f)
 
 private fun insectSpan(type: InsectKind): Float = when (type) {
     InsectKind.PREY -> 10f
@@ -962,15 +949,6 @@ private fun insectSpan(type: InsectKind): Float = when (type) {
     InsectKind.SPIDER -> 16f
     InsectKind.PREDATOR -> 18f
     InsectKind.BEETLE -> 22f
-}
-
-private fun insectTint(type: InsectKind): Color = when (type) {
-    InsectKind.PREY -> Color(0.35f, 0.7f, 0.3f, 1f)
-    InsectKind.APHID -> Color(0.55f, 0.8f, 0.25f, 1f)
-    InsectKind.LADYBUG -> Color(0.8f, 0.15f, 0.15f, 1f)
-    InsectKind.SPIDER -> Color(0.35f, 0.35f, 0.38f, 1f)
-    InsectKind.PREDATOR -> Color(0.45f, 0.25f, 0.55f, 1f)
-    InsectKind.BEETLE -> Color(0.25f, 0.18f, 0.12f, 1f)
 }
 
 private fun rgbColor(rgb: Int): Color {

@@ -4,12 +4,12 @@ import com.neojou.myants.AppSession
 import com.neojou.myants.wallClockHm
 
 import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.AntState
 import com.neojou.myants.sim.BroodStage
 import com.neojou.myants.sim.CarryKind
-import com.neojou.myants.sim.FoodKind
 import com.neojou.myants.sim.InsectKind
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.PheromoneGrid
@@ -51,20 +51,18 @@ import kotlin.math.sqrt
 import de.fabmax.kool.pipeline.ClearColorFill
 import de.fabmax.kool.pipeline.ClearColorLoad
 
-private val GROUND = Color(0.11f, 0.16f, 0.09f, 1f)
-private val STONE = Color(0.45f, 0.42f, 0.36f, 1f)
-private val OBSTACLE = Color(0.28f, 0.27f, 0.24f, 1f)
-private val GRASS = Color(0.22f, 0.45f, 0.18f, 1f)
-private val WORKER = Color("#c4703a")
-private val SOLDIER_HEAD = Color("#c01810")
-private val SUGAR = Color("#FFD700")
-private val PROTEIN = Color("#CD5C5C")
-private val QUEEN_COLOR = Color(0.72f, 0.45f, 0.18f, 1f)
-private val DIGIT = Color(0.92f, 0.76f, 0.43f, 1f)
-private val PANE = Color(0.102f, 0.102f, 0.102f, 1f)
-private val DIVIDER = Color(0.20f, 0.20f, 0.20f, 1f)
-private val RAIN = Color(0.45f, 0.6f, 0.85f, 0.18f)
-private val NIGHT = Color(0.02f, 0.03f, 0.08f, 1f)
+private val GROUND = WorldPalette.classicGround
+private val STONE = WorldPalette.stone
+private val OBSTACLE = WorldPalette.obstacle
+private val GRASS = WorldPalette.grass
+private val SOLDIER_HEAD = WorldPalette.soldierHead2d
+private val SUGAR = WorldPalette.sugar2d
+private val PROTEIN = WorldPalette.protein2d
+private val QUEEN_COLOR = WorldPalette.queen
+private val DIGIT = WorldPalette.digit2d
+private val PANE = WorldPalette.pane
+private val DIVIDER = WorldPalette.divider
+private val RAIN = WorldPalette.rain2d
 
 private val SEGMENTS = intArrayOf(
     0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F,
@@ -72,7 +70,7 @@ private val SEGMENTS = intArrayOf(
 
 fun KoolApplication.addAntSimScene(session: AppSession) = addScene {
     session.classicScene = this
-    clearColor = ClearColorFill(Color(0x11 / 255f, 0x11 / 255f, 0x11 / 255f, 1f))
+    clearColor = ClearColorFill(WorldPalette.letterbox)
     val cam = OrthographicCamera()
     cam.isKeepAspectRatio = false
     cam.clipNear = -10f
@@ -112,7 +110,7 @@ fun KoolApplication.addAntSimScene(session: AppSession) = addScene {
         shader = classicSpriteShader(circle, layout)
     }
     val nightShader = KslUnlitShader {
-        color { uniformColor(Color(0f, 0f, 0f, 0f)) }
+        color { uniformColor(WorldPalette.transparent) }
         pipeline {
             blendMode = BlendMode.BLEND_MULTIPLY_ALPHA
             depthTest = DepthCompareOp.ALWAYS
@@ -201,7 +199,7 @@ fun KoolApplication.addAntSimScene(session: AppSession) = addScene {
 
         val bright = session.world.dayBrightness()
         val alpha = if (session.dayNight) ((1.0 - bright) * session.dayNightStrength).toFloat() else 0f
-        nightShader.color = Color(NIGHT.r, NIGHT.g, NIGHT.b, alpha.coerceIn(0f, 1f))
+        nightShader.color = WorldPalette.nightOverlay(alpha)
         placeQuad(night, leftW * 0.5f, winH * 0.5f, leftW, winH)
     }
 }
@@ -256,13 +254,13 @@ private fun drawWorld(session: AppSession, draw: SpriteDraw, leftW: Float, winH:
     for (food in world.foods) {
         val (fx, fy) = at(food.x, food.y)
         val r = (kotlin.math.max(8.0, sqrt(food.amount) * 0.85) * s).toFloat()
-        val color = if (food.type == FoodKind.SUGAR) SUGAR else if (food.type == FoodKind.PROTEIN) PROTEIN else Color(0.35f, 0.32f, 0.3f, 1f)
+        val color = WorldPalette.food2d(food.type)
         draw.blob(fx, fy, r * 2f, r * 2f, 0f, color)
     }
     for (insect in world.insects) {
         val (ix, iy) = at(insect.x, insect.y)
         val d = insectSize(insect.type) * s
-        draw.blob(ix, iy, d, d * 0.7f, insect.angle.toFloat(), insectColor(insect.type))
+        draw.blob(ix, iy, d, d * 0.7f, insect.angle.toFloat(), WorldPalette.insect(insect.type))
     }
     for (colony in world.colonies) {
         val tint = if (colony.id == 0) session.antColor else colorFromRgb(colony.workerTint)
@@ -281,16 +279,12 @@ private fun drawNest(session: AppSession, draw: SpriteDraw, ox: Float, oy: Float
     for (chamber in colony.nest.chambers) {
         val (cx, cy) = at(chamber.x, chamber.y)
         val d = (chamber.radius * 2.0 * fit.toDouble()).toFloat()
-        draw.blob(cx, cy, d, d, 0f, Color(0.16f, 0.13f, 0.10f, 1f))
+        draw.blob(cx, cy, d, d, 0f, WorldPalette.chamberFloor)
     }
     for (brood in colony.brood) {
         if (brood.carrier != null) continue
         val (bx, by) = at(brood.x, brood.y)
-        val color = when (brood.stage) {
-            BroodStage.EGG -> Color(0.9f, 0.9f, 0.85f, 1f)
-            BroodStage.LARVA -> Color(0.85f, 0.75f, 0.35f, 1f)
-            BroodStage.PUPA -> Color(0.72f, 0.55f, 0.32f, 1f)
-        }
+        val color = WorldPalette.brood2d(brood.stage)
         val d = if (brood.stage == BroodStage.EGG) 4f else 7f
         draw.blob(bx, by, d * fit, d * 0.6f * fit, 0f, color)
     }
@@ -379,15 +373,6 @@ private fun insectSize(type: InsectKind): Float = when (type) {
     InsectKind.SPIDER -> 16f
     InsectKind.PREDATOR -> 18f
     InsectKind.BEETLE -> 22f
-}
-
-private fun insectColor(type: InsectKind): Color = when (type) {
-    InsectKind.PREY -> Color(0.35f, 0.7f, 0.3f, 1f)
-    InsectKind.APHID -> Color(0.55f, 0.8f, 0.25f, 1f)
-    InsectKind.LADYBUG -> Color(0.8f, 0.15f, 0.15f, 1f)
-    InsectKind.SPIDER -> Color(0.35f, 0.35f, 0.38f, 1f)
-    InsectKind.PREDATOR -> Color(0.45f, 0.25f, 0.55f, 1f)
-    InsectKind.BEETLE -> Color(0.25f, 0.18f, 0.12f, 1f)
 }
 
 private fun colorFromRgb(rgb: Int): Color {

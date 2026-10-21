@@ -7,6 +7,7 @@ import de.fabmax.kool.math.rad
 import de.fabmax.kool.scene.InstanceLayouts
 import de.fabmax.kool.scene.Mesh
 import de.fabmax.kool.scene.MeshInstanceList
+import com.neojou.myants.render3d.WorldPalette
 import de.fabmax.kool.util.Color
 import kotlin.math.PI
 import kotlin.math.cos
@@ -17,9 +18,9 @@ internal class AphidTint(val cuticle: Color, val eye: Color, val leg: Color)
 
 /** Pale jade cuticle of a pea aphid, with dark red eyes and olive legs. */
 internal fun greenAphidTint(): AphidTint = AphidTint(
-    Color(0.50f, 0.78f, 0.26f, 1f),
-    Color(0.42f, 0.09f, 0.06f, 1f),
-    Color(0.36f, 0.50f, 0.20f, 1f),
+    WorldPalette.aphidFallback,
+    WorldPalette.aphidEye,
+    WorldPalette.aphidLeg,
 )
 
 internal fun uploadAphidMeshes(

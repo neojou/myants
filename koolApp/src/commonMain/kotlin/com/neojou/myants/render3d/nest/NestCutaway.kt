@@ -1,6 +1,7 @@
 package com.neojou.myants.render3d.nest
 
 import com.neojou.myants.AppSession
+import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.render3d.phero.PheromoneField
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
@@ -80,20 +81,16 @@ object NestCutaway {
         for (node in nest.nodes) {
             val d = (node.radius * 2.0 * frame.fit).toFloat()
             val color = if (node.type == NestNodeKind.CHAMBER) {
-                Color(0.20f, 0.15f, 0.11f, 1f)
+                WorldPalette.nestChamber
             } else {
-                Color(0.28f, 0.20f, 0.14f, 1f)
+                WorldPalette.nestTunnel
             }
             put(dug, frame.sx(node.x.toFloat()), frame.sy(node.y.toFloat()), 0.4f, d, d, color, 0f)
         }
         val colony = session.world.colonies[0]
         for (brood in colony.brood) {
             if (brood.carrier != null) continue
-            val color = when (brood.stage) {
-                BroodStage.EGG -> Color(0.92f, 0.9f, 0.82f, 1f)
-                BroodStage.LARVA -> Color(0.85f, 0.72f, 0.32f, 1f)
-                BroodStage.PUPA -> Color(0.7f, 0.5f, 0.28f, 1f)
-            }
+            val color = WorldPalette.brood3d(brood.stage)
             val d = (if (brood.stage == BroodStage.EGG) 4f else 7f) * frame.fit
             put(ants, frame.sx(brood.x.toFloat()), frame.sy(brood.y.toFloat()), 0.6f, d, d * 0.65f, color, 0f)
         }
@@ -105,7 +102,7 @@ object NestCutaway {
             0.7f,
             22f * frame.fit,
             14f * frame.fit,
-            Color(0.72f, 0.45f, 0.18f, 1f),
+            WorldPalette.queen,
             0f,
         )
         for (ant in colony.ants) {
@@ -123,9 +120,9 @@ object NestCutaway {
             )
             if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
                 val color = if (ant.carrying == CarryKind.SUGAR) {
-                    Color(0.95f, 0.85f, 0.35f, 1f)
+                    WorldPalette.nestSugar
                 } else {
-                    Color(0.75f, 0.25f, 0.22f, 1f)
+                    WorldPalette.nestProtein
                 }
                 put(ants, frame.sx(ant.x.toFloat()), frame.sy(ant.y.toFloat()), 0.9f, length * 0.35f, length * 0.35f, color, 0f)
             }
@@ -163,7 +160,7 @@ object NestCutaway {
         dirt = node.addMesh(VertexLayouts.Position) {
             isFrustumChecked = false
             generate { rect { size.set(1f, 1f) } }
-            shader = flat(Color(0.45f, 0.32f, 0.22f, 1f))
+            shader = flat(WorldPalette.nestSoil)
         }
         val dug = MeshInstanceList(layout, 4096)
         node.addMesh(VertexLayouts.Position, instances = dug) {
@@ -241,13 +238,13 @@ fun KoolApplication.addNestPresent(session: AppSession) = addScene {
     val pane = addMesh(VertexLayouts.Position) {
         isFrustumChecked = false
         generate { rect { size.set(1f, 1f) } }
-        shader = flat(Color(0.102f, 0.102f, 0.102f, 1f))
+        shader = flat(WorldPalette.pane)
     }
     NestCutaway.mount(this, session)
     val divider = addMesh(VertexLayouts.Position) {
         isFrustumChecked = false
         generate { rect { size.set(1f, 1f) } }
-        shader = flat(Color(0.20f, 0.20f, 0.20f, 1f))
+        shader = flat(WorldPalette.divider)
     }
     onUpdate {
         val winW = it.ctx.window.size.x.toFloat().coerceAtLeast(1f)

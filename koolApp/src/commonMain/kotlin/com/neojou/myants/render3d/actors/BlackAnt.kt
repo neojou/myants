@@ -7,6 +7,7 @@ import de.fabmax.kool.math.rad
 import de.fabmax.kool.scene.InstanceLayouts
 import de.fabmax.kool.scene.Mesh
 import de.fabmax.kool.scene.MeshInstanceList
+import com.neojou.myants.render3d.WorldPalette
 import de.fabmax.kool.util.Color
 import kotlin.math.PI
 import kotlin.math.cos
@@ -17,17 +18,9 @@ internal class AntTint(val chitin: Color, val eye: Color, val jaw: Color)
 
 /** Colony 0 is black chitin. A rival colony stays dark, with a warm brown cast. */
 internal fun outdoorAntTint(colonyId: Int): AntTint = if (colonyId == 0) {
-    AntTint(
-        Color(0.07f, 0.07f, 0.075f, 1f),
-        Color(0.02f, 0.02f, 0.025f, 1f),
-        Color(0.16f, 0.12f, 0.09f, 1f),
-    )
+    AntTint(WorldPalette.antChitin, WorldPalette.antEye, WorldPalette.antJaw)
 } else {
-    AntTint(
-        Color(0.20f, 0.11f, 0.07f, 1f),
-        Color(0.08f, 0.04f, 0.03f, 1f),
-        Color(0.32f, 0.16f, 0.10f, 1f),
-    )
+    AntTint(WorldPalette.rivalChitin, WorldPalette.rivalEye, WorldPalette.rivalJaw)
 }
 
 internal fun uploadAntMeshes(
