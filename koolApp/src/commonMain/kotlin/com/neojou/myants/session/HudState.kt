@@ -15,6 +15,20 @@ class HudState {
     val queen = mutableStateOf("Queen Age: 0m 0s")
     val history = ArrayDeque<GraphSample>()
 
+    /** Digit fields for the fixed-width HUD. The lines above stay the legacy sentences. */
+    val fpsDigits = mutableStateOf("0")
+    val popDigits = mutableStateOf("0")
+    val popSplit = mutableStateOf(false)
+    val popMany = mutableStateOf(false)
+    val workers = mutableStateOf("0")
+    val soldiers = mutableStateOf("0")
+    val colonyA = mutableStateOf("0")
+    val colonyB = mutableStateOf("0")
+    val proteinDigits = mutableStateOf("0")
+    val sugarDigits = mutableStateOf("0")
+    val queenMin = mutableStateOf("0")
+    val queenSec = mutableStateOf("0")
+
     private var nextSyncAt: Double = Double.NEGATIVE_INFINITY
 
     /** Times [sync] actually wrote the HUD strings. Unit tests use this count. */
@@ -28,19 +42,41 @@ class HudState {
         if (!force && nowSeconds < nextSyncAt) return
         nextSyncAt = nowSeconds + HUD_PERIOD_SECONDS
         syncPublishes++
-        fps.value = "FPS: $fpsShown"
+        val fpsText = fpsShown.toString()
+        fpsDigits.value = fpsText
+        fps.value = "FPS: $fpsText"
         if (world.colonies.size > 1) {
-            val split = world.colonies.joinToString(" vs ") { it.ants.size.toString() }
-            pop.value = "Population: ${world.totalAntCount()} ($split)"
+            val counts = world.colonies.map { it.ants.size.toString() }
+            val total = world.totalAntCount().toString()
+            val split = counts.joinToString(" vs ")
+            popSplit.value = true
+            popMany.value = counts.size != 2
+            popDigits.value = total
+            colonyA.value = counts[0]
+            colonyB.value = if (counts.size == 2) counts[1] else counts.drop(1).joinToString(" vs ")
+            pop.value = "Population: $total ($split)"
         } else {
             val ants = world.colonies[0].ants
-            val workers = ants.count { it.type == AntKind.WORKER }
-            val soldiers = ants.count { it.type == AntKind.SOLDIER }
-            pop.value = "Population: ${ants.size} (W:$workers S:$soldiers)"
+            val workerCount = ants.count { it.type == AntKind.WORKER }
+            val soldierCount = ants.count { it.type == AntKind.SOLDIER }
+            popSplit.value = false
+            popMany.value = false
+            popDigits.value = ants.size.toString()
+            workers.value = workerCount.toString()
+            soldiers.value = soldierCount.toString()
+            pop.value = "Population: ${ants.size} (W:$workerCount S:$soldierCount)"
         }
-        food.value = "Protein: ${floor(world.proteinStockpile).toInt()} | Sugar: ${floor(world.sugarStockpile).toInt()}"
+        val protein = floor(world.proteinStockpile).toInt()
+        val sugar = floor(world.sugarStockpile).toInt()
+        proteinDigits.value = protein.toString()
+        sugarDigits.value = sugar.toString()
+        food.value = "Protein: $protein | Sugar: $sugar"
         val ageSeconds = world.queen.age / 60
-        queen.value = "Queen Age: ${ageSeconds / 60}m ${ageSeconds % 60}s"
+        val minutes = ageSeconds / 60
+        val seconds = ageSeconds % 60
+        queenMin.value = minutes.toString()
+        queenSec.value = seconds.toString()
+        queen.value = "Queen Age: ${minutes}m ${seconds}s"
     }
 
     /** Appends one graph sample; keeps the last 180. */

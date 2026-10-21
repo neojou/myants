@@ -6,6 +6,10 @@ import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.Rng
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
+import com.neojou.myants.ui.HudSlots
+import com.neojou.myants.ui.MyantsTheme
+import com.neojou.myants.ui.hudNumberWidth
+import de.fabmax.kool.modules.ui2.Dp
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,8 +39,45 @@ class SessionPartsTest {
         )
         assertTrue(h.food.value.startsWith("Protein: ") && " | Sugar: " in h.food.value)
         assertEquals("Queen Age: 0m 0s", h.queen.value)
+        assertEquals("42", h.fpsDigits.value)
+        assertFalse(h.popSplit.value)
+        assertEquals(ants.size.toString(), h.popDigits.value)
+        assertEquals(ants.count { it.type == AntKind.WORKER }.toString(), h.workers.value)
+        assertEquals(ants.count { it.type == AntKind.SOLDIER }.toString(), h.soldiers.value)
+        assertEquals("0", h.queenMin.value)
+        assertEquals("0", h.queenSec.value)
+        assertTrue(h.proteinDigits.value.isNotEmpty() && h.sugarDigits.value.isNotEmpty())
         assertEquals("0.5x", HudState.speedLabel(0.5))
         assertEquals("8x", HudState.speedLabel(8.0))
+    }
+
+    @Test
+    fun hudSplitPopulationKeepsLegacyStringAndDigitFields() {
+        SimConfig.colonyCount = 2
+        try {
+            Rng.seed(1)
+            val w = World()
+            val h = HudState()
+            h.sync(w, 1, 0.0)
+            assertTrue(h.popSplit.value)
+            assertFalse(h.popMany.value)
+            assertEquals(w.colonies[0].ants.size.toString(), h.colonyA.value)
+            assertEquals(w.colonies[1].ants.size.toString(), h.colonyB.value)
+            val split = w.colonies.joinToString(" vs ") { it.ants.size.toString() }
+            assertEquals("Population: ${w.totalAntCount()} ($split)", h.pop.value)
+        } finally {
+            SimConfig.colonyCount = 1
+        }
+    }
+
+    @Test
+    fun hudNumberSlotsStayFixedWidth() {
+        assertEquals(Dp(11f), MyantsTheme.size.hudDigit)
+        assertEquals(Dp(44f), hudNumberWidth(HudSlots.FPS))
+        assertEquals(Dp(55f), hudNumberWidth(HudSlots.POP))
+        assertEquals(Dp(66f), hudNumberWidth(HudSlots.STOCK))
+        assertEquals(Dp(44f), hudNumberWidth(HudSlots.QUEEN_MIN))
+        assertEquals(Dp(22f), hudNumberWidth(HudSlots.QUEEN_SEC))
     }
 
     @Test

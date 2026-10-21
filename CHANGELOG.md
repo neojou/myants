@@ -23,6 +23,7 @@
 - 變更：HUD、工具列、About、側邊面板改用 `radius.lg` 圓角與 `outline` 邊。Button／ComboBox 的圓角改跟選取外框一樣用 `radius.md`（6dp）。對比 6.63:1 是次文字疊在 surfaceRaised 上，7.44:1 是同一段文字疊在 surface 且 α 用 0.86；兩者都超過 4.5，色值不變（Refs #18）
 - 變更：暫停圖示改為實心 `pause_fill.svg`（Material Symbols Rounded FILL 1，路徑填 `#FFFFFF`）。`pause.svg` 仍留在 assets。Grafik 蟻色改成色塊，名稱在色塊下方，tooltip 含名稱與色碼；色值不變。敵群寫成「Rivalenkolonie 2 · Gold #d9bf52」，不只靠顏色（Closes #18）
 - 變更：圖示按鈕按下時內容縮到 0.96，放開回到 1，不彈跳。點擊範圍維持 28dp，版面不位移。停用的按鈕不縮（Refs #17）
+- 變更：HUD 的 FPS、族群、食物、蟻后數字放在固定寬度欄位並靠右。字型仍是 Fira。位數變多時標籤不左右移動（Closes #17）
 
 ### 修正
 - 移除 `World.kt` 中被 Kotlin 內建成員遮蔽、實際不會被呼叫的 `Double.inc`／`Double.dec` 擴充函式，消除編譯警告；模擬行為不變（#31）

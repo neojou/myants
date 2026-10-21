@@ -59,6 +59,8 @@ object MyantsTheme {
     object size {
         val button: Dp = Dp(28f)
         val icon: Dp = Dp(18f)
+        /** One HUD digit slot. Fira stays as it is; the slot reserves the width. */
+        val hudDigit: Dp = Dp(11f)
     }
 
     object motion {

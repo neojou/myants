@@ -49,7 +49,7 @@
 3. #36 Classic 2D：本機已做。繪製在 `classic2d/ClassicScene.kt`，shader 與貼圖在 `classic2d/ClassicShaders.kt`。
 4. #9 細粒度 state：本機已做。工具列與 HUD 訂閱各自的 state。HUD 字串約每 0.25 秒寫一次，暫停單步立即寫。暫停、速度、下雨、切工具不增加 revision。側邊面板仍共用一個 revision。`syncPublishes` 計次，沒有量 fps。
 5. #18 色值與 token：本機已做。WorldPalette、圓角與對比註解、實心 `pause_fill`、蟻色色塊的名稱與 tooltip。色值不變。
-6. #17 按下縮到 0.96：圖示按鈕已做。HUD 數字固定寬度、靠右尚未做。
+6. #17 按下縮到 0.96、HUD 數字固定寬度靠右：本機已做。字型仍是 Fira。
 7. #19 Stats 用線型區分，線尾標名稱。
 8. #24 介面語言 English／繁體中文／Deutsch，預設 English。
 9. #11 工具列分組、Restart 確認、快捷鍵 Space、`.`、`+`／`-`、`1`–`4`。不加 `[`、`]`。About 改走 `openPanel(Panel.ABOUT)`。
