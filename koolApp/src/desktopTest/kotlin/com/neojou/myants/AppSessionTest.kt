@@ -1,6 +1,7 @@
 package com.neojou.myants
 
 import com.neojou.myants.session.Panel
+import de.fabmax.kool.util.Time
 import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.UiLanguage
 import com.neojou.myants.sim.FoodKind
@@ -70,6 +71,17 @@ class AppSessionTest {
         s.restart(fromUser = false)
         assertEquals("", s.inspect.value)
         assertNull(s.inspectedAnt)
+    }
+
+    @Test
+    fun aboutOpensThroughOpenPanelAndNotifiesInput() {
+        assertFalse(s.showAbout)
+        assertEquals(0.0, s.cine.pausedUntil)
+        val rev = s.revision.value
+        s.openPanel(Panel.ABOUT)
+        assertTrue(s.showAbout)
+        assertEquals(rev + 1, s.revision.value)
+        assertEquals(Time.gameTime + 25.0, s.cine.pausedUntil, 1e-9)
     }
 
     @Test
