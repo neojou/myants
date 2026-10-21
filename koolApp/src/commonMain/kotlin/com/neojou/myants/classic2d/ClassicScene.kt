@@ -16,8 +16,6 @@ import com.neojou.myants.sim.PheromoneGrid
 import com.neojou.myants.sim.SimConfig
 import de.fabmax.kool.KoolApplication
 import de.fabmax.kool.addScene
-import de.fabmax.kool.input.KeyboardInput
-import de.fabmax.kool.input.UniversalKeyCode
 import de.fabmax.kool.math.MutableMat4f
 import de.fabmax.kool.math.MutableVec3f
 import de.fabmax.kool.math.QuatF
@@ -122,19 +120,6 @@ fun KoolApplication.addAntSimScene(session: AppSession) = addScene {
     val outdoorPhero = PheroLayer("outdoor-phero")
     val nestField = PheroLayer("nest-phero")
     val draw = SpriteDraw()
-
-    fun bind(ch: Char, name: String, block: () -> Unit) {
-        KeyboardInput.addKeyListener(
-            UniversalKeyCode(KeyboardInput.getKeyCodeForChar(ch), name),
-            name,
-            { it.isPressed },
-        ) { block() }
-    }
-    bind(' ', "pause") { session.togglePause() }
-    bind('=', "zoom-in") { session.zoomBy(1.25) }
-    bind('+', "zoom-in-plus") { session.zoomBy(1.25) }
-    bind('-', "zoom-out") { session.zoomBy(1.0 / 1.25) }
-    bind('_', "zoom-out-us") { session.zoomBy(1.0 / 1.25) }
 
     onUpdate {
         if (session.renderer != RenderMode.CLASSIC) return@onUpdate

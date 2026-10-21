@@ -1,6 +1,7 @@
 package com.neojou.myants
 
 import com.neojou.myants.classic2d.addAntSimScene
+import com.neojou.myants.input.installShortcuts
 import com.neojou.myants.classic2d.addLegacyNestOverlay
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.addWorldScene
@@ -36,6 +37,7 @@ fun KoolApplication.myantsApp(launch: LaunchConfig = LaunchConfig()) {
     SystemSettings.initOnce()
     MyLog.add(TAG, "System Ready", LogLevel.DEBUG)
     val session = AppSession(launch)
+    installShortcuts(session)
     addAntSimScene(session)
     addWorldScene(session)
     addNestPresent(session)

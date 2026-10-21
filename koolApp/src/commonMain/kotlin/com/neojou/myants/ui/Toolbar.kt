@@ -100,8 +100,6 @@ private fun UiScope.toolButton(session: AppSession, current: SimTool, tool: SimT
         selected = current == tool,
         startMargin = if (first) Dp(0f) else MyantsTheme.space.gapInGroup,
     ) {
-        session.tool = tool
-        session.notifyInput()
-        session.publishChrome()
+        session.selectTool(tool)
     }
 }

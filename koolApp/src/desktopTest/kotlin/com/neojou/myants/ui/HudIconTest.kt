@@ -17,8 +17,8 @@ class HudIconTest {
                 assertTrue(icon.tooltip(lang).isNotBlank(), "$icon $lang")
             }
         }
-        assertEquals("Single Step (paused only)", HudIcon.STEP.tooltip(UiLanguage.EN, disabled = true))
-        assertEquals("Einzelschritt (nur pausiert)", HudIcon.STEP.tooltip(UiLanguage.DE, disabled = true))
+        assertEquals("Single Step (.) (paused only)", HudIcon.STEP.tooltip(UiLanguage.EN, disabled = true))
+        assertEquals("Einzelschritt (.) (nur pausiert)", HudIcon.STEP.tooltip(UiLanguage.DE, disabled = true))
         assertTrue(HudIcon.STEP.tooltip(UiLanguage.ZH_TW, disabled = true).isNotBlank())
     }
 

@@ -29,6 +29,7 @@
 - 變更：Grafik 其餘標籤、HUD、About 的 Version、圖示 tooltip、蟻色名稱與敵群行改走字串表。Stats 圖下標籤跟著語言；英文糖線是 Sugar，德文仍是 Zucker。圖上的點陣字沒有中文，繁中時線尾改畫英文。Fira 仍沒有中文字（Closes #24）
 - 變更：右上工具列分成播放、相機、工具、世界（雨／Restart）、面板五組。組與組用 `gapGroup`，組內用 `gapInGroup`。About 改走 `openPanel(Panel.ABOUT)`，會暫停電影相機（Refs #11）
 - 變更：Restart 按鈕用 danger 色。按下先問，確認才重建世界；取消則世界不變。敵群勾選仍會立刻重開（Refs #11）
+- 新增：快捷鍵空白鍵暫停、`.` 單步（僅暫停）、`+`／`-` 改速度、`1`–`4` 選工具，並寫進 tooltip。`=` 放大、`_` 縮小。`[`、`]` 原作沒有，不加。3D 與 Classic 2D 共用同一組（Closes #11）
 
 ### 修正
 - 移除 `World.kt` 中被 Kotlin 內建成員遮蔽、實際不會被呼叫的 `Double.inc`／`Double.dec` 擴充函式，消除編譯警告；模擬行為不變（#31）

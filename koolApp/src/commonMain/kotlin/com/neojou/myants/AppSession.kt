@@ -205,6 +205,12 @@ class AppSession(launch: LaunchConfig) {
         bump()
     }
 
+    fun selectTool(next: SimTool) {
+        tool = next
+        notifyInput()
+        publishChrome()
+    }
+
     fun togglePause() { clock.togglePause(); notifyInput(); publishChrome() }
     fun stepSpeed(dir: Int) { clock.stepSpeed(dir); save(); notifyInput(); publishChrome() }
     fun zoomBy(factor: Double) { zoomAt(factor, camX, camY); notifyInput() }
