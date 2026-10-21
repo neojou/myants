@@ -64,9 +64,7 @@ import de.fabmax.kool.util.Time
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.hypot
-import kotlin.math.max
 import kotlin.math.sin
-import kotlin.math.sqrt
 import kotlin.random.Random
 import kotlinx.coroutines.launch
 
@@ -624,13 +622,13 @@ class WorldRenderer(
         pushInsects()
         pushAnts(preset, time)
         pushBits()
-        val ant = session.inspectedAnt
-        if (ant != null && ant.location == AntPlace.WORLD) {
+        val mark = session.tools.inspectTarget()?.let(::inspectRing)
+        if (mark != null) {
             ring.isVisible = true
-            val y = GroundHeight.at(ant.x.toFloat(), ant.y.toFloat()) + 0.4f
+            val y = GroundHeight.at(mark.x.toFloat(), mark.y.toFloat()) + 0.4f
             val t = ring.transform as TrsTransformF
-            t.translation.set(ant.x.toFloat(), y, ant.y.toFloat())
-            val s = 10f * ant.sizeVar.toFloat()
+            t.translation.set(mark.x.toFloat(), y, mark.y.toFloat())
+            val s = mark.scale
             t.scale.set(s, s, s)
             t.markDirty()
         } else {
@@ -759,7 +757,7 @@ class WorldRenderer(
         for (item in session.world.foods) {
             val x = item.x.toFloat()
             val z = item.y.toFloat()
-            val r = max(6.0, sqrt(item.amount) * 0.85).toFloat()
+            val r = foodPileRadius(item.amount)
             val y = GroundHeight.at(x, z) + r * 0.45f
             val color = WorldPalette.food3d(item.type)
             pose(food, x, y, z, 0f, 0f, 0f, 0f, r, r * 0.65f, r, color)
@@ -940,15 +938,6 @@ private fun soilColor(ix: Int, iz: Int): Color {
     val h = (ix * 73856093) xor (iz * 19349663)
     val n = (h and 255) / 255f
     return WorldPalette.soil(n)
-}
-
-private fun insectSpan(type: InsectKind): Float = when (type) {
-    InsectKind.PREY -> 10f
-    InsectKind.APHID -> 8f
-    InsectKind.LADYBUG -> 14f
-    InsectKind.SPIDER -> 16f
-    InsectKind.PREDATOR -> 18f
-    InsectKind.BEETLE -> 22f
 }
 
 private fun rgbColor(rgb: Int): Color {

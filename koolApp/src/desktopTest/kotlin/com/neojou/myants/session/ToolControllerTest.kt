@@ -71,10 +71,12 @@ class ToolControllerTest {
 
         t.apply(world, px + 21, py)
         assertNull(t.inspectedAnt)
+        assertTrue(t.inspectTarget() is InspectTarget.FoodItem)
         assertEquals("SUGAR 42", t.inspect.value)
 
         t.apply(world, px + 200, py + 200)
         assertNull(t.inspectedAnt)
+        assertNull(t.inspectTarget())
         assertEquals("", t.inspect.value)
     }
 
@@ -96,9 +98,11 @@ class ToolControllerTest {
         val t = ToolController()
         t.inspectNest(world, q.x + 100, q.y)
         assertSame(ant, t.inspectedAnt)
+        assertTrue(t.inspectTarget() is InspectTarget.NestAnt)
         assertTrue(t.inspect.value.startsWith("Ant SOLDIER"))
         t.inspectNest(world, q.x, q.y)
         assertNull(t.inspectedAnt)
+        assertTrue(t.inspectTarget() is InspectTarget.QueenTarget)
         assertTrue(t.inspect.value.startsWith("Queen"))
     }
 
@@ -128,6 +132,7 @@ class ToolControllerTest {
         assertTrue(t.refresh(world))
         assertEquals("", t.inspect.value)
         assertNull(t.inspectedAnt)
+        assertNull(t.inspectTarget())
         assertNull(t.inspectPanel.value)
     }
 
@@ -138,6 +143,7 @@ class ToolControllerTest {
         t.clear()
         assertEquals("", t.inspect.value)
         assertNull(t.inspectedAnt)
+        assertNull(t.inspectTarget())
         assertNull(t.inspectPanel.value)
     }
 }

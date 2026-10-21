@@ -21,6 +21,9 @@ class ToolController {
     internal val inspectPanel = mutableStateOf<InspectPanel?>(null)
     private var target: InspectTarget? = null
 
+    /** Current pick for the selection ring. Null after [clear] or a miss. */
+    internal fun inspectTarget(): InspectTarget? = target
+
     /** Applies the current tool at world position ([wx], [wy]). */
     fun apply(world: World, wx: Double, wy: Double) {
         when (tool) {
