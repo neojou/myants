@@ -23,6 +23,8 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
         .align(AlignmentX.End, AlignmentY.Top)
         .margin(MyantsTheme.space.screenEdge)
         .padding(MyantsTheme.space.s2)
+        .background(RoundRectBackground(T.surface, MyantsTheme.radius.lg))
+        .border(RoundRectBorder(T.outline, MyantsTheme.radius.lg, MyantsTheme.stroke.selected))
         .onPointer { it.pointer.consume() }
     Row {
         Text("Speed") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.gapGroup) }
@@ -75,7 +77,7 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
             }
         }
     }
-}
+}.also { it.applyControlRadius() }
 
 private fun UiScope.toolButton(session: AppSession, current: SimTool, tool: SimTool, icon: HudIcon) {
     val first = tool == SimTool.INSPECT

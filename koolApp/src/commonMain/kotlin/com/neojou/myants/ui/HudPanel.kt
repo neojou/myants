@@ -18,6 +18,8 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
         .align(AlignmentX.Start, AlignmentY.Top)
         .margin(MyantsTheme.space.screenEdge)
         .padding(MyantsTheme.space.s2)
+        .background(RoundRectBackground(T.surface, MyantsTheme.radius.lg))
+        .border(RoundRectBorder(T.outline, MyantsTheme.radius.lg, MyantsTheme.stroke.selected))
         .onPointer { it.pointer.consume() }
     Text(session.hudFps.use()) { }
     Text(session.hudPop.use()) { }
@@ -27,4 +29,4 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
     if (inspect.isNotEmpty()) {
         Text(inspect) { modifier.margin(top = MyantsTheme.space.s2) }
     }
-}
+}.also { it.applyControlRadius() }

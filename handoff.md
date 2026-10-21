@@ -48,7 +48,7 @@
 2. #39 PointerRouter 的 `noteDrag` 測試：本機已做。3D 拖曳清掉 `userFollow`，2D 拖曳不呼叫 `noteDrag`。
 3. #36 Classic 2D：本機已做。繪製在 `classic2d/ClassicScene.kt`，shader 與貼圖在 `classic2d/ClassicShaders.kt`。
 4. #9 細粒度 state：本機已做。工具列與 HUD 訂閱各自的 state。HUD 字串約每 0.25 秒寫一次，暫停單步立即寫。暫停、速度、下雨、切工具不增加 revision。側邊面板仍共用一個 revision。`syncPublishes` 計次，沒有量 fps。
-5. #18 色值與 token：WorldPalette 已收場景色，數值不變。圓角、對比註解、`pause_fill`、蟻色名稱尚未做。
+5. #18 色值與 token：WorldPalette、圓角與對比註解已做。`pause_fill` 與蟻色名稱尚未做。
 6. #17 按下縮到 0.96，HUD 數字固定寬度、靠右。
 7. #19 Stats 用線型區分，線尾標名稱。
 8. #24 介面語言 English／繁體中文／Deutsch，預設 English。

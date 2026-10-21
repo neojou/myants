@@ -23,6 +23,13 @@ class ThemeTest {
         assertEquals(listOf("#c4703a", "#222222", "#d9bf52", "#88c0a0", "#6fa8dc"), MyantsTheme.Data.antColors)
     }
 
+    /**
+     * PR #16 reported 6.63:1 for onSurfaceVar on a panel. Artist's script reported 7.44:1.
+     * Both use [MyantsTheme.over] (straight alpha in encoded sRGB) and then WCAG [MyantsTheme.contrast].
+     * 6.63 is #BDBDBD on surfaceRaised #1C1822 at α 0.86, over day sky #C8D8E8.
+     * 7.44 is the same text on surface #120F17 at α 0.86, over the same sky. That card is not a token.
+     * Both are above 4.5. The colors stay as they are.
+     */
     @Test
     fun contrastOnBrightestDaySky() {
         val hud = MyantsTheme.over(c.surface, brightSky)
@@ -34,6 +41,10 @@ class ThemeTest {
         assertTrue(main >= 4.5, "onSurface on HUD card: $main")
         assertTrue(varPanel >= 4.5, "onSurfaceVar on panel: $varPanel")
         assertTrue(varHud >= 4.5, "onSurfaceVar on HUD card: $varHud")
+        assertEquals(6.63, varPanel, 0.02)
+        val artistCard = MyantsTheme.over(Color("#120F17").withAlpha(0.86f), brightSky)
+        val artist = MyantsTheme.contrast(c.onSurfaceVar, artistCard)
+        assertEquals(7.44, artist, 0.02)
     }
 
     @Test

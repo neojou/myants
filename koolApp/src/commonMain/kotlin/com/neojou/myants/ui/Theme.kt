@@ -1,6 +1,7 @@
 package com.neojou.myants.ui
 
 import de.fabmax.kool.modules.ui2.Dp
+import de.fabmax.kool.modules.ui2.UiSurface
 import de.fabmax.kool.util.Color
 import kotlin.math.pow
 
@@ -96,4 +97,12 @@ object MyantsTheme {
         }
         return 0.2126 * ch(c.r) + 0.7152 * ch(c.g) + 0.0722 * ch(c.b)
     }
+}
+
+/**
+ * kool draws Button and ComboBox corners with Sizes.smallGap.
+ * Point that at [MyantsTheme.radius.md] so those corners match the 6dp selection outline.
+ */
+internal fun UiSurface.applyControlRadius() {
+    sizes = sizes.copy(smallGap = MyantsTheme.radius.md)
 }

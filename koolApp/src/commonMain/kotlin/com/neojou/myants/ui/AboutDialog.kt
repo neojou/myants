@@ -13,6 +13,8 @@ internal fun Scene.addAboutDialog(session: AppSession) = addPanelSurface(backgro
         .size(420.dp, 220.dp)
         .align(AlignmentX.Center, AlignmentY.Center)
         .padding(MyantsTheme.space.s6)
+        .background(RoundRectBackground(T.surfaceRaised, MyantsTheme.radius.lg))
+        .border(RoundRectBorder(T.outline, MyantsTheme.radius.lg, MyantsTheme.stroke.selected))
         .onPointer { it.pointer.consume() }
     Text(AppVersion.APP_NAME) {
         modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s3).font(sizes.largeText.derive(MyantsTheme.text.lg))
@@ -29,4 +31,4 @@ internal fun Scene.addAboutDialog(session: AppSession) = addPanelSurface(backgro
             session.bump()
         }
     }
-}
+}.also { it.applyControlRadius() }

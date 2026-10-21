@@ -2,6 +2,7 @@ package com.neojou.myants.ui.panels
 
 import com.neojou.myants.AppSession
 import com.neojou.myants.ui.MyantsTheme
+import com.neojou.myants.ui.applyControlRadius
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.scene.Scene
 
@@ -16,6 +17,8 @@ internal fun Scene.sidePanel(session: AppSession, title: String, block: UiScope.
             .align(AlignmentX.Start, AlignmentY.Bottom)
             .margin(MyantsTheme.space.screenEdge)
             .padding(MyantsTheme.space.panelPadding)
+            .background(RoundRectBackground(T.surfaceRaised, MyantsTheme.radius.lg))
+            .border(RoundRectBorder(T.outline, MyantsTheme.radius.lg, MyantsTheme.stroke.selected))
             .onPointer { it.pointer.consume() }
         Row {
             Text(title) { modifier.alignY(AlignmentY.Center).width(Grow.Std) }
@@ -26,4 +29,4 @@ internal fun Scene.sidePanel(session: AppSession, title: String, block: UiScope.
             }
         }
         block()
-    }
+    }.also { it.applyControlRadius() }
