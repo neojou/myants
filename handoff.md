@@ -18,35 +18,28 @@
 - 把自己（或 Grok Build 使用的帳號）加入 **bypass list**；或
 - 暫時把該 ruleset 設為 **Disabled**。
 
-### 開著的 PR 怎麼處理（建議）
-| PR | 建議 |
-|---|---|
-| [#35](https://github.com/neojou/myants/pull/35)（#10 PointerRouter） | **請 Neo 先合併。** CI 綠、111 個測試全過、純重構，只差 QE 簽核。 |
-| [#37](https://github.com/neojou/myants/pull/37)（#8 拆 AntSimUi） | **#35 合併後請 Neo 也合併。** 若因 CHANGELOG／PLAN 文字衝突而無法在網頁合併，就交給 Grok Build 在 main 上 `git merge origin/feat/8-split-antsimui`，解完文字衝突、跑完測試再 push（Closes #8）。 |
-| [#26](https://github.com/neojou/myants/pull/26)（#22 建置維護） | **建議關閉**，由 Grok Build 在 main 上重做：QE 驗出 Dependabot 的 ignore 清單要同時含 `gradle` 與 `gradle-wrapper`，並排除 Kotlin 與 kool 的更新。重做時把這些修正一起放進去。 |
+### 交接前的 PR 收尾（最終狀態）
+- [#35](https://github.com/neojou/myants/pull/35)（#10 PointerRouter）：已合併。
+- [#37](https://github.com/neojou/myants/pull/37)（#8 拆 AntSimUi、Panel enum）：已合併，#8 關閉。
+- [#26](https://github.com/neojou/myants/pull/26)（#22 建置維護）：已關閉，由 Grok Build 在 main 上重做。重做時要讓 Dependabot 的 ignore 同時含 `gradle` 與 `gradle-wrapper`，並排除 Kotlin 與 kool 的更新（見 #26 的關閉留言）。
+- 本文件（#38）最後合併。
 
 ## 1. 目前版本與 milestone
-- 版本：**0.15.0**（[v0.15.0 Release](https://github.com/neojou/myants/releases/tag/v0.15.0)，M1＋M2 一起發布）。`main` 上已合併 #7 系列（#28/#32/#33）、#30、#34，尚未發版。
+- 版本：**0.15.0**（[v0.15.0 Release](https://github.com/neojou/myants/releases/tag/v0.15.0)，M1＋M2 一起發布）。`main` 上已合併 #7 系列（#28/#32/#33）、#30、#34、#35、#37，尚未發版。
 - M1、M2：已關閉。
 - **M3 UI/UX 與架構整理**：進行中，預計結束時發 **v0.16.0**。
 - M4 Tool - Inspect（epic #12）、M5 glTF（epic #13）：尚未開始。
 
 ## 2. 開著的 PR
-| PR | 內容 | 狀態 | 下一步 |
-|---|---|---|---|
-| [#35](https://github.com/neojou/myants/pull/35) | #10 PointerRouter（`input/PointerRouter.kt`，+11 測試） | 待 QE 驗；純重構 | QE PASS → 合併 |
-| [#37](https://github.com/neojou/myants/pull/37) | #8 拆 `AntSimUi.kt`（451→35 行）、`Panel` enum | 待 QE 驗；純重構 | QE PASS → 合併 |
-| [#26](https://github.com/neojou/myants/pull/26) | #22 建置維護、Dependabot | QE FAIL | Dependabot ignore 要同時含 `gradle` 與 `gradle-wrapper`，並排除 Kotlin 與 kool 更新 |
-
-#35 與 #37 互不依賴；後合的那個會在 `CHANGELOG.md`／`docs/PLAN.md` 有文字衝突，用 `git merge origin/main` 解（不要 rebase＋force-push）。
+無（交接時已全部合併或關閉，見第 0 節）。
 
 ## 3. 開著的 issue（M3）與建議順序
-- 第二批：#10（PR #35）、#8（PR #37）。
+- 第二批：#8 已完成（PR #37）。#10 的 PointerRouter 已完成（PR #35），後半段拆成 #36。
 - [#36](https://github.com/neojou/myants/issues/36)：2D 繪製拆到 `classic2d/`、shader 工具獨立（#10 後半），排在 #8 之後。
 - 第三批：#9 細粒度 state 取代全域 revision、#18 寫死色值收斂到 Theme token（含 radius/border/size token、ANT_COLORS 命名、對比 6.63 vs 7.44 差異、pause_fill）。
 - 第四批：#17 按下縮 0.96 與數字等寬、#19 Stats 線型區分、#24 文字按鈕 tooltip 與語言切換。
 - 最後：#11 工具列分組、Restart 確認、快捷鍵（評估 `[` `]`）；About 按鈕改走 `openPanel(Panel.ABOUT)`。
-- #22：Gradle 升級已移出範圍（違反 AGENTS.md，是否升級由 Neo 決定）。
+- #22：建置維護，由 Grok Build 重做（見第 0 節；PR #26 已關）。Gradle 升級不在範圍內（違反 AGENTS.md，是否升級由 Neo 決定）。
 - M3 完成後：開 `chore(release): v0.16.0` PR。
 
 ## 4. 後續
@@ -78,7 +71,6 @@
 ## 8. 已知風險
 - box 無 GPU：視覺驗收（日／夜截圖、Retina 上 1dp outline 是否清楚）仍待 Neo 在 Mac 上確認。
 - `docs/PLAN.md` 的 Now 區有點過時，接手後請先更新。
-- #35、#37 後合者會有文字衝突。
 - PR #27 已關閉、不要合併；分支 `chore/release-0.15.0` 保留。
 - 多個開發者共用同一個 checkout 會讓 commit 落到錯的分支。
 
