@@ -15,9 +15,12 @@
 - 日期：2026-10-21
 - Agent：Grok Bot（Coder）
 - 版本：0.15.0（已發布；本分支未改版號）
-- Branch：`feat/8-split-antsimui`（PR #37，issue #8），基於 origin/main；與 #35 無程式碼依賴
+- Branch：`feat/8-split-antsimui`（PR #37，issue #8），基於 origin/main，已 merge `feat/10-pointer-router`（依賴 #35，請先合併 #35）
 - 內容：`AntSimUi.kt` 只留組合（35 行），HUD、工具列、About、各面板拆到 `ui/` 與 `ui/panels/`，每檔 < 200 行；面板改用 `session/Panel` enum。sim 沒改，HeadlessInvariantsTest 通過。
 - 下一步：等 Neo 補 macOS 前後截圖，再由 QE／Artist 驗收；#36（classic2d 拆分、shader 工具）。
+- Branch：`feat/10-pointer-router`（issue #10），基於 origin/main `2a9f7f9`
+- 內容：指標事件單一入口 `input/PointerRouter`（`PointerSample`/`PointerTarget`/`NestRect` 可單測），3D 仍走 `TopDownCamera.screenToGround`（OrthoGround，不用 unProjectScreen）。AntSimScene 的 `handlePointer` 移除。sim 沒改，HeadlessInvariantsTest 通過。
+- 下一步：#8 拆 AntSimUi.kt；`classic2d/` 繪製與 shader/texture 工具拆分（#10 設計說明的後半）待 PM 排程。
 
 已落地：
 
