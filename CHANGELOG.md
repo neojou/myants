@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-10-22
+
+涵蓋 M3（UI/UX 與架構整理）。本機 tag，尚未 push。
+
 ### 新增
 - 文件：Grok Build 單人開發方式，寫入 `handoff.md` 第 0 節與 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。session 只在本機 commit，不 push
 - Dependabot 每週檢查 github-actions 與 gradle。ignore 同時包含 `gradle` 與 `gradle-wrapper`，並排除 Kotlin（`org.jetbrains.kotlin*`）與 kool（`de.fabmax.kool*`）。不升級 Gradle（仍 9.3.0）（#22）

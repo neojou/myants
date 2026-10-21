@@ -31,9 +31,9 @@
 
 ## 1. 目前版本與 milestone
 
-- 版本：**0.15.0**（[v0.15.0 Release](https://github.com/neojou/myants/releases/tag/v0.15.0)，M1＋M2）。接手時 `main` 為 `390d4b9`，已含 #7（#28／#32／#33）、#30、#34、#35、#37。
+- 版本：**0.16.0**（本機 tag，尚未 push）。v0.15.0 涵蓋 M1＋M2。接手時 `main` 為 `390d4b9`。
 - M1、M2：已關閉。
-- **M3 UI/UX 與架構整理**：進行中。結束時在本機打 **v0.16.0**。
+- **M3 UI/UX 與架構整理**：本機完成，tag `v0.16.0`。尚未 push，也尚未建 GitHub Release。
 - M4 Tool - Inspect（epic #12）、M5 glTF（epic #13）：這次不做。
 
 ## 2. 開著的 PR
@@ -42,7 +42,7 @@
 
 ## 3. 開著的 issue（M3）與順序
 
-單人模式依這個順序做，做完才發 v0.16.0：
+單人模式依這個順序做完，並發本機 v0.16.0：
 
 1. #22 建置維護：本機已做。Dependabot ignore 含 `gradle` 與 `gradle-wrapper`，並排除 Kotlin 與 kool。Gradle 仍是 9.3.0。
 2. #39 PointerRouter 的 `noteDrag` 測試：本機已做。3D 拖曳清掉 `userFollow`，2D 拖曳不呼叫 `noteDrag`。
@@ -56,8 +56,8 @@
 
 ## 4. 後續
 
-- **M4 Inspect（#12）**：點選螞蟻／食物／巢／地形，顯示類型與狀態。做在 PointerRouter 之上。不得把玩家操作寫回模擬。M3 完成前不做。
-- **M5 glTF（#13）**：單位與物件改用 glTF 2.0。M3 完成前不做。
+- **M4 Inspect（#12）**：點選螞蟻／食物／巢／地形，顯示類型與狀態。做在 PointerRouter 之上。不得把玩家操作寫回模擬。M3 已完成，這次仍不做。
+- **M5 glTF（#13）**：單位與物件改用 glTF 2.0。這次不做。
 
 ## 5. 建置與測試
 

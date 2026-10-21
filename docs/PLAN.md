@@ -14,10 +14,10 @@
 
 - 日期：2026-10-22
 - Agent：Grok Build（單人模式）
-- 版本：0.15.0
-- SHA：390d4b9（接手時的 `main`。本機 commit，尚未 push）
-- 內容：M1、M2 已在 v0.15.0。main 已含 #7（AppSession 拆分）、#8（AntSimUi 拆檔與 `Panel` enum）、#10 的 PointerRouter、#31（移除被遮蔽的 `Double.inc/dec`）。#22 的 PR #26 已關，要在 main 上重做，且不升級 Gradle。
-- 下一步：本機 tag v0.16.0。不 push。M4、M5 不做。#22、#39、#36、#9、#18、#17、#19、#24、#11 已在本機完成。
+- 版本：0.16.0
+- SHA：390d4b9 是接手時的 `main`。v0.16.0 是本機 release commit，尚未 push。
+- 內容：M1、M2 在 v0.15.0。M3 在本機 v0.16.0（#7、#8、#10、#22、#39、#36、#9、#18、#17、#19、#24、#11）。尚未 push。
+- 下一步：M4 Inspect（#12），之後 M5 glTF（#13）。這次不做。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
 已完成、仍有效的結構：
@@ -38,7 +38,7 @@
 
 ## Now
 
-M3 剩餘工作。一個 Grok Build session 在本機 `main` commit，不開 PR，不 push。順序與範圍在 `handoff.md` 第 3 節。
+M3 已在本機 v0.16.0 完成，尚未 push。順序與範圍在 `handoff.md` 第 3 節。
 
 | 順序 | Issue | 狀態 |
 |---|---|---|
