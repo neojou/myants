@@ -35,8 +35,12 @@ class PointerRouterTest {
     private val pick: (Float, Float) -> Vec2f? = { x, y -> Vec2f(x * 2f, y * 2f) }
     private val nest = NestRect(800f, 100f, 0.5f)
 
-    private fun route(s: PointerSample, t: PointerTarget, g: ((Float, Float) -> Vec2f?)? = pick) =
-        PointerRouter.route(s, t, leftW, winH, g, nest)
+    private fun route(
+        s: PointerSample,
+        t: PointerTarget,
+        g: ((Float, Float) -> Vec2f?)? = pick,
+        blocked: Boolean = false,
+    ) = PointerRouter.route(s, t, leftW, winH, g, nest, pointerBlocked = blocked)
 
     @Test
     fun worldScreenRoundTrip2d() {
@@ -159,5 +163,16 @@ class PointerRouterTest {
         assertEquals(listOf("nest 200 400"), t.log)
         assertTrue(c.all)
         assertEquals(PointerConsume.NONE, route(PointerSample(900f, 300f, scrollY = 1f), t))
+    }
+
+    @Test
+    fun blockedPointerDoesNotInspectTheNest() {
+        val t = Fake(RenderMode.D3, nest3dActive = true)
+        val sample = PointerSample(900f, 300f, leftClicked = true)
+        assertEquals(PointerConsume.NONE, route(sample, t, blocked = true))
+        assertTrue(t.log.isEmpty())
+        val open = route(sample, t)
+        assertEquals(listOf("nest 200 400"), t.log)
+        assertTrue(open.all)
     }
 }

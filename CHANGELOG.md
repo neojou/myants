@@ -9,6 +9,7 @@
 - 介面語言加上日本語。工具列第一列最右是地球圖示（Material Symbols Rounded `language`，缺檔退回 `Aa`）。選單為 English、繁體中文、日本語、Deutsch，預設 English。寫入既有的 `language=`。Grafik 不再另有一排語言按鈕。切換不重建世界
 
 ### 變更
+- 工具列擋住指標時，點擊不再送進巢穴檢查。暫停、繼續與速度加減不會清掉 Inspect 選取（Refs #12）
 - 下雨從世界列搬到工具列，放在骷髏頭右邊，中間用 `gapGroup`。它仍是天氣開關
 - 敵群核取方塊、Params 滑桿名稱、品質選項、分析建議與 Inspect 文字跟所選語言走。分析套用按鈕仍是 `path` 與數字。About 的 MIT 授權行維持英文。`3D` 與 `SSAO` 不翻譯
 - 繁體中文與日本語使用 Noto Sans CJK 的 MSDF 圖集（只含介面用字，OFL）。英文、德文與 HUD 數字欄位仍用 Fira。語言選單的自稱在英文介面也用這份圖集。Stats 點陣字仍沒有中日文，線尾在繁中與日文時畫英文短名

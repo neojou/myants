@@ -4,6 +4,7 @@ import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.WorldInput
 import com.neojou.myants.render3d.nest.NestFrame
+import de.fabmax.kool.input.InputStack
 import de.fabmax.kool.input.Pointer
 import de.fabmax.kool.input.PointerInput
 import de.fabmax.kool.math.Vec2f
@@ -82,7 +83,10 @@ object PointerRouter {
         winH: Float,
         groundPick: ((Float, Float) -> Vec2f?)?,
         nest: NestRect,
+        pointerBlocked: Boolean = false,
     ): PointerConsume {
+        // Toolbar and panels sit on the nest strip. A click there must not count as a missed inspect.
+        if (pointerBlocked) return PointerConsume.NONE
         if (t.renderer == RenderMode.D3 && t.nest3dActive && s.x > leftW && s.y in 0f..winH) {
             if (s.isClick) {
                 val n = nest.toNest(s.x, s.y) ?: return PointerConsume.NONE
@@ -134,9 +138,11 @@ object PointerRouter {
     fun handle(session: AppSession, winW: Float, winH: Float) {
         val p = PointerInput.primaryPointer
         if (!p.isValid || p.isConsumed()) return
+        val blocked = InputStack.handlerStack.any { it.blockAllPointerInput }
         val c = route(
             PointerSample.of(p), session.sessionTarget(), leftWidth(winW), winH,
             WorldInput.screenToGround, NestRect(NestFrame.ox, NestFrame.oy, NestFrame.fit),
+            pointerBlocked = blocked,
         )
         if (c.scroll) p.consume(PointerInput.CONSUMED_SCROLL_Y)
         if (c.all) p.consume()
