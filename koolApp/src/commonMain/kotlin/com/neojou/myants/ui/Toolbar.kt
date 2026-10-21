@@ -14,7 +14,11 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
     width = FitContent,
     height = FitContent,
 ) {
-    session.revision.use()
+    val paused = session.pausedState.use()
+    val speedLabel = session.speedLabelState.use()
+    val tool = session.toolState.use()
+    val raining = session.rainingState.use()
+    val colonies = session.colonyCountState.use()
     modifier
         .align(AlignmentX.End, AlignmentY.Top)
         .margin(MyantsTheme.space.screenEdge)
@@ -23,12 +27,12 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
     Row {
         Text("Speed") { modifier.alignY(AlignmentY.Center).margin(end = MyantsTheme.space.gapGroup) }
         IconButton(HudIcon.SLOWER) { session.stepSpeed(-1) }
-        Text(session.speedLabel()) { modifier.alignY(AlignmentY.Center).margin(horizontal = MyantsTheme.space.gapInGroup) }
+        Text(speedLabel) { modifier.alignY(AlignmentY.Center).margin(horizontal = MyantsTheme.space.gapInGroup) }
         IconButton(HudIcon.FASTER) { session.stepSpeed(1) }
-        IconButton(if (session.paused) HudIcon.RESUME else HudIcon.PAUSE, startMargin = MyantsTheme.space.gapGroup) {
+        IconButton(if (paused) HudIcon.RESUME else HudIcon.PAUSE, startMargin = MyantsTheme.space.gapGroup) {
             session.togglePause()
         }
-        IconButton(HudIcon.STEP, enabled = session.paused, startMargin = MyantsTheme.space.gapInGroup) { session.stepOnce() }
+        IconButton(HudIcon.STEP, enabled = paused, startMargin = MyantsTheme.space.gapInGroup) { session.stepOnce() }
     }
     Row {
         modifier.margin(top = MyantsTheme.space.s2)
@@ -40,18 +44,18 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
     }
     Row {
         modifier.margin(top = MyantsTheme.space.s2)
-        toolButton(session, SimTool.INSPECT, HudIcon.INSPECT)
-        toolButton(session, SimTool.SUGAR, HudIcon.SUGAR)
-        toolButton(session, SimTool.PROTEIN, HudIcon.PROTEIN)
-        toolButton(session, SimTool.ENEMY, HudIcon.ENEMY)
-        IconButton(HudIcon.RAIN, selected = session.world.raining, startMargin = MyantsTheme.space.gapGroup) {
+        toolButton(session, tool, SimTool.INSPECT, HudIcon.INSPECT)
+        toolButton(session, tool, SimTool.SUGAR, HudIcon.SUGAR)
+        toolButton(session, tool, SimTool.PROTEIN, HudIcon.PROTEIN)
+        toolButton(session, tool, SimTool.ENEMY, HudIcon.ENEMY)
+        IconButton(HudIcon.RAIN, selected = raining, startMargin = MyantsTheme.space.gapGroup) {
             session.toggleRain()
         }
     }
     Row {
         modifier.margin(top = MyantsTheme.space.s2)
         Button("Restart") { modifier.onClick { session.restart(fromUser = true) } }
-        Checkbox(session.colonies > 1) {
+        Checkbox(colonies > 1) {
             modifier.margin(start = sizes.gap).alignY(AlignmentY.Center).onToggle {
                 session.setColonies(if (it) 2 else 1)
             }
@@ -73,11 +77,11 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
     }
 }
 
-private fun UiScope.toolButton(session: AppSession, tool: SimTool, icon: HudIcon) {
+private fun UiScope.toolButton(session: AppSession, current: SimTool, tool: SimTool, icon: HudIcon) {
     val first = tool == SimTool.INSPECT
     IconButton(
         icon,
-        selected = session.tool == tool,
+        selected = current == tool,
         startMargin = if (first) Dp(0f) else MyantsTheme.space.gapInGroup,
     ) {
         session.tool = tool

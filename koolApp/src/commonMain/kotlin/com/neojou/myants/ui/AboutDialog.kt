@@ -9,7 +9,6 @@ private val T = MyantsTheme.colors
 
 /** Centered About dialog (name, version, attribution). */
 internal fun Scene.addAboutDialog(session: AppSession) = addPanelSurface(backgroundColor = { T.surfaceRaised }, width = FitContent, height = FitContent) {
-    session.revision.use()
     modifier
         .size(420.dp, 220.dp)
         .align(AlignmentX.Center, AlignmentY.Center)

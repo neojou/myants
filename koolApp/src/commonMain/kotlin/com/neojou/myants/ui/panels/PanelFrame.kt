@@ -10,7 +10,7 @@ private val T = MyantsTheme.colors
 /** Shared side-panel frame: title row with `x` close, Theme tokens. */
 internal fun Scene.sidePanel(session: AppSession, title: String, block: UiScope.() -> Unit) =
     addPanelSurface(backgroundColor = { T.surfaceRaised }, width = FitContent, height = FitContent) {
-        session.revision.use()
+        session.revision.use() // side panels still share one revision (#9)
         modifier
             .width(360.dp)
             .align(AlignmentX.Start, AlignmentY.Bottom)

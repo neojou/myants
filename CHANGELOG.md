@@ -17,6 +17,7 @@
 - 重構：指標輸入改由 `input/PointerRouter` 單一入口處理（左側世界 2D/3D 座標換算與工具分派、右側巢穴 Inspect），`CameraState` 新增 `worldToScreen`；行為不變，附單元測試（#10）
 - 重構：Classic 2D 場景與巢穴 overlay 從 `AntSimScene.kt` 搬到 `classic2d/ClassicScene.kt`。指標輸入留在 `addAntSimInput`。行為不變（#36）
 - 重構：2D shader、費洛蒙貼圖與圓形貼圖抽到 `classic2d/ClassicShaders.kt`。行為不變（Closes #36）
+- 重構：工具列改訂閱暫停、速度、工具、下雨、群落數；HUD 的 inspect 在表面訂閱。About 不再訂閱全域 revision。側邊面板仍共用 revision，Grafik／Params／Stats／Analyse 才會跟著刷新（Refs #9）
 
 ### 修正
 - 移除 `World.kt` 中被 Kotlin 內建成員遮蔽、實際不會被呼叫的 `Double.inc`／`Double.dec` 擴充函式，消除編譯警告；模擬行為不變（#31）

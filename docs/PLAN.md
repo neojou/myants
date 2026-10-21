@@ -45,7 +45,7 @@ M3 剩餘工作。一個 Grok Build session 在本機 `main` commit，不開 PR�
 | 1 | #22 建置維護（不升級 Gradle） | 本機已做 |
 | 2 | #39 `noteDrag` 測試 | 本機已做 |
 | 3 | #36 Classic 2D 拆到 `classic2d/` | 本機已做 |
-| 4 | #9 細粒度 state | 未做 |
+| 4 | #9 細粒度 state | 進行中：工具列與 HUD 已改訂閱；HUD 4 Hz 下一 commit |
 | 5 | #18 色值與 token | 未做 |
 | 6 | #17 按下縮放與數字欄寬 | 未做 |
 | 7 | #19 Stats 線型 | 未做 |

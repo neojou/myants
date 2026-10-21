@@ -100,6 +100,14 @@ class AppSession(launch: LaunchConfig) {
     var gpuMs: Float = 0f
 
     val revision = mutableStateOf(0)
+
+    /** Toolbar fields. Equal writes do not recompose. Side panels still use [revision]. */
+    val pausedState = mutableStateOf(false)
+    val speedLabelState = mutableStateOf("1x")
+    val toolState = mutableStateOf(SimTool.INSPECT)
+    val rainingState = mutableStateOf(false)
+    val colonyCountState = mutableStateOf(1)
+
     val analyseLines = ArrayList<AnalyseLine>()
 
     var world: World
@@ -129,6 +137,7 @@ class AppSession(launch: LaunchConfig) {
         world = World()
         resetCamera(fromUser = false)
         ShotPose.apply(shot, world, camera)
+        publishChrome()
     }
 
     fun applyRendererVisibility() {
@@ -143,6 +152,16 @@ class AppSession(launch: LaunchConfig) {
 
     fun bump() {
         revision.value = revision.value + 1
+        publishChrome()
+    }
+
+    /** Copies the toolbar fields into their states. Call after the world exists. */
+    fun publishChrome() {
+        pausedState.value = paused
+        speedLabelState.value = speedLabel()
+        toolState.value = tool
+        rainingState.value = world.raining
+        colonyCountState.value = colonies
     }
 
     fun notifyInput() = cine.notifyInput(Time.gameTime)

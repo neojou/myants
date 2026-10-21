@@ -70,6 +70,31 @@ class AppSessionTest {
     }
 
     @Test
+    fun chromeStatesTrackToolbarActions() {
+        assertFalse(s.pausedState.value)
+        assertEquals("1x", s.speedLabelState.value)
+        assertEquals(SimTool.INSPECT, s.toolState.value)
+        assertFalse(s.rainingState.value)
+        assertEquals(1, s.colonyCountState.value)
+
+        s.togglePause()
+        assertTrue(s.pausedState.value)
+        s.stepSpeed(1)
+        assertEquals("2x", s.speedLabelState.value)
+        s.tool = SimTool.ENEMY
+        s.bump()
+        assertEquals(SimTool.ENEMY, s.toolState.value)
+        s.toggleRain()
+        assertTrue(s.rainingState.value)
+        assertTrue(s.world.raining)
+        s.setColonies(2)
+        assertEquals(2, s.colonyCountState.value)
+        assertFalse(s.rainingState.value)
+        s.setColonies(1)
+        assertEquals(1, s.colonyCountState.value)
+    }
+
+    @Test
     fun clockCameraAndViewDelegation() {
         s.togglePause()
         assertTrue(s.clock.paused)

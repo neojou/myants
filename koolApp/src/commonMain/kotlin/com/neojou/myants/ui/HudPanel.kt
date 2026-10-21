@@ -13,7 +13,7 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
     width = FitContent,
     height = FitContent,
 ) {
-    session.revision.use()
+    val inspect = session.inspect.use()
     modifier
         .align(AlignmentX.Start, AlignmentY.Top)
         .margin(MyantsTheme.space.screenEdge)
@@ -24,7 +24,7 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
     Text(session.hudFood.use()) { }
     Text(session.hudQueen.use()) { }
     Text("v${AppVersion.NAME}") { modifier.font(sizes.smallText) }
-    if (session.inspect.value.isNotEmpty()) {
-        Text(session.inspect.use()) { modifier.margin(top = MyantsTheme.space.s2) }
+    if (inspect.isNotEmpty()) {
+        Text(inspect) { modifier.margin(top = MyantsTheme.space.s2) }
     }
 }
