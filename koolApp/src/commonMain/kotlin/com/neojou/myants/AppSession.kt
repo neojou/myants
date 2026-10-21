@@ -9,6 +9,7 @@ import com.neojou.myants.session.ToolController
 import com.neojou.myants.session.FpsCounter
 import com.neojou.myants.session.ShotPose
 import com.neojou.myants.session.TunerOverrides
+import com.neojou.myants.session.Panel
 import com.neojou.myants.session.ViewState
 import com.neojou.myants.session.buildAnalyseLines
 import com.neojou.myants.sim.Ant
@@ -259,7 +260,9 @@ class AppSession(launch: LaunchConfig) {
         }
     }
 
-    fun openPanel(name: String) { view.openPanel(name); notifyInput(); bump() }
+    fun openPanel(panel: Panel) { view.openPanel(panel); notifyInput(); bump() }
+
+    fun closeSidePanels() { view.closeSidePanels(); bump() }
 
     fun refreshAnalyse() {
         analyseLines.clear()

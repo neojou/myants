@@ -1,0 +1,29 @@
+package com.neojou.myants.ui.panels
+
+import com.neojou.myants.AppSession
+import com.neojou.myants.ui.MyantsTheme
+import de.fabmax.kool.modules.ui2.*
+import de.fabmax.kool.scene.Scene
+
+private val T = MyantsTheme.colors
+
+/** Shared side-panel frame: title row with `x` close, Theme tokens. */
+internal fun Scene.sidePanel(session: AppSession, title: String, block: UiScope.() -> Unit) =
+    addPanelSurface(backgroundColor = { T.surfaceRaised }, width = FitContent, height = FitContent) {
+        session.revision.use()
+        modifier
+            .width(360.dp)
+            .align(AlignmentX.Start, AlignmentY.Bottom)
+            .margin(MyantsTheme.space.screenEdge)
+            .padding(MyantsTheme.space.panelPadding)
+            .onPointer { it.pointer.consume() }
+        Row {
+            Text(title) { modifier.alignY(AlignmentY.Center).width(Grow.Std) }
+            Button("x") {
+                modifier.onClick {
+                    session.closeSidePanels()
+                }
+            }
+        }
+        block()
+    }

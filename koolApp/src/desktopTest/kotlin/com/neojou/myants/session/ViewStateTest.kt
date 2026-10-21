@@ -65,14 +65,28 @@ class ViewStateTest {
     @Test
     fun panelsAreExclusiveAndToggle() {
         val v = ViewState()
-        v.openPanel("grafik")
+        v.openPanel(Panel.GRAFIK)
         assertTrue(v.showGrafik)
-        v.openPanel("stats")
+        v.openPanel(Panel.STATS)
         assertFalse(v.showGrafik); assertTrue(v.showStats)
-        v.openPanel("stats")
+        v.openPanel(Panel.STATS)
         assertFalse(v.showStats)
         v.showParams = true
         v.showOnlyAnalyse()
         assertFalse(v.showParams); assertTrue(v.showAnalyse)
+    }
+
+    @Test
+    fun closeSidePanelsAndAboutIsIndependent() {
+        val v = ViewState()
+        v.openPanel(Panel.PARAMS)
+        v.openPanel(Panel.ABOUT)
+        assertTrue(v.showAbout && v.showParams)
+        assertTrue(v.isOpen(Panel.ABOUT))
+        v.openPanel(Panel.ANALYSE)
+        assertTrue(v.isOpen(Panel.ANALYSE)); assertFalse(v.showParams)
+        v.closeSidePanels()
+        assertFalse(v.showGrafik || v.showParams || v.showStats || v.showAnalyse)
+        assertTrue(v.showAbout)
     }
 }

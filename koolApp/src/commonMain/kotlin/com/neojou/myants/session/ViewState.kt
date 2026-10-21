@@ -76,18 +76,35 @@ class ViewState {
         }
     }
 
-    /** Opens [name] exclusively (or toggles it off when already open). */
-    fun openPanel(name: String) {
-        val was = when (name) {
-            "grafik" -> showGrafik
-            "params" -> showParams
-            "stats" -> showStats
-            else -> showAnalyse
+    fun isOpen(panel: Panel): Boolean = when (panel) {
+        Panel.GRAFIK -> showGrafik
+        Panel.PARAMS -> showParams
+        Panel.STATS -> showStats
+        Panel.ANALYSE -> showAnalyse
+        Panel.ABOUT -> showAbout
+    }
+
+    /**
+     * Opens a side [panel] exclusively (or toggles it off when already open).
+     * [Panel.ABOUT] is a dialog independent of the side panels: it only opens.
+     */
+    fun openPanel(panel: Panel) {
+        if (panel == Panel.ABOUT) {
+            showAbout = true
+            return
         }
-        showGrafik = name == "grafik" && !was
-        showParams = name == "params" && !was
-        showStats = name == "stats" && !was
-        showAnalyse = name == "analyse" && !was
+        val was = isOpen(panel)
+        showGrafik = panel == Panel.GRAFIK && !was
+        showParams = panel == Panel.PARAMS && !was
+        showStats = panel == Panel.STATS && !was
+        showAnalyse = panel == Panel.ANALYSE && !was
+    }
+
+    fun closeSidePanels() {
+        showGrafik = false
+        showParams = false
+        showStats = false
+        showAnalyse = false
     }
 
     fun showOnlyAnalyse() {

@@ -1,5 +1,6 @@
 package com.neojou.myants
 
+import com.neojou.myants.session.Panel
 import com.neojou.myants.sim.FoodKind
 import com.neojou.myants.sim.SimConfig
 import java.io.File
@@ -74,7 +75,7 @@ class AppSessionTest {
         assertTrue(s.clock.paused)
         s.camX = 12.0
         assertEquals(12.0, s.camera.x)
-        s.openPanel("params")
+        s.openPanel(Panel.PARAMS)
         assertTrue(s.view.showParams && s.showParams)
         s.refreshAnalyse()
         assertFalse(s.showParams)
