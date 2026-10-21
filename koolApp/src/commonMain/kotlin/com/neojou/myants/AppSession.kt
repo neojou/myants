@@ -1,6 +1,8 @@
 package com.neojou.myants
 
 import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.session.CameraState
+import com.neojou.myants.session.SimClock
 import com.neojou.myants.render3d.parseRenderMode
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntKind
@@ -36,13 +38,25 @@ class GraphSample(val population: Int, val sugar: Double, val protein: Double, v
  * Cinema picks use [kotlin.random.Random], never [Rng].
  */
 class AppSession(launch: LaunchConfig) {
-    val speeds = doubleArrayOf(0.0, 0.5, 1.0, 2.0, 4.0, 8.0)
-    var speedIndex: Int = 2
-    var paused: Boolean = false
+    val clock = SimClock()
+    val camera = CameraState()
+    val speeds: DoubleArray get() = clock.speeds
+    var speedIndex: Int
+        get() = clock.speedIndex
+        set(v) { clock.speedIndex = v }
+    var paused: Boolean
+        get() = clock.paused
+        set(v) { clock.paused = v }
     var tool: SimTool = SimTool.INSPECT
-    var camX: Double = SimConfig.width / 2.0
-    var camY: Double = SimConfig.height / 2.0
-    var zoom: Double = 1.0
+    var camX: Double
+        get() = camera.x
+        set(v) { camera.x = v }
+    var camY: Double
+        get() = camera.y
+        set(v) { camera.y = v }
+    var zoom: Double
+        get() = camera.zoom
+        set(v) { camera.zoom = v }
     var showPheromones: Boolean = true
     var pheromoneStrength: Double = 1.0
     var antColor: Color = Color("#c4703a")
@@ -92,8 +106,6 @@ class AppSession(launch: LaunchConfig) {
 
     var world: World
     val seed: Int
-    private var accum: Double = 0.0
-    private var halfTick: Boolean = false
     private var deadFrames: Int = 0
     private var fpsFrames: Int = 0
     private var fpsStamp: Double = 0.0
@@ -117,10 +129,7 @@ class AppSession(launch: LaunchConfig) {
         var quality = QualityLevel.MEDIUM
         saved["colonies"]?.toIntOrNull()?.let { colonies = it.coerceIn(1, 2) }
         saved["quality"]?.let { parseQuality(it)?.let { q -> quality = q } }
-        saved["speed"]?.toDoubleOrNull()?.let { spd ->
-            val idx = speeds.indexOfFirst { kotlin.math.abs(it - spd) < 1e-6 }
-            if (idx >= 0) speedIndex = idx
-        }
+        saved["speed"]?.toDoubleOrNull()?.let { clock.restoreSpeed(it) }
         saved["pheromones"]?.toBooleanStrictOrNull()?.let { showPheromones = it }
         saved["pheromoneIntensity"]?.toDoubleOrNull()?.let { pheromoneStrength = it }
         saved["dayNight"]?.toBooleanStrictOrNull()?.let { dayNight = it }
@@ -218,22 +227,7 @@ class AppSession(launch: LaunchConfig) {
             PerformanceManager.monitorFps(fpsShown.toDouble(), (now * 1000.0).toLong())
         }
         if (!paused) {
-            accum += dt.toDouble()
-            val step = 1.0 / 60.0
-            var frames = 0
-            while (accum >= step && frames < 64) {
-                accum -= step
-                frames++
-                val spd = speeds[speedIndex]
-                if (spd == 0.0) continue
-                if (spd < 1.0) {
-                    halfTick = !halfTick
-                    if (halfTick) stepSim()
-                } else {
-                    repeat(spd.toInt()) { stepSim() }
-                }
-            }
-            if (accum > step) accum = step
+            clock.advance(dt.toDouble()) { stepSim() }
             val decided = world.totalAntCount() == 0 || world.colonies.any { it.queen.dead }
             if (decided) {
                 deadFrames++
@@ -260,13 +254,13 @@ class AppSession(launch: LaunchConfig) {
     }
 
     fun togglePause() {
-        paused = !paused
+        clock.togglePause()
         notifyInput()
         bump()
     }
 
     fun stepSpeed(dir: Int) {
-        speedIndex = (speedIndex + dir).coerceIn(0, speeds.lastIndex)
+        clock.stepSpeed(dir)
         save()
         notifyInput()
         bump()
@@ -277,61 +271,23 @@ class AppSession(launch: LaunchConfig) {
         notifyInput()
     }
 
-    fun zoomAt(factor: Double, anchorX: Double, anchorY: Double) {
-        if (!factor.isFinite() || !anchorX.isFinite() || !anchorY.isFinite()) return
-        if (!zoom.isFinite() || !camX.isFinite() || !camY.isFinite()) return
-        val next = (zoom * factor).coerceIn(1.0, 6.0)
-        val change = next / zoom
-        if (change == 0.0 || !change.isFinite()) return
-        camX = anchorX + (camX - anchorX) / change
-        camY = anchorY + (camY - anchorY) / change
-        zoom = next
-    }
+    fun zoomAt(factor: Double, anchorX: Double, anchorY: Double) = camera.zoomAt(factor, anchorX, anchorY)
 
     fun pan(dxPx: Float, dyPx: Float, fit: Float) {
-        val s = fit * zoom
-        if (s == 0.0) return
-        camX -= dxPx / s
-        camY -= dyPx / s
-        notifyInput()
+        if (camera.pan(dxPx, dyPx, fit)) notifyInput()
     }
 
     fun resetCamera(fromUser: Boolean = true) {
-        camX = SimConfig.width / 2.0
-        camY = SimConfig.height / 2.0
-        zoom = 1.0
+        camera.reset()
         if (fromUser) notifyInput()
     }
 
-    fun clampCamera(leftW: Float, winH: Float) {
-        if (!camX.isFinite() || !camY.isFinite() || !zoom.isFinite()) {
-            resetCamera(fromUser = false)
-            return
-        }
-        zoom = zoom.coerceIn(1.0, 6.0)
-        val fit = fitScale(leftW, winH)
-        val s = fit * zoom
-        if (s <= 0.0) return
-        val halfW = (leftW / 2.0) / s
-        val halfH = (winH / 2.0) / s
-        val worldW = SimConfig.width.toDouble()
-        val worldH = SimConfig.height.toDouble()
-        camX = if (halfW * 2.0 >= worldW) worldW / 2.0 else camX.coerceIn(halfW, worldW - halfW)
-        camY = if (halfH * 2.0 >= worldH) worldH / 2.0 else camY.coerceIn(halfH, worldH - halfH)
-    }
+    fun clampCamera(leftW: Float, winH: Float) = camera.clamp(leftW, winH)
 
-    fun fitScale(leftW: Float, winH: Float): Double {
-        val sx = leftW / SimConfig.width.toDouble()
-        val sy = winH / SimConfig.height.toDouble()
-        return if (sx < sy) sx else sy
-    }
+    fun fitScale(leftW: Float, winH: Float): Double = camera.fitScale(leftW, winH)
 
-    fun screenToWorld(px: Float, py: Float, leftW: Float, winH: Float): Pair<Double, Double> {
-        val s = fitScale(leftW, winH) * zoom
-        val wx = camX + (px - leftW / 2.0) / s
-        val wy = camY + (py - winH / 2.0) / s
-        return wx to wy
-    }
+    fun screenToWorld(px: Float, py: Float, leftW: Float, winH: Float): Pair<Double, Double> =
+        camera.screenToWorld(px, py, leftW, winH)
 
     fun clickWorld(wx: Double, wy: Double) {
         notifyInput()
