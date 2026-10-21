@@ -8,6 +8,7 @@
 - 重構：`AppSession` 的時序（暫停、速度、60 Hz 累加器）拆到 `session/SimClock`，相機拆到 `session/CameraState`；行為不變（#7 第 1 步）
 - 重構：工具、放置與 Inspect 判定拆到 `session/ToolController`；行為不變（#7 第 2 步）
 - 重構：面板與偏好設定（含設定檔格式）拆到 `session/ViewState`，HUD 字串與圖表歷史拆到 `session/HudState`，電影鏡頭與跟隨拆到 `session/CinemaDirector`，另拆出 `ShotPose`、`TunerOverrides`、`FpsCounter`；`AppSession` 降到 296 行，行為不變（#7 第 3 步，Closes #7）
+- 重構：`AntSimUi.kt` 拆成 `ui/HudPanel`、`Toolbar`、`AboutDialog` 與 `ui/panels/*`（共用 `PanelFrame`）；面板改用 `Panel` enum，移除 `openPanel("...")` 字串；行為不變（#37，Closes #8）
 
 ## [0.15.0] - 2026-10-21
 
