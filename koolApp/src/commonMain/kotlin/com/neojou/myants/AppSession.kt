@@ -3,6 +3,7 @@ package com.neojou.myants
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.session.CameraState
 import com.neojou.myants.session.SimClock
+import com.neojou.myants.session.ToolController
 import com.neojou.myants.render3d.parseRenderMode
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntKind
@@ -47,7 +48,10 @@ class AppSession(launch: LaunchConfig) {
     var paused: Boolean
         get() = clock.paused
         set(v) { clock.paused = v }
-    var tool: SimTool = SimTool.INSPECT
+    val tools = ToolController()
+    var tool: SimTool
+        get() = tools.tool
+        set(v) { tools.tool = v }
     var camX: Double
         get() = camera.x
         set(v) { camera.x = v }
@@ -83,7 +87,9 @@ class AppSession(launch: LaunchConfig) {
     var nestPresent: Scene? = null
     var uiScene: Scene? = null
     var nestTexture: Texture2d? = null
-    var inspectedAnt: Ant? = null
+    var inspectedAnt: Ant?
+        get() = tools.inspectedAnt
+        set(v) { tools.inspectedAnt = v }
     var screenshotRequested: Boolean = false
     var worldSerial: Int = 1
     var fpsShownPublic: Int = 0
@@ -100,7 +106,7 @@ class AppSession(launch: LaunchConfig) {
     val hudPop = mutableStateOf("Population: 0")
     val hudFood = mutableStateOf("Protein: 0 | Sugar: 0")
     val hudQueen = mutableStateOf("Queen Age: 0m 0s")
-    val inspect = mutableStateOf("")
+    val inspect get() = tools.inspect
     val analyseLines = ArrayList<AnalyseLine>()
     val history = ArrayDeque<GraphSample>()
 
@@ -291,12 +297,7 @@ class AppSession(launch: LaunchConfig) {
 
     fun clickWorld(wx: Double, wy: Double) {
         notifyInput()
-        when (tool) {
-            SimTool.SUGAR -> world.placeFood(wx, wy, FoodKind.SUGAR)
-            SimTool.PROTEIN -> world.placeFood(wx, wy, FoodKind.PROTEIN)
-            SimTool.ENEMY -> world.spawnEnemyAt(wx, wy, InsectKind.PREDATOR)
-            SimTool.INSPECT -> inspectNearest(wx, wy)
-        }
+        tools.apply(world, wx, wy)
         bump()
     }
 
@@ -515,67 +516,11 @@ class AppSession(launch: LaunchConfig) {
         hudQueen.value = "Queen Age: ${ageSeconds / 60}m ${ageSeconds % 60}s"
     }
 
-    private fun inspectNearest(wx: Double, wy: Double) {
-        var best = Double.MAX_VALUE
-        var text = ""
-        inspectedAnt = null
-        fun consider(x: Double, y: Double, label: String, ant: Ant? = null) {
-            val dx = x - wx
-            val dy = y - wy
-            val d = dx * dx + dy * dy
-            if (d < best && d <= 30.0 * 30.0) {
-                best = d
-                text = label
-                inspectedAnt = ant
-            }
-        }
-        for (colony in world.colonies) {
-            for (ant in colony.ants) {
-                if (ant.location != AntPlace.WORLD) continue
-                consider(ant.x, ant.y, antLine(ant), ant)
-            }
-        }
-        for (food in world.foods) {
-            consider(food.x, food.y, "${food.type} ${food.amount.toInt()}")
-        }
-        for (insect in world.insects) {
-            consider(insect.x, insect.y, "${insect.type} hp ${insect.health.toInt()}")
-        }
-        inspect.value = text
-    }
-
     /** Hit test for the 3D nest cutaway. Classic 2D still uses [clickWorld] only. */
     fun inspectNest(nx: Double, ny: Double) {
         notifyInput()
-        var best = Double.MAX_VALUE
-        var text = ""
-        inspectedAnt = null
-        val colony = world.colonies[0]
-        for (ant in colony.ants) {
-            if (ant.location != AntPlace.NEST) continue
-            val dx = ant.x - nx
-            val dy = ant.y - ny
-            val d = dx * dx + dy * dy
-            if (d < best && d <= 30.0 * 30.0) {
-                best = d
-                text = antLine(ant)
-                inspectedAnt = ant
-            }
-        }
-        val queen = colony.queen
-        val qdx = queen.x - nx
-        val qdy = queen.y - ny
-        val qd = qdx * qdx + qdy * qdy
-        if (qd < best && qd <= 40.0 * 40.0) {
-            text = "Queen e=${queen.energy.toInt()} age=${queen.age}"
-            inspectedAnt = null
-        }
-        inspect.value = text
+        tools.inspectNest(world, nx, ny)
         bump()
-    }
-
-    private fun antLine(ant: Ant): String {
-        return "Ant ${ant.type} ${ant.state} e=${ant.energy.toInt()} h=${ant.health.toInt()} ${ant.carrying}"
     }
 
     private fun updateUserFollow() {

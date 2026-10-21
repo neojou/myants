@@ -1,0 +1,109 @@
+package com.neojou.myants.session
+
+import com.neojou.myants.SimTool
+import com.neojou.myants.sim.Ant
+import com.neojou.myants.sim.AntKind
+import com.neojou.myants.sim.AntPlace
+import com.neojou.myants.sim.Food
+import com.neojou.myants.sim.FoodKind
+import com.neojou.myants.sim.InsectKind
+import com.neojou.myants.sim.Rng
+import com.neojou.myants.sim.SimConfig
+import com.neojou.myants.sim.World
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
+
+class ToolControllerTest {
+    private lateinit var world: World
+    private var px = 0.0
+    private var py = 0.0
+
+    @BeforeTest
+    fun setUp() {
+        Rng.seed(1)
+        SimConfig.colonyCount = 1
+        world = World()
+        for (c in world.colonies) c.ants.clear()
+        world.foods.clear()
+        world.insects.clear()
+        val p = world.getSafePosition()
+        px = p.x
+        py = p.y
+    }
+
+    @Test
+    fun defaultToolIsInspect() {
+        assertEquals(SimTool.INSPECT, ToolController().tool)
+    }
+
+    @Test
+    fun placementToolsAddToWorld() {
+        val t = ToolController()
+        t.tool = SimTool.SUGAR
+        t.apply(world, px, py)
+        t.tool = SimTool.PROTEIN
+        t.apply(world, px, py)
+        assertEquals(listOf(FoodKind.SUGAR, FoodKind.PROTEIN), world.foods.map { it.type })
+        assertEquals(listOf(200.0, 150.0), world.foods.map { it.amount })
+        t.tool = SimTool.ENEMY
+        t.apply(world, px, py)
+        assertEquals(InsectKind.PREDATOR, world.insects.single().type)
+        assertEquals("", t.inspect.value)
+    }
+
+    @Test
+    fun inspectPicksNearestWithin30() {
+        world.foods.add(Food(px + 20, py, FoodKind.SUGAR, 42.0))
+        val ant = Ant(px + 5, py, AntKind.WORKER).apply { location = AntPlace.WORLD; x = px + 5; y = py }
+        world.colonies[0].ants.add(ant)
+        val t = ToolController()
+        t.apply(world, px, py)
+        assertSame(ant, t.inspectedAnt)
+        assertTrue(t.inspect.value.startsWith("Ant WORKER"), t.inspect.value)
+
+        t.apply(world, px + 21, py)
+        assertNull(t.inspectedAnt)
+        assertEquals("SUGAR 42", t.inspect.value)
+
+        t.apply(world, px + 200, py + 200)
+        assertNull(t.inspectedAnt)
+        assertEquals("", t.inspect.value)
+    }
+
+    @Test
+    fun inspectIgnoresAntsInNest() {
+        val ant = Ant(px, py, AntKind.WORKER).apply { location = AntPlace.NEST; x = px; y = py }
+        world.colonies[0].ants.add(ant)
+        val t = ToolController()
+        t.inspectNearest(world, px, py)
+        assertNull(t.inspectedAnt)
+    }
+
+    @Test
+    fun inspectNestFindsNestAntAndQueen() {
+        val colony = world.colonies[0]
+        val q = colony.queen
+        val ant = Ant(q.x + 100, q.y, AntKind.SOLDIER).apply { location = AntPlace.NEST; x = q.x + 100; y = q.y }
+        colony.ants.add(ant)
+        val t = ToolController()
+        t.inspectNest(world, q.x + 100, q.y)
+        assertSame(ant, t.inspectedAnt)
+        assertTrue(t.inspect.value.startsWith("Ant SOLDIER"))
+        t.inspectNest(world, q.x, q.y)
+        assertNull(t.inspectedAnt)
+        assertTrue(t.inspect.value.startsWith("Queen"))
+    }
+
+    @Test
+    fun clearResetsInspect() {
+        val t = ToolController()
+        t.inspect.value = "x"
+        t.clear()
+        assertEquals("", t.inspect.value)
+        assertNull(t.inspectedAnt)
+    }
+}
