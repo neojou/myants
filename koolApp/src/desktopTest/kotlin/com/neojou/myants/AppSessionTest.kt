@@ -74,6 +74,29 @@ class AppSessionTest {
     }
 
     @Test
+    fun restartPromptLeavesTheWorldUntilConfirmed() {
+        val p = s.world.getSafePosition()
+        s.world.placeFood(p.x, p.y, FoodKind.PROTEIN)
+        val before = s.world
+        val serial = s.worldSerial
+        s.askRestart()
+        assertTrue(s.restartPrompt)
+        assertSame(before, s.world)
+        assertEquals(serial, s.worldSerial)
+        assertEquals(1, s.world.foods.count { it.type == FoodKind.PROTEIN })
+        s.dismissRestart()
+        assertFalse(s.restartPrompt)
+        assertSame(before, s.world)
+        assertEquals(1, before.foods.count { it.type == FoodKind.PROTEIN })
+        s.askRestart()
+        s.confirmRestart()
+        assertFalse(s.restartPrompt)
+        assertTrue(s.world !== before)
+        assertEquals(serial + 1, s.worldSerial)
+        assertEquals(0, s.world.foods.count { it.type == FoodKind.PROTEIN })
+    }
+
+    @Test
     fun aboutOpensThroughOpenPanelAndNotifiesInput() {
         assertFalse(s.showAbout)
         assertEquals(0.0, s.cine.pausedUntil)

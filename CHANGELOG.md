@@ -28,6 +28,7 @@
 - 新增：介面語言 English／繁體中文／Deutsch，預設 English。工具列、面板標題、OK、Reset 走字串表。Grafik 可切換，寫入設定檔 `language`。舊檔沒有這個鍵時維持 English。模擬句子、Rivalenkolonie 核取方塊、MIT 授權行不翻譯（Refs #24）
 - 變更：Grafik 其餘標籤、HUD、About 的 Version、圖示 tooltip、蟻色名稱與敵群行改走字串表。Stats 圖下標籤跟著語言；英文糖線是 Sugar，德文仍是 Zucker。圖上的點陣字沒有中文，繁中時線尾改畫英文。Fira 仍沒有中文字（Closes #24）
 - 變更：右上工具列分成播放、相機、工具、世界（雨／Restart）、面板五組。組與組用 `gapGroup`，組內用 `gapInGroup`。About 改走 `openPanel(Panel.ABOUT)`，會暫停電影相機（Refs #11）
+- 變更：Restart 按鈕用 danger 色。按下先問，確認才重建世界；取消則世界不變。敵群勾選仍會立刻重開（Refs #11）
 
 ### 修正
 - 移除 `World.kt` 中被 Kotlin 內建成員遮蔽、實際不會被呼叫的 `Double.inc`／`Double.dec` 擴充函式，消除編譯警告；模擬行為不變（#31）

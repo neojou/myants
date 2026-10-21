@@ -58,7 +58,15 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
         modifier.margin(top = MyantsTheme.space.gapGroup)
         IconButton(HudIcon.RAIN, selected = raining) { session.toggleRain() }
         Button(tr(UiText.RESTART)) {
-            modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.restart(fromUser = true) }
+            modifier
+                .margin(start = MyantsTheme.space.gapInGroup)
+                .colors(
+                    buttonColor = T.danger,
+                    buttonHoverColor = T.danger,
+                    textColor = T.onDanger,
+                    textHoverColor = T.onDanger,
+                )
+                .onClick { session.askRestart() }
         }
         Checkbox(colonies > 1) {
             modifier.margin(start = MyantsTheme.space.gapInGroup).alignY(AlignmentY.Center).onToggle {

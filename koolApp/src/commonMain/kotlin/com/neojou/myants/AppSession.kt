@@ -77,6 +77,9 @@ class AppSession(launch: LaunchConfig) {
     var showAnalyse by view::showAnalyse
     var showAbout by view::showAbout
 
+    /** Restart confirmation. Not saved. Cancel leaves the world alone. */
+    var restartPrompt: Boolean = false
+
     val hudFps get() = hud.fps
     val hudPop get() = hud.pop
     val hudFood get() = hud.food
@@ -240,6 +243,23 @@ class AppSession(launch: LaunchConfig) {
         resetCamera(fromUser = false)
         if (fromUser) notifyInput()
         bump()
+    }
+
+    /** Opens the restart dialog. The world stays until [confirmRestart]. */
+    fun askRestart() {
+        restartPrompt = true
+        notifyInput()
+        bump()
+    }
+
+    fun dismissRestart() {
+        restartPrompt = false
+        bump()
+    }
+
+    fun confirmRestart() {
+        restartPrompt = false
+        restart(fromUser = true)
     }
 
     fun setColonies(count: Int) {

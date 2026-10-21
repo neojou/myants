@@ -22,5 +22,8 @@ class L10nTest {
         assertEquals("Königinnenalter: 1min 2s", L10n.queenLine(1, 2, UiLanguage.DE))
         assertEquals("Sugar", L10n.string(UiText.SERIES_SUGAR, UiLanguage.EN))
         assertEquals("Zucker", L10n.string(UiText.SERIES_SUGAR, UiLanguage.DE))
+        assertEquals("Cancel", L10n.string(UiText.CANCEL, UiLanguage.EN))
+        assertEquals("取消", L10n.string(UiText.CANCEL, UiLanguage.ZH_TW))
+        assertEquals("Abbrechen", L10n.string(UiText.CANCEL, UiLanguage.DE))
     }
 }
