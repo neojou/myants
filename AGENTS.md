@@ -31,6 +31,12 @@
 4. milestone 結尾開 release PR（`./configure.sh version x.y.z`，標題 `chore(release): vX.Y.Z`）；合併後由 PM 建 tag 與 GitHub Release。見 `docs/adr/0003-versioning-and-release.md`。
 5. 換手前更新 `docs/PLAN.md` 的 Status（日期、agent、版本、SHA、下一步）並 push。
 
+## 工作目錄（全隊規則）
+
+- 每個角色只用自己的目錄：`/workspace/myants-pm`、`/workspace/myants-coder`、`/workspace/myants-qe`、`/workspace/myants-ci`、`/workspace/myants-artist`（獨立 clone 或 git worktree 都可以）。
+- 絕不在別人的目錄或共用的 `/workspace/myants` 裡 checkout、commit 或 push。
+- 原因：多個 bot 共用同一台機器，在同一個 checkout 裡切分支，會讓 commit 落到別人的分支上（見 #27）。
+
 ## Rules
 - 不升級 kool / Kotlin / Gradle / JDK 版本。
 - 改行為必附測試；不得跳過失敗測試。

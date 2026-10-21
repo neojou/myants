@@ -15,9 +15,9 @@
 - 日期：2026-10-21
 - Agent：Grok Bot（Coder）
 - 版本：0.15.0（已發布；本分支未改版號）
-- Branch：`feat/31-world-shadowed-ext`（issue #31），基於 `origin/main` `ac9b558`
+- Branch：`feat/31-world-shadowed-ext`（issue #31），已 merge `origin/main` `2a9f7f9`（含 #7 拆分 AppSession：#28/#32/#33，及 #30）
 - 內容：移除 `sim/World.kt` 中被遮蔽的 `Double.inc/dec` 擴充函式（死碼，消除警告）。行為不變，HeadlessInvariantsTest 通過。
-- 進行中：#7 拆分 AppSession（PR #28 → #32 → #33，依序合併）。
+- 先前（main）：`AppSession` 拆成組合根（296 行）加上 `session/` 底下的 SimClock、CameraState、ToolController、ViewState、HudState、CinemaDirector、ShotPose、TunerOverrides、FpsCounter；#7 已完成。
 - 下一步：依 PM 第 2 批：#10 PointerRouter、#8 拆 AntSimUi.kt。
 
 已落地：
