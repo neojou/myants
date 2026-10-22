@@ -117,6 +117,9 @@ class WorldRenderer(
     private lateinit var leaves: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var leafMesh: Mesh<*>
     private lateinit var flowers: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var flowerMesh: Mesh<*>
+    private var cloverReady = false
+    private var bloomReady = false
     private lateinit var bodies: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var heads: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var legs: MeshInstanceList<InstanceLayouts.ModelMatColor>
@@ -183,6 +186,8 @@ class WorldRenderer(
         loadMerged("models/food/protein.glb", listOf(proteinMesh, carryProteinMesh), "protein") { proteinReady = true }
         loadMerged("models/nature/pebble.glb", listOf(rockMesh), "pebble", "cube") { }
         loadMerged("models/nature/leaf.glb", listOf(leafMesh), "leaf", "slab") { }
+        loadMerged("models/nature/clover_tuft.glb", listOf(grassMesh), "clover", "blade") { cloverReady = true }
+        loadMerged("models/nature/clover_flower.glb", listOf(flowerMesh), "clover flower", "sphere") { bloomReady = true }
         val clock = stoneMesh
         if (clock != null) loadMerged("models/nature/clock_stone.glb", listOf(clock), "clock stone") { }
 
@@ -390,16 +395,16 @@ class WorldRenderer(
             isFrustumChecked = false
             shader = gshader
         }
-        grass = MeshInstanceList(layout, 4096)
-        grassMesh = instanced(content, grass, "grass") {
+        grass = MeshInstanceList(layout, 8192)
+        grassMesh = instanced(content, grass, "grass", doubleSided = true) {
             cube { size.set(0.2f, 1f, 0.45f) }
         }
         rocks = MeshInstanceList(layout, 1024)
         rockMesh = instanced(content, rocks, "rock") { cube { size.set(1f, 1f, 1f) } }
         leaves = MeshInstanceList(layout, 1024)
         leafMesh = instanced(content, leaves, "leaf") { cube { size.set(1.2f, 0.08f, 0.45f) } }
-        flowers = MeshInstanceList(layout, 512)
-        instanced(content, flowers, "flower") { icoSphere { steps = 1; radius = 0.45f } }
+        flowers = MeshInstanceList(layout, 4096)
+        flowerMesh = instanced(content, flowers, "flower") { icoSphere { steps = 1; radius = 0.45f } }
         bodies = MeshInstanceList(layout, 2048)
         instanced(content, bodies, "ant-body") { cube { size.set(1f, 0.32f, 0.38f) } }
         heads = MeshInstanceList(layout, 2048)
@@ -685,12 +690,16 @@ class WorldRenderer(
         instances: MeshInstanceList<InstanceLayouts.ModelMatColor>,
         name: String,
         roughness: Float = 0.8f,
+        doubleSided: Boolean = false,
         build: de.fabmax.kool.scene.geometry.MeshBuilder<*>.() -> Unit,
     ): Mesh<*> {
         val shader = deferredKslPbrShader {
             vertices { instancedModelMatrix(layout.modelMat) }
             color { instanceColor(layout.color) }
             roughness(roughness)
+            if (doubleSided) {
+                pipeline { cullMethod = CullMethod.NO_CULLING }
+            }
         }
         return parent.addMesh(VertexLayouts.PositionNormal, instances = instances) {
             isFrustumChecked = false
@@ -787,9 +796,16 @@ class WorldRenderer(
             val x = extraGrass[i]
             val z = extraGrass[i + 1]
             val yaw = extraGrass[i + 2] * 6.2f + if (sway) sin(time * 1.7f + x * 0.02f) * 0.25f else 0f
-            val h = 3f + extraGrass[i + 3] * 4f
-            val y = GroundHeight.at(x, z) + h * 0.5f
-            pose(grass, x, y, z, yaw, 0f, 0f, 0f, 0.35f, h, 0.7f, WorldPalette.scatterGrass(extraGrass[i + 3]))
+            val shade = extraGrass[i + 3]
+            if (cloverReady) {
+                // 3–6 world units is only a few pixels at the default camera, so the lawn
+                // stayed bare. This span is what still reads as a patch, and as a white head.
+                placeClover(x, z, yaw, 10f + shade * 8f, WorldPalette.scatterGrass(shade))
+            } else {
+                val h = 3f + shade * 4f
+                val y = GroundHeight.at(x, z) + h * 0.5f
+                pose(grass, x, y, z, yaw, 0f, 0f, 0f, 0.35f, h, 0.7f, WorldPalette.scatterGrass(shade))
+            }
             i += 4
         }
         i = 0
@@ -807,14 +823,25 @@ class WorldRenderer(
             pose(leaves, x, y, z, leafPos[i + 2] * 6f, 0f, 0f, 0f, 2.2f, 0.15f, 1f, WorldPalette.leaf)
             i += 4
         }
-        i = 0
-        val petal = WorldPalette.petals
-        while (i < flowerPos.size) {
-            val x = flowerPos[i]; val z = flowerPos[i + 1]
-            val y = GroundHeight.at(x, z) + 1.6f
-            pose(flowers, x, y, z, 0f, 0f, 0f, 0f, 1.4f, 1.4f, 1.4f, petal[(flowerPos[i + 2] * 4f).toInt().coerceIn(0, 3)])
-            pose(bits, x, y - 1.3f, z, 0f, 0f, 0f, 0f, 0.15f, 1.6f, 0.15f, WorldPalette.stem)
-            i += 4
+        if (!bloomReady) {
+            i = 0
+            val petal = WorldPalette.petals
+            while (i < flowerPos.size) {
+                val x = flowerPos[i]; val z = flowerPos[i + 1]
+                val y = GroundHeight.at(x, z) + 1.6f
+                pose(flowers, x, y, z, 0f, 0f, 0f, 0f, 1.4f, 1.4f, 1.4f, petal[(flowerPos[i + 2] * 4f).toInt().coerceIn(0, 3)])
+                pose(bits, x, y - 1.3f, z, 0f, 0f, 0f, 0f, 0.15f, 1.6f, 0.15f, WorldPalette.stem)
+                i += 4
+            }
+        }
+    }
+
+    private fun placeClover(x: Float, z: Float, yaw: Float, scale: Float, color: Color) {
+        // A hair above the heightfield so the flat leaflets win the depth test.
+        val y = GroundHeight.at(x, z) + 0.2f
+        pose(grass, x, y, z, yaw, 0f, 0f, 0f, scale, scale, scale, color)
+        if (bloomReady && cloverBlooms(x, z)) {
+            pose(flowers, x, y, z, yaw, 0f, 0f, 0f, scale, scale, scale, WorldPalette.petalWhite)
         }
     }
 
@@ -824,10 +851,14 @@ class WorldRenderer(
         for (tuft in session.world.grass) {
             val x = tuft.x.toFloat()
             val z = tuft.y.toFloat()
-            val h = (tuft.size * 3.0).toFloat().coerceAtLeast(1.5f)
             val yaw = WorldFrames.yawRad(tuft.angle.toFloat()) + if (sway) sin(time * 1.5f + x) * 0.2f else 0f
-            val y = GroundHeight.at(x, z) + h * 0.5f
-            pose(grass, x, y, z, yaw, 0f, 0f, 0f, tuft.size.toFloat().coerceAtLeast(0.4f), h, 0.6f, WorldPalette.simGrass)
+            if (cloverReady) {
+                placeClover(x, z, yaw, tuft.size.toFloat().coerceAtLeast(0.4f) * 4f, WorldPalette.simGrass)
+            } else {
+                val h = (tuft.size * 3.0).toFloat().coerceAtLeast(1.5f)
+                val y = GroundHeight.at(x, z) + h * 0.5f
+                pose(grass, x, y, z, yaw, 0f, 0f, 0f, tuft.size.toFloat().coerceAtLeast(0.4f), h, 0.6f, WorldPalette.simGrass)
+            }
         }
     }
 

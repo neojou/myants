@@ -45,7 +45,7 @@
 - 左側出洞後的 3D 工蟻讀 `models/ants/worker_black.glb`，兵蟻讀 `models/ants/soldier.glb`（自製 glTF 2.0，頭朝 +X）。兵蟻的頭是紅色，身體跟群色。任一檔載入失敗，該階級退回方塊蟻。右側巢穴與 Classic 2D 不變。步行仍用姿態桶，支點來自模型的胸節。頭與身體分成兩份實例，所以頭可以另外上色。
 - 左側獵物、捕食者、蜘蛛、甲蟲、瓢蟲讀 `models/insects/` 下對應的自製 glb。蜘蛛八腳。瓢蟲斑點是深色實例。甲蟲的室外模型是鍬形蟲剪影，頭近黑，鞘翅是深栗褐的整片盾。缺檔退回方塊。蚜蟲仍是 `aphid_green.glb`。Classic 2D 不變。
 - 地面糖堆、蛋白堆，以及嘴上搬運的糖和蛋白，讀 `models/food/sugar.glb` 與 `protein.glb`。屍體仍是球。缺檔退回球。
-- 小石與障礙石共用 `models/nature/pebble.glb`，落葉是 `leaf.glb`，時鐘石體是 `clock_stone.glb`。數字仍是七段方塊。缺檔退回方塊或圓球。草與花不變。Medium 300 蟻是否 ≥ 60 fps 這次沒有重測。
+- 小石與障礙石共用 `models/nature/pebble.glb`，落葉是 `leaf.glb`，時鐘石體是 `clock_stone.glb`。數字仍是七段方塊。缺檔退回方塊或圓球。左側 3D 的草是貼地的三葉草叢，約五叢有兩叢在同一點開白花；缺檔退回方柱和彩球。Classic 2D 的草仍是綠色橢圓。Medium 300 蟻是否 ≥ 60 fps 這次沒有重測。
 - 3D 巢穴畫在 present 場景，用跟 Classic 2D 相同的螢幕正交相機（近裁剪面必須是負的，否則 z=0 的四邊形會被裁掉）。kool 0.19 的 `AttachmentConfig.singleColorDefaultDepth(format, clearColor)` 不使用傳入的清除色，一律清成黑；在 MoltenVK 上把 `OffscreenPass2d` 的顏色貼圖貼回畫面時，取樣結果也是黑，剖面幾何沒有出現在那張貼圖裡。因此不走離屏貼圖，直接在右側 26% 畫土塊、隧道節點與蟻后／幼體／巢內蟻。Unlit 顏色要設 `LinearToSrgb`，否則會以線性值寫進交換鏈，土色會暗成接近黑。`nest3dActive` 為假時才回到 2D 巢穴疊層。巢穴點擊只在 3D 巢穴有效時做 inspect。
 - 這台 Mac（Apple M4 Pro、MoltenVK api 1.2.296）已開過 Vulkan 視窗，BloomPass 有建立，`ImageIO` 有寫出 PNG。尚未量到的項目：Medium、雙群約 300 蟻是否 ≥ 60 fps，以及 Ultra 1200 蟻是否 ≥ 30 fps。截圖當下族群 34，HUD 約 43–48 fps，不能當成達標。GL 3.3 context 沒測。費洛蒙貼圖的上下方向，以及螞蟻朝向是否與移動方向一致，靜態圖看不出來。對照見 `docs/programming/3d_refs/shots/REVIEW.md`。
 
