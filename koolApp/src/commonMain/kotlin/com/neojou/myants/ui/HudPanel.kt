@@ -15,6 +15,7 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
 ) {
     installLanguageFont()
     val inspect = session.tools.inspectPanel.use()
+    val following = session.following.use()
     modifier
         .align(AlignmentX.Start, AlignmentY.Top)
         .margin(MyantsTheme.space.screenEdge)
@@ -70,6 +71,11 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
         Text(inspect.title) { modifier.margin(top = MyantsTheme.space.s2) }
         for (row in inspect.rows) {
             Text(row) { modifier.font(sizes.smallText) }
+        }
+        if (session.followAnchor() != null) {
+            Button(tr(if (following) UiText.INSPECT_FOLLOWING else UiText.INSPECT_FOLLOW)) {
+                modifier.margin(top = MyantsTheme.space.s2).onClick { session.toggleUserFollow() }
+            }
         }
     }
 }.also { it.applyControlRadius() }

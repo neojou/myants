@@ -147,6 +147,15 @@ class SessionPartsTest {
     }
 
     @Test
+    fun userFollowMovesTowardsAPoint() {
+        val cam = CameraState()
+        val c = CinemaDirector()
+        val x0 = cam.x
+        assertTrue(c.updateUserFollow(cam, x0 + 100.0, cam.y))
+        assertEquals(x0 + 12.0, cam.x, 1e-9)
+    }
+
+    @Test
     fun tunerOverridesLoadSetReset() {
         val t = TunerOverrides()
         val base = SimConfig.antSpeed

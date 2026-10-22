@@ -36,9 +36,14 @@ class CinemaDirector {
      */
     fun updateUserFollow(camera: CameraState, ant: Ant): Boolean {
         if (ant.location != AntPlace.WORLD || ant.energy <= 0.0) return false
+        return updateUserFollow(camera, ant.x, ant.y)
+    }
+
+    /** Moves the camera towards a world point. Always stays on; the caller drops follow when the point is gone. */
+    fun updateUserFollow(camera: CameraState, x: Double, y: Double): Boolean {
         val k = 0.12
-        camera.x += (ant.x - camera.x) * k
-        camera.y += (ant.y - camera.y) * k
+        camera.x += (x - camera.x) * k
+        camera.y += (y - camera.y) * k
         return true
     }
 

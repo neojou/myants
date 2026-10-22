@@ -4,6 +4,9 @@ import com.neojou.myants.session.Panel
 import de.fabmax.kool.util.Time
 import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.UiLanguage
+import com.neojou.myants.sim.Ant
+import com.neojou.myants.sim.AntKind
+import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.FoodKind
 import com.neojou.myants.sim.SimConfig
 import java.io.File
@@ -197,5 +200,70 @@ class AppSessionTest {
         val again = AppSession(LaunchConfig(seed = 1, colonies = 1))
         assertEquals(UiLanguage.ZH_TW, again.view.language)
         again.setLanguage(UiLanguage.EN)
+    }
+
+    @Test
+    fun followTracksWorldTargetsAndStopsForNestOrAMiss() {
+        s.paused = true
+        s.cinema = false
+        val p = s.world.getSafePosition()
+        s.world.placeFood(p.x, p.y, FoodKind.SUGAR)
+        s.clickWorld(p.x, p.y)
+        assertEquals(p.x, s.followAnchor()?.first)
+        assertEquals(p.y, s.followAnchor()?.second)
+        s.camera.x = p.x - 100.0
+        s.camera.y = p.y
+        s.toggleUserFollow()
+        assertTrue(s.userFollow)
+        assertTrue(s.following.value)
+        val x0 = s.camera.x
+        s.tick(0f)
+        assertEquals(x0 + 12.0, s.camera.x, 1e-6)
+        assertTrue(s.userFollow)
+
+        s.clickWorld(p.x, p.y)
+        assertTrue(s.userFollow)
+
+        s.clickWorld(-1.0, p.y)
+        assertFalse(s.userFollow)
+        assertFalse(s.following.value)
+        assertNull(s.followAnchor())
+
+        s.clickWorld(p.x, p.y)
+        s.toggleUserFollow()
+        s.inspectNest(0.0, 0.0)
+        assertFalse(s.userFollow)
+        assertNull(s.followAnchor())
+        val held = s.camera.x
+        s.tick(0f)
+        assertEquals(held, s.camera.x, 1e-9)
+    }
+
+    @Test
+    fun followStopsWhenTheWorldAntDiesOrTheUserDrags() {
+        s.paused = true
+        s.cinema = false
+        val ant = Ant(100.0, 80.0, AntKind.WORKER).apply {
+            location = AntPlace.WORLD
+            x = 100.0
+            y = 80.0
+            energy = 10.0
+        }
+        s.world.colonies[0].ants.add(ant)
+        s.clickWorld(ant.x, ant.y)
+        assertEquals(ant.x, s.followAnchor()?.first)
+        s.camera.x = ant.x - 100.0
+        s.camera.y = ant.y
+        s.toggleUserFollow()
+        ant.energy = 0.0
+        val x0 = s.camera.x
+        s.tick(0f)
+        assertFalse(s.userFollow)
+        assertEquals(x0, s.camera.x, 1e-9)
+
+        s.userFollow = true
+        s.noteDrag()
+        assertFalse(s.userFollow)
+        assertFalse(s.following.value)
     }
 }

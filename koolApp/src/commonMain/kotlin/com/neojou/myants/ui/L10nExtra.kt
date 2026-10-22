@@ -97,6 +97,8 @@ private val EXTRA: Map<UiText, Map<UiLanguage, String>> = mapOf(
     UiText.INSPECT_TRAIL_SUGAR to p("sugar", "糖", "糖", "Zucker"),
     UiText.INSPECT_TRAIL_PROTEIN to p("protein", "蛋白", "タンパク", "Protein"),
     UiText.INSPECT_DANGER to p("danger", "危險", "危険", "Gefahr"),
+    UiText.INSPECT_FOLLOW to p("Follow", "跟隨", "追従", "Folgen"),
+    UiText.INSPECT_FOLLOWING to p("Following", "跟隨中", "追従中", "Folgt"),
     UiText.AN_WAIT_M to p("Sample size", "樣本數", "サンプル数", "Datenmenge"),
     UiText.AN_WAIT_S to p(
         "Wait a little longer (about 20 seconds)",

@@ -1,7 +1,9 @@
 package com.neojou.myants
 
 import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.ScatterLayout
+import com.neojou.myants.render3d.inspectRing
 import com.neojou.myants.render3d.quality.QualityPreset
 import com.neojou.myants.session.CameraState
 import com.neojou.myants.session.CinemaDirector
@@ -17,6 +19,7 @@ import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.UiLanguage
 import com.neojou.myants.session.buildAnalyseLines
 import com.neojou.myants.sim.Ant
+import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.QualityLevel
 import com.neojou.myants.sim.Rng
@@ -104,7 +107,14 @@ class AppSession(launch: LaunchConfig) {
     val history get() = hud.history
 
     var renderTierBias: Int = 0
+
+    /** HUD subscription for [userFollow]. Declared first so the initial value goes through the setter. */
+    val following = mutableStateOf(false)
     var userFollow: Boolean = false
+        set(value) {
+            field = value
+            following.value = value
+        }
     var nest3dActive: Boolean = false
     val noBloom: Boolean = launch.noBloom
     val shot: String? = launch.shot
@@ -206,7 +216,10 @@ class AppSession(launch: LaunchConfig) {
             }
         }
         if (!userFollow && cinema) cine.update(world, camera, now)
-        if (userFollow) inspectedAnt?.let { if (!cine.updateUserFollow(camera, it)) userFollow = false }
+        if (userFollow) {
+            val anchor = followAnchor()
+            if (anchor == null || !cine.updateUserFollow(camera, anchor.first, anchor.second)) userFollow = false
+        }
         hud.sync(world, fpsShown, now)
     }
 
@@ -241,7 +254,25 @@ class AppSession(launch: LaunchConfig) {
     fun fitScale(leftW: Float, winH: Float): Double = camera.fitScale(leftW, winH)
     fun screenToWorld(px: Float, py: Float, leftW: Float, winH: Float): Pair<Double, Double> =
         camera.screenToWorld(px, py, leftW, winH)
-    fun clickWorld(wx: Double, wy: Double) { notifyInput(); tools.apply(world, wx, wy, leafSpots()); bump() }
+    fun clickWorld(wx: Double, wy: Double) {
+        notifyInput()
+        tools.apply(world, wx, wy, leafSpots())
+        if (followAnchor() == null) userFollow = false
+        bump()
+    }
+
+    /**
+     * World point the camera may follow. Nest picks have no anchor.
+     * A world ant that left the map or ran out of energy has none either.
+     */
+    internal fun followAnchor(): Pair<Double, Double>? {
+        val current = tools.inspectTarget() ?: return null
+        val ring = inspectRing(current)
+        if (ring.space != RingSpace.WORLD) return null
+        val ant = current.ant
+        if (ant != null && (ant.location != AntPlace.WORLD || ant.energy <= 0.0)) return null
+        return ring.x to ring.y
+    }
 
     private fun leafSpots() = ScatterLayout.leafSpots(
         seed,
@@ -250,7 +281,12 @@ class AppSession(launch: LaunchConfig) {
         grassDensity,
     )
     /** Hit test for the 3D nest cutaway. Classic 2D still uses [clickWorld] only. */
-    fun inspectNest(nx: Double, ny: Double) { notifyInput(); tools.inspectNest(world, nx, ny); bump() }
+    fun inspectNest(nx: Double, ny: Double) {
+        notifyInput()
+        tools.inspectNest(world, nx, ny)
+        userFollow = false
+        bump()
+    }
 
     fun toggleRain() {
         if (world.raining) {
