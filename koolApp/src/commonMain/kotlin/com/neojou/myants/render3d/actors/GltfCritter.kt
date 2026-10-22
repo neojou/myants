@@ -2,7 +2,7 @@ package com.neojou.myants.render3d.actors
 
 /**
  * A rigid outdoor insect. +X is the head, feet sit on y = 0, and the length is 1.
- * Spots stay on [marks]. Legs pivot at the node named LegL1, LegR1, and so on.
+ * Spots and elytra stay on [marks]. Legs pivot at the node named LegL1, LegR1, and so on.
  */
 internal class GltfCritter(
     val nodes: List<AntNode>,
@@ -155,6 +155,7 @@ private fun critterBucket(index: Int, names: Array<String>, parent: IntArray): S
         when {
             name.startsWith("Eye") -> return "eye"
             name.startsWith("Spot") -> return "mark"
+            name.startsWith("Elytra") -> return "mark"
             name.startsWith("Leg") -> return name
         }
         cursor = parent[cursor]

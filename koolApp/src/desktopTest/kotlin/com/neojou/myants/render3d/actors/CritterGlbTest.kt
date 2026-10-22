@@ -12,7 +12,7 @@ class CritterGlbTest {
         assertCritter("prey.glb", 6, marks = false)
         assertCritter("predator.glb", 6, marks = false)
         assertCritter("spider.glb", 8, marks = false)
-        assertCritter("beetle.glb", 6, marks = false)
+        assertCritter("beetle.glb", 6, marks = true)
         assertCritter("ladybug.glb", 6, marks = true)
     }
 

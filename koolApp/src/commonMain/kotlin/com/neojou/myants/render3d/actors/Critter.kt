@@ -17,19 +17,27 @@ import kotlin.math.sin
 
 internal class CritterTint(val body: Color, val eye: Color, val leg: Color, val mark: Color)
 
-/** Body color comes from the insect palette. Eyes, legs, and ladybug spots stay darker. */
+/** Palette body, except the beetle: a dark head and chestnut elytra. Classic 2D stays the flat brown. */
 internal fun critterTint(kind: InsectKind): CritterTint {
-    val body = WorldPalette.insect(kind)
+    val body = if (kind == InsectKind.BEETLE) {
+        Color(0.08f, 0.06f, 0.05f, 1f)
+    } else {
+        WorldPalette.insect(kind)
+    }
     val eye = Color(0.05f, 0.04f, 0.04f, 1f)
     val leg = when (kind) {
         InsectKind.PREY -> Color(0.22f, 0.45f, 0.18f, 1f)
         InsectKind.PREDATOR -> Color(0.28f, 0.16f, 0.34f, 1f)
         InsectKind.SPIDER -> Color(0.22f, 0.22f, 0.24f, 1f)
-        InsectKind.BEETLE -> Color(0.16f, 0.12f, 0.08f, 1f)
+        InsectKind.BEETLE -> Color(0.10f, 0.07f, 0.05f, 1f)
         InsectKind.LADYBUG -> Color(0.12f, 0.08f, 0.08f, 1f)
         InsectKind.APHID -> WorldPalette.aphidLeg
     }
-    val mark = if (kind == InsectKind.LADYBUG) Color(0.08f, 0.04f, 0.04f, 1f) else body
+    val mark = when (kind) {
+        InsectKind.LADYBUG -> Color(0.08f, 0.04f, 0.04f, 1f)
+        InsectKind.BEETLE -> Color(0.62f, 0.32f, 0.14f, 1f)
+        else -> body
+    }
     return CritterTint(body, eye, leg, mark)
 }
 

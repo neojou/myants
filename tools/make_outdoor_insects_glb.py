@@ -2,6 +2,7 @@
 """Original glTF insects for the outdoor world.
 
 Head toward +X, feet on y = 0, length 1 after fit. Not from Sketchfab.
+The beetle file is made by tools/make_stag_beetle_glb.py instead of this script.
 Run from anywhere. Files land in koolApp/assets/models/insects/.
 """
 
@@ -109,23 +110,6 @@ def build_spider():
     return b
 
 
-def build_beetle():
-    b = ant.Builder()
-    root = b.add_node("Beetle", None)
-    b.sphere_node("Elytra", root, (0.70, 0.62, 0.0), (1.05, 0.48, 0.72))
-    center = (1.70, 0.55, 0.0)
-    thorax = b.add_node("Thorax", root, translation=center)
-    b.sphere_node("Pronotum", thorax, (0.0, 0.08, 0.0), (0.38, 0.28, 0.48))
-    head = b.add_node("Head", root, translation=(2.25, 0.50, 0.0))
-    b.sphere_node("HeadShell", head, (0.0, 0.0, 0.0), (0.28, 0.22, 0.30))
-    b.sphere_node("EyeL", head, (0.06, 0.06, 0.16), (0.07, 0.07, 0.05), EYE)
-    b.sphere_node("EyeR", head, (0.06, 0.06, -0.16), (0.07, 0.07, 0.05), EYE)
-    pair(b, thorax, center, 1, 0.02, 0.30, 2.05, 0.72, 0.05)
-    pair(b, thorax, center, 2, 0.00, 0.32, 1.65, 0.82, 0.05)
-    pair(b, thorax, center, 3, 0.00, 0.30, 1.20, 0.72, 0.05)
-    return b
-
-
 def build_ladybug():
     b = ant.Builder()
     root = b.add_node("Ladybug", None)
@@ -151,7 +135,6 @@ BUILDERS = (
     ("prey.glb", build_prey, 6),
     ("predator.glb", build_predator, 6),
     ("spider.glb", build_spider, 8),
-    ("beetle.glb", build_beetle, 6),
     ("ladybug.glb", build_ladybug, 6),
 )
 
