@@ -1,13 +1,12 @@
 package com.neojou.myants.ui
 
 import com.neojou.myants.AppSession
-import com.neojou.myants.AppVersion
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.scene.Scene
 
 private val T = MyantsTheme.colors
 
-/** Top-left status HUD (fps, population, food, queen, version) plus the inspect rows. */
+/** Top-left status HUD (fps, population, food, queen) plus the inspect rows. The version stays in About. */
 internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
     backgroundColor = { T.surface },
     width = FitContent,
@@ -66,7 +65,6 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
         hudDigits(hud.queenSec.use(), HudSlots.QUEEN_SEC)
         Text(tr(UiText.UNIT_SEC)) { }
     }
-    Text("v${AppVersion.NAME}") { modifier.font(sizes.smallText) }
     if (inspect != null) {
         Text(inspect.title) { modifier.margin(top = MyantsTheme.space.s2) }
         for (row in inspect.rows) {
