@@ -540,7 +540,13 @@ class WorldRenderer(
             legs,
             shadedInstances(content, body, "${kind.name}-body", 0.55f, 0.02f),
             shadedInstances(content, eyes, "${kind.name}-eye", 0.25f, 0.02f),
-            shadedInstances(content, marks, "${kind.name}-mark", 0.45f, 0.02f),
+            shadedInstances(
+                content,
+                marks,
+                "${kind.name}-mark",
+                if (kind == InsectKind.BEETLE) 0.22f else 0.45f,
+                0.02f,
+            ),
             legs.mapIndexed { index, batch ->
                 shadedInstances(content, batch, "${kind.name}-leg-$index", 0.55f, 0.02f)
             },

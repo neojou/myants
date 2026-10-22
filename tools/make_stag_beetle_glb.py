@@ -14,6 +14,8 @@ Run:
 No armature. Feet on y = 0, length 1, about 700 to 2200 triangles.
 """
 
+import math
+
 import bpy
 import bmesh
 from mathutils import Vector
@@ -153,6 +155,77 @@ def pair(thorax, origin, index, socket_y, socket_z, foot_x, foot_z, radius):
     )
 
 
+def elytron(name, parent, side):
+    """One half of a single oval wing cover. side +1 is glTF +Z.
+
+    The crown stays on the suture, so the pair reads as one shield with a
+    thin seam. The rear rounds off. The shoulder tucks against the pronotum.
+    """
+    sign = 1.0 if side > 0 else -1.0
+    rear = 0.36
+    shoulder = 1.68
+    # Negative so the halves overlap and the seam does not show the ground.
+    suture = -0.02
+    y_center = 0.50
+    steps_along = 14
+    steps_across = 8
+    bm = bmesh.new()
+
+    def width_at(along):
+        # Wide at the shoulder, round at the rear. along 0 is the tail.
+        return 0.46 * math.sqrt(max(0.0, 1.0 - (1.0 - along) ** 2))
+
+    def dome_at(along):
+        return 0.05 + 0.18 * math.sin(along * math.pi) ** 0.65
+
+    def point(along, across, upper):
+        width = width_at(along)
+        dome = dome_at(along)
+        if upper:
+            # Quarter ellipse: crown on the suture, outer edge down.
+            rise = math.cos(across * math.pi * 0.5)
+            if across < 0.10:
+                rise -= 0.28
+        else:
+            rise = -0.28 * (1.0 - across * 0.35)
+        return Vector((
+            rear + (shoulder - rear) * along,
+            y_center + dome * rise,
+            (suture + across * max(width, 0.02)) * sign,
+        ))
+
+    def ring(along):
+        verts = []
+        for j in range(steps_across):
+            verts.append(bm.verts.new(gltf_point(point(along, j / (steps_across - 1), True))))
+        for j in range(steps_across - 1, -1, -1):
+            verts.append(bm.verts.new(gltf_point(point(along, j / (steps_across - 1), False))))
+        return verts
+
+    rings = [ring((i + 0.5) / steps_along) for i in range(steps_along)]
+    around = len(rings[0])
+    tip = bm.verts.new(gltf_point(Vector((rear - 0.02, y_center + 0.02, suture * sign))))
+    cap = bm.verts.new(gltf_point(Vector((
+        shoulder + 0.08,
+        y_center + 0.04,
+        (suture + width_at(1.0) * 0.28) * sign,
+    ))))
+
+    def face(verts):
+        bm.faces.new(verts)
+
+    for i in range(steps_along - 1):
+        for j in range(around):
+            nxt = (j + 1) % around
+            face((rings[i][j], rings[i][nxt], rings[i + 1][nxt], rings[i + 1][j]))
+    for j in range(around):
+        nxt = (j + 1) % around
+        face((tip, rings[0][nxt], rings[0][j]))
+        face((rings[-1][j], rings[-1][nxt], cap))
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+    return finish_mesh(name, parent, bm)
+
+
 def mandible(head, side):
     """side is +1 for glTF +Z (left). Segments overlap so the antler reads as one piece."""
     s = float(side)
@@ -177,9 +250,9 @@ def mandible(head, side):
 
 def build():
     root = empty("Beetle", None, (0.0, 0.0, 0.0))
-    # Chestnut shells. The node name Elytra* is the mark bucket in the renderer.
-    ellipsoid("ElytraL", root, (0.92, 0.50, 0.16), (0.62, 0.24, 0.20), 14, 8)
-    ellipsoid("ElytraR", root, (0.92, 0.50, -0.16), (0.62, 0.24, 0.20), 14, 8)
+    # Dark chestnut shields. Elytra* is the mark bucket in the renderer.
+    elytron("ElytraL", root, 1)
+    elytron("ElytraR", root, -1)
     thorax_at = (1.62, 0.42, 0.0)
     thorax = empty("Thorax", root, thorax_at)
     ellipsoid("Pronotum", thorax, (0.0, 0.08, 0.0), (0.34, 0.22, 0.42), 12, 8)
@@ -191,10 +264,10 @@ def build():
     rod("AntennaR", head, (-0.02, 0.08, -0.14), (0.10, 0.16, -0.28), 0.018)
     mandible(head, 1)
     mandible(head, -1)
-    # socket_y sits inside the underside of the pronotum (bottom is about 0.28).
-    pair(thorax, thorax_at, 1, 0.34, 0.22, 1.95, 0.62, 0.048)
-    pair(thorax, thorax_at, 2, 0.32, 0.26, 1.50, 0.72, 0.046)
-    pair(thorax, thorax_at, 3, 0.32, 0.22, 1.05, 0.60, 0.044)
+    # Front pair under the pronotum. Middle and hind pairs leave the shield's sides.
+    pair(thorax, thorax_at, 1, 0.34, 0.22, 1.72, 0.58, 0.048)
+    pair(thorax, thorax_at, 2, 0.42, 0.24, 1.18, 0.66, 0.046)
+    pair(thorax, thorax_at, 3, 0.42, 0.20, 0.62, 0.55, 0.044)
     return root
 
 

@@ -17,7 +17,7 @@ import kotlin.math.sin
 
 internal class CritterTint(val body: Color, val eye: Color, val leg: Color, val mark: Color)
 
-/** Palette body, except the beetle: a dark head and chestnut elytra. Classic 2D stays the flat brown. */
+/** Palette body, except the beetle: a dark head and a dark chestnut shell. Classic 2D stays the flat brown. */
 internal fun critterTint(kind: InsectKind): CritterTint {
     val body = if (kind == InsectKind.BEETLE) {
         Color(0.08f, 0.06f, 0.05f, 1f)
@@ -35,7 +35,7 @@ internal fun critterTint(kind: InsectKind): CritterTint {
     }
     val mark = when (kind) {
         InsectKind.LADYBUG -> Color(0.08f, 0.04f, 0.04f, 1f)
-        InsectKind.BEETLE -> Color(0.62f, 0.32f, 0.14f, 1f)
+        InsectKind.BEETLE -> Color(0.13f, 0.07f, 0.045f, 1f)
         else -> body
     }
     return CritterTint(body, eye, leg, mark)
