@@ -32,7 +32,7 @@ import com.neojou.myants.sim.FoodKind
 import com.neojou.myants.sim.InsectKind
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.SimConfig
-import com.neojou.myants.wallClockHm
+import com.neojou.myants.wallClockHms
 import com.neojou.tools.LogLevel
 import com.neojou.tools.MyLog
 import de.fabmax.kool.Assets
@@ -117,7 +117,9 @@ class WorldRenderer(
     private lateinit var grass: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var grassMesh: Mesh<*>
     private lateinit var rocks: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var rockMesh: Mesh<*>
     private lateinit var leaves: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var leafMesh: Mesh<*>
     private lateinit var flowers: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var bodies: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var heads: MeshInstanceList<InstanceLayouts.ModelMatColor>
@@ -183,6 +185,10 @@ class WorldRenderer(
         for (slot in critters) loadCritter(slot)
         loadMerged("models/food/sugar.glb", listOf(sugarMesh, carrySugarMesh), "sugar") { sugarReady = true }
         loadMerged("models/food/protein.glb", listOf(proteinMesh, carryProteinMesh), "protein") { proteinReady = true }
+        loadMerged("models/nature/pebble.glb", listOf(rockMesh), "pebble", "cube") { }
+        loadMerged("models/nature/leaf.glb", listOf(leafMesh), "leaf", "slab") { }
+        val clock = stoneMesh
+        if (clock != null) loadMerged("models/nature/clock_stone.glb", listOf(clock), "clock stone") { }
 
         scene.onUpdate {
             if (session.renderer != RenderMode.D3) return@onUpdate
@@ -393,9 +399,9 @@ class WorldRenderer(
             cube { size.set(0.2f, 1f, 0.45f) }
         }
         rocks = MeshInstanceList(layout, 1024)
-        instanced(content, rocks, "rock") { cube { size.set(1f, 1f, 1f) } }
+        rockMesh = instanced(content, rocks, "rock") { cube { size.set(1f, 1f, 1f) } }
         leaves = MeshInstanceList(layout, 1024)
-        instanced(content, leaves, "leaf") { cube { size.set(1.2f, 0.08f, 0.45f) } }
+        leafMesh = instanced(content, leaves, "leaf") { cube { size.set(1.2f, 0.08f, 0.45f) } }
         flowers = MeshInstanceList(layout, 512)
         instanced(content, flowers, "flower") { icoSphere { steps = 1; radius = 0.45f } }
         bodies = MeshInstanceList(layout, 2048)
@@ -603,7 +609,13 @@ class WorldRenderer(
         }
     }
 
-    private fun loadMerged(path: String, meshes: List<Mesh<*>>, label: String, onReady: () -> Unit) {
+    private fun loadMerged(
+        path: String,
+        meshes: List<Mesh<*>>,
+        label: String,
+        fallback: String = "sphere",
+        onReady: () -> Unit,
+    ) {
         scene.coroutineScope.launch {
             val loaded = Assets.defaultLoader.loadBlob(path)
             loaded.onSuccess { buf ->
@@ -613,10 +625,10 @@ class WorldRenderer(
                     onReady()
                     MyLog.add(TAG, "$label gltf tris=${mergedTriangles(parsed)}", LogLevel.DEBUG)
                 } catch (err: Throwable) {
-                    MyLog.add(TAG, "$label glTF failed: ${err.message}. Using the sphere.", LogLevel.DEBUG)
+                    MyLog.add(TAG, "$label glTF failed: ${err.message}. Using the $fallback.", LogLevel.DEBUG)
                 }
             }.onFailure { err ->
-                MyLog.add(TAG, "$label glTF missing: ${err.message}. Using the sphere.", LogLevel.DEBUG)
+                MyLog.add(TAG, "$label glTF missing: ${err.message}. Using the $fallback.", LogLevel.DEBUG)
             }
         }
     }
@@ -828,8 +840,9 @@ class WorldRenderer(
     }
 
     private fun pushClock() {
-        val (hh, mm) = wallClockHm()
+        val (hh, mm, ss) = wallClockHms()
         val text = "${hh.toString().padStart(2, '0')}${mm.toString().padStart(2, '0')}"
+        val colon = clockColonLit(ss)
         val stone = session.world.terrain.clockStone
         val h = SimConfig.clock.fontSize.toFloat()
         val dw = h * 0.62f
@@ -841,9 +854,11 @@ class WorldRenderer(
         val color = WorldPalette.digit3d
         for (i in text.indices) {
             if (i == 2) {
-                val dot = h * 0.12f
-                pose(digits, x, y + h * 0.18f, z, 0f, 0f, 0f, 0f, dot, dot, dot, color)
-                pose(digits, x, y - h * 0.18f, z, 0f, 0f, 0f, 0f, dot, dot, dot, color)
+                if (colon) {
+                    val dot = h * 0.12f
+                    pose(digits, x, y + h * 0.18f, z, 0f, 0f, 0f, 0f, dot, dot, dot, color)
+                    pose(digits, x, y - h * 0.18f, z, 0f, 0f, 0f, 0f, dot, dot, dot, color)
+                }
                 x += h * 0.35f
             }
             digitBoxes(x, y, z, dw, h, text[i] - '0', color)

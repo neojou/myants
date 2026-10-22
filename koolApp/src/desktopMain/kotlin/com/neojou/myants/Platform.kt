@@ -9,6 +9,11 @@ actual fun wallClockHm(): Pair<Int, Int> {
     return t.hour to t.minute
 }
 
+actual fun wallClockHms(): Triple<Int, Int, Int> {
+    val t = java.time.LocalTime.now()
+    return Triple(t.hour, t.minute, t.second)
+}
+
 actual class SettingsStore actual constructor() {
     private val file = File(System.getProperty("user.home"), ".myants/antsim.ui.v1.txt")
 

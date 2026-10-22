@@ -63,6 +63,9 @@ expect fun wallClockSeed(): Int
 /** Wall-clock hours and minutes for the stone display. Not part of the sim stream. */
 expect fun wallClockHm(): Pair<Int, Int>
 
+/** Local hours, minutes, and seconds. The clock stone blinks its colon from the second. */
+expect fun wallClockHms(): Triple<Int, Int, Int>
+
 expect class SettingsStore() {
     fun read(): String?
     fun write(text: String)

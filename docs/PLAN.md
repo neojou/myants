@@ -15,9 +15,9 @@
 - 日期：2026-10-22
 - Agent：Grok Build（單人模式）
 - 版本：0.17.0
-- SHA：390d4b9 是接手時的 `main`。v0.16.0（642f082）的 commit 與 tag 已在 origin。v0.17.0 的 tag 在本機，尚未 push。
-- 內容：M1、M2 在 v0.15.0。M3 在 v0.16.0（642f082）。0.17.0 涵蓋其後的介面語言，以及 M4 Inspect 的產品行為：四類點選、約每模擬秒更新、選取圈、世界跟隨。Inspect 不寫回模擬。
-- 下一步：GitHub 上 #12 與 milestone M4 仍是 Open（2026-10-22 再查，完成度 0%）。CI、[QE] PASS、[Artist] PASS 還沒有，所以這版不關 issue。本機 tag 尚未 push，也沒有 GitHub Release。M5 glTF（#13）這次不做。
+- SHA：見下一筆文件 commit。v0.17.0 的 tag 與這次 M5 室外模型都還沒 push。
+- 內容：M1、M2 在 v0.15.0。M3 在 v0.16.0（642f082）。0.17.0 涵蓋其後的介面語言，以及 M4 Inspect。M5 的左側室外這段在本機：工蟻重製、兵蟻、獵物、捕食者、蜘蛛、甲蟲、瓢蟲、糖、蛋白、小石、落葉、時鐘石。時鐘石顯示本地時與分，冒號每秒明暗。巢穴的蟻后與幼體、Classic 2D、草與花仍是程序繪製。Inspect 不寫回模擬。
+- 下一步：#13 與 milestone M5 仍開。巢穴 glTF 沒做。Medium 300 蟻是否 ≥ 60 fps 這次沒重測。不 push、不關 issue、不改版號。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
 已完成、仍有效的結構：
@@ -29,8 +29,8 @@
 已落地：
 
 - 左側 3D 俯視世界；Grafik 可切 Classic 2D，不必重啟。
-- 室外工蟻 `koolApp/assets/models/ants/worker_black.glb`、蚜蟲 `koolApp/assets/models/insects/aphid_green.glb`。載入失敗退回程序網格。巢穴與 Classic 2D 仍是程序繪製。
-- 石頭、落葉、食物、時鐘數字等仍是程序幾何，還沒換成 glTF。
+- 室外工蟻 `worker_black.glb`、兵蟻 `soldier.glb`、蚜蟲，以及獵物、捕食者、蜘蛛、甲蟲、瓢蟲。糖與蛋白、小石、落葉、時鐘石體也是 glTF。載入失敗退回程序網格。巢穴與 Classic 2D 仍是程序繪製。
+- 時鐘石上的數字是本地時與分，冒號每秒明暗。草、花、屍體、巢內幼體仍是程序幾何。
 - 右側 3D 巢穴直接畫在 present 場景，不走會變黑的離屏貼圖。
 - 第一人稱未做。
 
@@ -99,7 +99,7 @@ M3 已在 origin 的 v0.16.0（642f082）。順序與範圍在 `handoff.md` 第 
 - 3D 巢穴不要改回 `OffscreenPass2d` 顏色貼圖。MoltenVK 上該貼圖取樣是黑；現在直接畫在 present 場景右側 26%。Unlit 要 `LinearToSrgb`。
 - `classloaderAssetPath` 留空。設成 `assets` 會讓內建 Fira 字型路徑壞掉，桌面 UI 沒有字。模型放 `koolApp/assets/`。
 - Mac 預設 Vulkan。`--backend=gl` 不是預設。Bloom 只在 compute shaders 可用且後端是 Vulkan 或 WebGPU 時開。
-- glTF 只覆蓋室外工蟻與蚜蟲。缺檔要退回程序網格並寫 log，不能讓啟動失敗。
+- glTF 覆蓋室外工蟻、兵蟻、蚜蟲、其餘五種昆蟲、糖、蛋白、小石、落葉與時鐘石。缺檔要退回程序網格並寫 log，不能讓啟動失敗。
 - 渲染不得呼叫 sim 的 `Rng`。裝飾用 `kotlin.random.Random`。
 
 ## Log
@@ -107,3 +107,4 @@ M3 已在 origin 的 v0.16.0（642f082）。順序與範圍在 `handoff.md` 第 
 - 2026-10-20 Grok Build：建立本檔與 `docs/programming/README.md`，並把產品目標寫進 `AGENTS.md`。程式仍是 `2859ffe` / 0.14.0。Next 空白。
 - 2026-10-22 Grok Build：改單人模式。接手點 `390d4b9`。工作方式寫進 `handoff.md` 與 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 - 2026-10-22 Grok Build：本機 0.17.0。M4 Inspect 的點選、狀態、選取圈與世界跟隨已落地。GitHub #12 與 milestone M4 仍開。CI、QE、Artist 還沒有。尚未 push。
+- 2026-10-22 Grok Build：M5 左側室外模型在本機。蟻后、卵、幼蟲、蛹沒做。#13 仍開。fps 沒重測。尚未 push。

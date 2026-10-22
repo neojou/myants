@@ -10,6 +10,11 @@ actual fun wallClockHm(): Pair<Int, Int> {
     return d.getHours() to d.getMinutes()
 }
 
+actual fun wallClockHms(): Triple<Int, Int, Int> {
+    val d = kotlin.js.Date()
+    return Triple(d.getHours(), d.getMinutes(), d.getSeconds())
+}
+
 actual class SettingsStore actual constructor() {
     actual fun read(): String? = try {
         localStorage.getItem(KEY)

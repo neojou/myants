@@ -27,7 +27,7 @@
 - kool 的 GL 載入器會用影像位元組的雜湊當貼圖 id。全零的緩衝區不論尺寸都是同一個 id，室外與巢穴會共用一張 GPU 貼圖，後者接著被釋放。動態貼圖改用每個圖層兩個固定 id 輪流上傳。
 - 世界的滑鼠處理放在 UI 場景之後的空場景。面板用 `onPointer` 吃掉自己範圍內的指標，避免按鈕點擊同時作用在世界上。
 - Classic 2D 的日夜仍是左窗一張半透明黑四邊形（`BLEND_MULTIPLY_ALPHA`）。3D 世界改由方向光與天空亮度表現，不疊那張黑片。
-- 時鐘是系統牆鐘 `HH:MM` 的七段顯示，畫在世界座標，會跟著平移縮放。來源 `drawClockStone` 也用 `new Date()`。
+- 時鐘是系統牆鐘 `HH:MM` 的七段顯示，畫在世界座標，會跟著平移縮放。來源 `drawClockStone` 也用 `new Date()`。左側 3D 時鐘石的冒號在本地偶數秒亮、奇數秒暗；時與分跟本地時間改。Classic 2D 的冒號不閃。
 - Desktop 截圖把畫面複製進一張持久的 `OffscreenPass2d`（`shot-grab`），再用 `Texture2d.download` 與 `ImageIO` 寫 PNG，檔名 `antsim_seed{seed}_t{age}.png`。`--shot-out=` 可改路徑。Pass 層級的 single-shot 會在同一個 `update` 裡被清掉。畫面複製貼圖沒有 `TRANSFER_SRC`，不能直接 `download`。讀回必須排在 `BackendScope`：`FrontendScope` 碰上 `asyncSceneUpdate` 時，`mapReadbacks` 會在對應完成前清掉佇列，`await` 永不返回。kool 會開 AWT headless，這台機器上 `ImageIO` 仍寫得出 PNG。HUD 文字是正的，寫檔不翻 Y。JS 仍只寫 log：`PNG encoder is not available in this build`。
 - `classloaderAssetPath` 留空。設成 `assets` 會讓內建 Fira 字型路徑變成 `assets/fonts/...`，桌面 UI 沒有字。選用的模型放在 `koolApp/assets/`。
 - 設定與調參覆寫共用一個儲存。Desktop 是 `~/.myants/antsim.ui.v1.txt`，JS 是 `localStorage` key `antsim.ui.v1`。覆寫行是 `ov:path=value`。來源把覆寫放在另一個 `antsim.overrides.v1`。`applyTunerAction` 只改記憶體中的 `SimConfig`；存檔由 `AppSession.save()` 負責。
@@ -45,6 +45,7 @@
 - 左側出洞後的 3D 工蟻讀 `models/ants/worker_black.glb`，兵蟻讀 `models/ants/soldier.glb`（自製 glTF 2.0，頭朝 +X）。兵蟻的頭是紅色，身體跟群色。任一檔載入失敗，該階級退回方塊蟻。右側巢穴與 Classic 2D 不變。步行仍用姿態桶，支點來自模型的胸節。頭與身體分成兩份實例，所以頭可以另外上色。
 - 左側獵物、捕食者、蜘蛛、甲蟲、瓢蟲讀 `models/insects/` 下對應的自製 glb。蜘蛛八腳。瓢蟲斑點是深色實例。缺檔退回方塊。蚜蟲仍是 `aphid_green.glb`。Classic 2D 不變。
 - 地面糖堆、蛋白堆，以及嘴上搬運的糖和蛋白，讀 `models/food/sugar.glb` 與 `protein.glb`。屍體仍是球。缺檔退回球。
+- 小石與障礙石共用 `models/nature/pebble.glb`，落葉是 `leaf.glb`，時鐘石體是 `clock_stone.glb`。數字仍是七段方塊。缺檔退回方塊或圓球。草與花不變。Medium 300 蟻是否 ≥ 60 fps 這次沒有重測。
 - 3D 巢穴畫在 present 場景，用跟 Classic 2D 相同的螢幕正交相機（近裁剪面必須是負的，否則 z=0 的四邊形會被裁掉）。kool 0.19 的 `AttachmentConfig.singleColorDefaultDepth(format, clearColor)` 不使用傳入的清除色，一律清成黑；在 MoltenVK 上把 `OffscreenPass2d` 的顏色貼圖貼回畫面時，取樣結果也是黑，剖面幾何沒有出現在那張貼圖裡。因此不走離屏貼圖，直接在右側 26% 畫土塊、隧道節點與蟻后／幼體／巢內蟻。Unlit 顏色要設 `LinearToSrgb`，否則會以線性值寫進交換鏈，土色會暗成接近黑。`nest3dActive` 為假時才回到 2D 巢穴疊層。巢穴點擊只在 3D 巢穴有效時做 inspect。
 - 這台 Mac（Apple M4 Pro、MoltenVK api 1.2.296）已開過 Vulkan 視窗，BloomPass 有建立，`ImageIO` 有寫出 PNG。尚未量到的項目：Medium、雙群約 300 蟻是否 ≥ 60 fps，以及 Ultra 1200 蟻是否 ≥ 30 fps。截圖當下族群 34，HUD 約 43–48 fps，不能當成達標。GL 3.3 context 沒測。費洛蒙貼圖的上下方向，以及螞蟻朝向是否與移動方向一致，靜態圖看不出來。對照見 `docs/programming/3d_refs/shots/REVIEW.md`。
 
