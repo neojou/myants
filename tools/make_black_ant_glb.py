@@ -419,7 +419,7 @@ def fit_root(builder):
     builder.nodes[0]["scale"] = (scale, scale, scale)
 
 
-def pack_glb(builder):
+def pack_glb(builder, generator="myants make_black_ant_glb.py"):
     blob = bytearray()
     buffer_views = []
     accessors = []
@@ -502,7 +502,7 @@ def pack_glb(builder):
         nodes.append(out)
 
     gltf = {
-        "asset": {"version": "2.0", "generator": "myants make_black_ant_glb.py"},
+        "asset": {"version": "2.0", "generator": generator},
         "scene": 0,
         "scenes": [{"name": "Ant", "nodes": [0]}],
         "nodes": nodes,

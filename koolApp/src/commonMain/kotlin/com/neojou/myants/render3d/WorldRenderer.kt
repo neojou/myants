@@ -3,14 +3,18 @@ package com.neojou.myants.render3d
 import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.actors.GltfAnt
 import com.neojou.myants.render3d.actors.GltfAphid
+import com.neojou.myants.render3d.actors.GltfCritter
 import com.neojou.myants.render3d.actors.PoseBuckets
 import com.neojou.myants.render3d.actors.draw
 import com.neojou.myants.render3d.actors.drawAphid
+import com.neojou.myants.render3d.actors.drawCritter
 import com.neojou.myants.render3d.actors.outdoorAntTint
 import com.neojou.myants.render3d.actors.parseGltfAnt
 import com.neojou.myants.render3d.actors.parseGltfAphid
+import com.neojou.myants.render3d.actors.parseGltfCritter
 import com.neojou.myants.render3d.actors.uploadAntMeshes
 import com.neojou.myants.render3d.actors.uploadAphidMeshes
+import com.neojou.myants.render3d.actors.uploadCritterMeshes
 import com.neojou.myants.render3d.camera.CameraDirector
 import com.neojou.myants.render3d.camera.TopDownCamera
 import com.neojou.myants.render3d.nest.NestCutaway
@@ -128,6 +132,9 @@ class WorldRenderer(
     private lateinit var honey: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private val aphidPrevX = HashMap<Int, Float>()
     private val aphidPrevZ = HashMap<Int, Float>()
+    private val critters = ArrayList<CritterSlot>()
+    private val critterPrevX = HashMap<Int, Float>()
+    private val critterPrevZ = HashMap<Int, Float>()
     private lateinit var food: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var insects: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var digits: MeshInstanceList<InstanceLayouts.ModelMatColor>
@@ -160,6 +167,7 @@ class WorldRenderer(
         loadAnt("models/ants/worker_black.glb", workerAnt, "worker")
         loadAnt("models/ants/soldier.glb", soldierAnt, "soldier")
         loadGreenAphid()
+        for (slot in critters) loadCritter(slot)
 
         scene.onUpdate {
             if (session.renderer != RenderMode.D3) return@onUpdate
@@ -412,6 +420,11 @@ class WorldRenderer(
         }
         insects = MeshInstanceList(layout, 256)
         instanced(content, insects, "insect") { cube { size.set(1f, 0.45f, 0.7f) } }
+        critters += critterSlot(content, InsectKind.PREY, "models/insects/prey.glb", 6)
+        critters += critterSlot(content, InsectKind.PREDATOR, "models/insects/predator.glb", 6)
+        critters += critterSlot(content, InsectKind.SPIDER, "models/insects/spider.glb", 8)
+        critters += critterSlot(content, InsectKind.BEETLE, "models/insects/beetle.glb", 6)
+        critters += critterSlot(content, InsectKind.LADYBUG, "models/insects/ladybug.glb", 6)
         digits = MeshInstanceList(layout, 128)
         instanced(content, digits, "digit") { cube { size.set(1f, 1f, 1f) } }
         bits = MeshInstanceList(layout, 2048)
@@ -482,6 +495,49 @@ class WorldRenderer(
                 shadedInstances(content, batch, "$name-leg-$index", 0.42f, 0.08f)
             },
         )
+    }
+
+    private fun critterSlot(content: Node, kind: InsectKind, path: String, legCount: Int): CritterSlot {
+        val body = MeshInstanceList(layout, 128)
+        val eyes = MeshInstanceList(layout, 128)
+        val marks = MeshInstanceList(layout, 128)
+        val legs = List(legCount) { MeshInstanceList(layout, 128) }
+        return CritterSlot(
+            kind,
+            path,
+            body,
+            eyes,
+            marks,
+            legs,
+            shadedInstances(content, body, "${kind.name}-body", 0.55f, 0.02f),
+            shadedInstances(content, eyes, "${kind.name}-eye", 0.25f, 0.02f),
+            shadedInstances(content, marks, "${kind.name}-mark", 0.45f, 0.02f),
+            legs.mapIndexed { index, batch ->
+                shadedInstances(content, batch, "${kind.name}-leg-$index", 0.55f, 0.02f)
+            },
+        )
+    }
+
+    private fun loadCritter(slot: CritterSlot) {
+        scene.coroutineScope.launch {
+            val loaded = Assets.defaultLoader.loadBlob(slot.path)
+            loaded.onSuccess { buf ->
+                try {
+                    val parsed = parseGltfCritter(buf.toArray())
+                    if (parsed.legs.size != slot.legMeshes.size) {
+                        MyLog.add(TAG, "${slot.kind} glTF has ${parsed.legs.size} legs. Using the block.", LogLevel.DEBUG)
+                        return@onSuccess
+                    }
+                    uploadCritterMeshes(parsed, slot.bodyMesh, slot.eyeMesh, slot.markMesh, slot.legMeshes)
+                    slot.model = parsed
+                    MyLog.add(TAG, "${slot.kind} gltf tris=${parsed.triangles}", LogLevel.DEBUG)
+                } catch (err: Throwable) {
+                    MyLog.add(TAG, "${slot.kind} glTF failed: ${err.message}. Using the block.", LogLevel.DEBUG)
+                }
+            }.onFailure { err ->
+                MyLog.add(TAG, "${slot.kind} glTF missing: ${err.message}. Using the block.", LogLevel.DEBUG)
+            }
+        }
     }
 
     private fun loadAnt(path: String, slot: AntSlot, label: String) {
@@ -606,6 +662,7 @@ class WorldRenderer(
         bodies.clear(); heads.clear(); legs.clear(); food.clear(); insects.clear(); digits.clear(); bits.clear()
         workerAnt.clear()
         soldierAnt.clear()
+        for (slot in critters) slot.clear()
         aphidBody.clear(); aphidEyes.clear(); honey.clear(); molts.clear()
         for (batch in aphidLegs) batch.clear()
         val time = Time.gameTime.toFloat()
@@ -802,11 +859,29 @@ class WorldRenderer(
                 pushAphidTraces(insect.seq, x, ground, z, yaw, size)
                 continue
             }
-            val y = GroundHeight.at(x, z) + size * 0.35f
-            pose(insects, x, y, z, yaw, 0f, 0f, 0f, size, size * 0.45f, size * 0.7f, WorldPalette.insect(insect.type))
+            val slot = critters.firstOrNull { it.kind == insect.type }
+            val model = slot?.model
+            if (slot != null && model != null) {
+                val prevX = critterPrevX[insect.seq]
+                val prevZ = critterPrevZ[insect.seq]
+                val moved = prevX != null && prevZ != null && hypot(x - prevX, z - prevZ) > 0.05f
+                critterPrevX[insect.seq] = x
+                critterPrevZ[insect.seq] = z
+                seen += insect.seq
+                val phase = (Time.gameTime.toFloat() * 0.35f + insect.seq * 0.173f) % 1f
+                drawCritter(
+                    model, insect.type, slot.body, slot.eyes, slot.marks, slot.legs,
+                    x, GroundHeight.at(x, z), z, yaw, size, phase, moved, mat, scale,
+                )
+            } else {
+                val y = GroundHeight.at(x, z) + size * 0.35f
+                pose(insects, x, y, z, yaw, 0f, 0f, 0f, size, size * 0.45f, size * 0.7f, WorldPalette.insect(insect.type))
+            }
         }
         aphidPrevX.keys.retainAll(seen)
         aphidPrevZ.keys.retainAll(seen)
+        critterPrevX.keys.retainAll(seen)
+        critterPrevZ.keys.retainAll(seen)
     }
 
     private fun pushAphidTraces(seq: Int, x: Float, ground: Float, z: Float, yaw: Float, length: Float) {
@@ -949,6 +1024,28 @@ private class AntSlot(
         head.clear()
         eyes.clear()
         jaws.clear()
+        for (batch in legs) batch.clear()
+    }
+}
+
+/** One outdoor insect kind other than the aphid. A missing model keeps the block. */
+private class CritterSlot(
+    val kind: InsectKind,
+    val path: String,
+    val body: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    val eyes: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    val marks: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    val legs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>,
+    val bodyMesh: Mesh<*>,
+    val eyeMesh: Mesh<*>,
+    val markMesh: Mesh<*>,
+    val legMeshes: List<Mesh<*>>,
+    var model: GltfCritter? = null,
+) {
+    fun clear() {
+        body.clear()
+        eyes.clear()
+        marks.clear()
         for (batch in legs) batch.clear()
     }
 }
