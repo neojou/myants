@@ -27,7 +27,7 @@
 - kool 的 GL 載入器會用影像位元組的雜湊當貼圖 id。全零的緩衝區不論尺寸都是同一個 id，室外與巢穴會共用一張 GPU 貼圖，後者接著被釋放。動態貼圖改用每個圖層兩個固定 id 輪流上傳。
 - 世界的滑鼠處理放在 UI 場景之後的空場景。面板用 `onPointer` 吃掉自己範圍內的指標，避免按鈕點擊同時作用在世界上。
 - Classic 2D 的日夜仍是左窗一張半透明黑四邊形（`BLEND_MULTIPLY_ALPHA`）。3D 世界改由方向光與天空亮度表現，不疊那張黑片。
-- 時鐘是系統牆鐘 `HH:MM` 的七段顯示，畫在世界座標，會跟著平移縮放。來源 `drawClockStone` 也用 `new Date()`。左側 3D 時鐘石的冒號在本地偶數秒亮、奇數秒暗；時與分跟本地時間改。Classic 2D 的冒號不閃。
+- 時鐘是系統牆鐘 `HH:MM` 的七段顯示，畫在世界座標，會跟著平移縮放。來源 `drawClockStone` 也用 `new Date()`。左側 3D 的七段平貼在時鐘石頂面，俯視才讀得到；冒號在本地偶數秒亮、奇數秒暗；時與分跟本地時間改。Classic 2D 的冒號不閃，數字仍是直立的。
 - Desktop 截圖把畫面複製進一張持久的 `OffscreenPass2d`（`shot-grab`），再用 `Texture2d.download` 與 `ImageIO` 寫 PNG，檔名 `antsim_seed{seed}_t{age}.png`。`--shot-out=` 可改路徑。Pass 層級的 single-shot 會在同一個 `update` 裡被清掉。畫面複製貼圖沒有 `TRANSFER_SRC`，不能直接 `download`。讀回必須排在 `BackendScope`：`FrontendScope` 碰上 `asyncSceneUpdate` 時，`mapReadbacks` 會在對應完成前清掉佇列，`await` 永不返回。kool 會開 AWT headless，這台機器上 `ImageIO` 仍寫得出 PNG。HUD 文字是正的，寫檔不翻 Y。JS 仍只寫 log：`PNG encoder is not available in this build`。
 - `classloaderAssetPath` 留空。設成 `assets` 會讓內建 Fira 字型路徑變成 `assets/fonts/...`，桌面 UI 沒有字。選用的模型放在 `koolApp/assets/`。
 - 設定與調參覆寫共用一個儲存。Desktop 是 `~/.myants/antsim.ui.v1.txt`，JS 是 `localStorage` key `antsim.ui.v1`。覆寫行是 `ov:path=value`。來源把覆寫放在另一個 `antsim.overrides.v1`。`applyTunerAction` 只改記憶體中的 `SimConfig`；存檔由 `AppSession.save()` 負責。

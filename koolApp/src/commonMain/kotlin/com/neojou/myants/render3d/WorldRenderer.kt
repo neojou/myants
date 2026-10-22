@@ -850,14 +850,16 @@ class WorldRenderer(
         val total = dw * 4f + gap * 3f + h * 0.35f
         var x = stone.x.toFloat() - total * 0.5f + dw * 0.5f
         val z = stone.y.toFloat() + stone.radius.toFloat() * 0.15f
-        val y = GroundHeight.at(stone.x.toFloat(), stone.y.toFloat()) + 48f
+        val y = GroundHeight.at(stone.x.toFloat(), stone.y.toFloat()) + 52f
         val color = WorldPalette.digit3d
         for (i in text.indices) {
             if (i == 2) {
                 if (colon) {
                     val dot = h * 0.12f
-                    pose(digits, x, y + h * 0.18f, z, 0f, 0f, 0f, 0f, dot, dot, dot, color)
-                    pose(digits, x, y - h * 0.18f, z, 0f, 0f, 0f, 0f, dot, dot, dot, color)
+                    val up = flatClockDot(x, y, z, h * 0.18f, dot, dot)
+                    val down = flatClockDot(x, y, z, -h * 0.18f, dot, dot)
+                    pose(digits, up.x, up.y, up.z, 0f, 0f, 0f, 0f, up.sx, up.sy, up.sz, color)
+                    pose(digits, down.x, down.y, down.z, 0f, 0f, 0f, 0f, down.sx, down.sy, down.sz, color)
                 }
                 x += h * 0.35f
             }
@@ -871,8 +873,9 @@ class WorldRenderer(
         val t = (h * 0.12f).coerceAtLeast(1f)
         val hw = w * 0.5f
         val mid = h * 0.25f
-        fun seg(x: Float, y: Float, sx: Float, sy: Float) {
-            pose(digits, x, y, z, 0f, 0f, 0f, 0f, sx, sy, t, color)
+        fun seg(x: Float, segY: Float, sx: Float, sy: Float) {
+            val box = flatClockSeg(cy, z, x, segY, sx, sy, t)
+            pose(digits, box.x, box.y, box.z, 0f, 0f, 0f, 0f, box.sx, box.sy, box.sz, color)
         }
         if (mask and 0x01 != 0) seg(cx, cy + h * 0.5f - t * 0.5f, w, t)
         if (mask and 0x02 != 0) seg(cx + hw - t * 0.5f, cy + mid * 0.5f, t, mid)
