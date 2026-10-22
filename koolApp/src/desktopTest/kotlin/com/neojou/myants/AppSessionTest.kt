@@ -173,6 +173,20 @@ class AppSessionTest {
     }
 
     @Test
+    fun grassAndPitchSlidersRefreshThePanel() {
+        val rev = s.revision.value
+        s.chooseGrassDensity(0.4f)
+        assertEquals(0.4f, s.grassDensity)
+        assertEquals(rev + 1, s.revision.value)
+        s.choosePitch(-75f)
+        assertEquals(-75f, s.cameraPitchDeg)
+        assertEquals(rev + 2, s.revision.value)
+        val text = File(home, ".myants/antsim.ui.v1.txt").readText()
+        assertTrue("grassDensity=0.4" in text)
+        assertTrue("cameraPitch=-75.0" in text)
+    }
+
+    @Test
     fun clockCameraAndViewDelegation() {
         s.togglePause()
         assertTrue(s.clock.paused)

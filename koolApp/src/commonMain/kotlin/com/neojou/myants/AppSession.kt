@@ -354,12 +354,12 @@ class AppSession(launch: LaunchConfig) {
     fun updateDayNightStrength(value: Double) = persist { dayNightStrength = value.coerceIn(0.0, 1.0) }
     fun updateCinema(on: Boolean) = persist { cinema = on }
     fun chooseRenderer(mode: RenderMode) = persist { renderer = mode; applyRendererVisibility() }
-    fun choosePitch(deg: Float) = persist(bump = false) { cameraPitchDeg = deg.coerceIn(-90f, -60f) }
+    fun choosePitch(deg: Float) = persist { cameraPitchDeg = deg.coerceIn(-90f, -60f) }
     fun chooseBloom(on: Boolean) = persist { bloomUser = on }
     fun chooseSsao(on: Boolean) = persist { ssaoUser = on }
     fun chooseWeather(on: Boolean) = persist { weatherUser = on }
     fun chooseShadows(on: Boolean) = persist { shadowsUser = on }
-    fun chooseGrassDensity(value: Float) = persist(bump = false) { grassDensity = value.coerceIn(0f, 1.5f) }
+    fun chooseGrassDensity(value: Float) = persist { grassDensity = value.coerceIn(0f, 1.5f) }
 
     fun setAntColor(hex: String) {
         try {
