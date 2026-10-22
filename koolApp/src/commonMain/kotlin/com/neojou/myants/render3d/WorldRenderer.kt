@@ -11,10 +11,13 @@ import com.neojou.myants.render3d.actors.drawCritter
 import com.neojou.myants.render3d.actors.outdoorAntTint
 import com.neojou.myants.render3d.actors.parseGltfAnt
 import com.neojou.myants.render3d.actors.parseGltfAphid
+import com.neojou.myants.render3d.actors.mergedTriangles
 import com.neojou.myants.render3d.actors.parseGltfCritter
+import com.neojou.myants.render3d.actors.parseGltfMerged
 import com.neojou.myants.render3d.actors.uploadAntMeshes
 import com.neojou.myants.render3d.actors.uploadAphidMeshes
 import com.neojou.myants.render3d.actors.uploadCritterMeshes
+import com.neojou.myants.render3d.actors.uploadMerged
 import com.neojou.myants.render3d.camera.CameraDirector
 import com.neojou.myants.render3d.camera.TopDownCamera
 import com.neojou.myants.render3d.nest.NestCutaway
@@ -136,6 +139,16 @@ class WorldRenderer(
     private val critterPrevX = HashMap<Int, Float>()
     private val critterPrevZ = HashMap<Int, Float>()
     private lateinit var food: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var sugar: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var protein: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var carrySugar: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var carryProtein: MeshInstanceList<InstanceLayouts.ModelMatColor>
+    private lateinit var sugarMesh: Mesh<*>
+    private lateinit var proteinMesh: Mesh<*>
+    private lateinit var carrySugarMesh: Mesh<*>
+    private lateinit var carryProteinMesh: Mesh<*>
+    private var sugarReady = false
+    private var proteinReady = false
     private lateinit var insects: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var digits: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var bits: MeshInstanceList<InstanceLayouts.ModelMatColor>
@@ -168,6 +181,8 @@ class WorldRenderer(
         loadAnt("models/ants/soldier.glb", soldierAnt, "soldier")
         loadGreenAphid()
         for (slot in critters) loadCritter(slot)
+        loadMerged("models/food/sugar.glb", listOf(sugarMesh, carrySugarMesh), "sugar") { sugarReady = true }
+        loadMerged("models/food/protein.glb", listOf(proteinMesh, carryProteinMesh), "protein") { proteinReady = true }
 
         scene.onUpdate {
             if (session.renderer != RenderMode.D3) return@onUpdate
@@ -418,6 +433,14 @@ class WorldRenderer(
             generate { uvSphere { radius = 1f; steps = 8 } }
             shader = foodShader
         }
+        sugar = MeshInstanceList(layout, 256)
+        protein = MeshInstanceList(layout, 256)
+        carrySugar = MeshInstanceList(layout, 2048)
+        carryProtein = MeshInstanceList(layout, 2048)
+        sugarMesh = glowingFood(content, sugar, "sugar")
+        proteinMesh = glowingFood(content, protein, "protein")
+        carrySugarMesh = glowingFood(content, carrySugar, "carry-sugar")
+        carryProteinMesh = glowingFood(content, carryProtein, "carry-protein")
         insects = MeshInstanceList(layout, 256)
         instanced(content, insects, "insect") { cube { size.set(1f, 0.45f, 0.7f) } }
         critters += critterSlot(content, InsectKind.PREY, "models/insects/prey.glb", 6)
@@ -558,6 +581,52 @@ class WorldRenderer(
         }
     }
 
+    private fun glowingFood(
+        content: Node,
+        instances: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+        name: String,
+    ): Mesh<*> {
+        val shader = deferredKslPbrShader {
+            vertices { instancedModelMatrix(layout.modelMat) }
+            color { instanceColor(layout.color) }
+            emission {
+                instanceColor(layout.color)
+                constColor(WorldPalette.foodGlow, blendMode = ColorBlockConfig.BlendMode.Multiply)
+            }
+            roughness(0.35f)
+        }
+        return content.addMesh(VertexLayouts.PositionNormal, instances = instances) {
+            isFrustumChecked = false
+            this.name = name
+            generate { }
+            this.shader = shader
+        }
+    }
+
+    private fun loadMerged(path: String, meshes: List<Mesh<*>>, label: String, onReady: () -> Unit) {
+        scene.coroutineScope.launch {
+            val loaded = Assets.defaultLoader.loadBlob(path)
+            loaded.onSuccess { buf ->
+                try {
+                    val parsed = parseGltfMerged(buf.toArray())
+                    for (mesh in meshes) mesh.uploadMerged(parsed)
+                    onReady()
+                    MyLog.add(TAG, "$label gltf tris=${mergedTriangles(parsed)}", LogLevel.DEBUG)
+                } catch (err: Throwable) {
+                    MyLog.add(TAG, "$label glTF failed: ${err.message}. Using the sphere.", LogLevel.DEBUG)
+                }
+            }.onFailure { err ->
+                MyLog.add(TAG, "$label glTF missing: ${err.message}. Using the sphere.", LogLevel.DEBUG)
+            }
+        }
+    }
+
+    private fun carryBatch(kind: CarryKind): MeshInstanceList<InstanceLayouts.ModelMatColor> = when {
+        kind == CarryKind.SUGAR && sugarReady -> carrySugar
+        kind == CarryKind.PROTEIN && proteinReady -> carryProtein
+        else -> bits
+    }
+
     private fun loadGreenAphid() {
         scene.coroutineScope.launch {
             val loaded = Assets.defaultLoader.loadBlob("models/insects/aphid_green.glb")
@@ -660,6 +729,7 @@ class WorldRenderer(
     private fun pushActors(preset: QualityPreset) {
         grass.clear(); rocks.clear(); leaves.clear(); flowers.clear()
         bodies.clear(); heads.clear(); legs.clear(); food.clear(); insects.clear(); digits.clear(); bits.clear()
+        sugar.clear(); protein.clear(); carrySugar.clear(); carryProtein.clear()
         workerAnt.clear()
         soldierAnt.clear()
         for (slot in critters) slot.clear()
@@ -812,7 +882,12 @@ class WorldRenderer(
             val r = foodPileRadius(item.amount)
             val y = GroundHeight.at(x, z) + r * 0.45f
             val color = WorldPalette.food3d(item.type)
-            pose(food, x, y, z, 0f, 0f, 0f, 0f, r, r * 0.65f, r, color)
+            val batch = when {
+                item.type == FoodKind.SUGAR && sugarReady -> sugar
+                item.type == FoodKind.PROTEIN && proteinReady -> protein
+                else -> food
+            }
+            pose(batch, x, y, z, 0f, 0f, 0f, 0f, r, r * 0.65f, r, color)
             if (n < lights.size && item.type != FoodKind.CORPSE) {
                 val light = lights[n]
                 light.position.set(x, y + 4f, z)
@@ -928,7 +1003,7 @@ class WorldRenderer(
                     )
                     if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
                         val carry = WorldPalette.food3d(if (ant.carrying == CarryKind.SUGAR) FoodKind.SUGAR else FoodKind.PROTEIN)
-                        pose(bits, x, y, z, yaw, len * 0.46f, len * 0.07f, 0f, len * 0.18f, len * 0.18f, len * 0.18f, carry)
+                        pose(carryBatch(ant.carrying), x, y, z, yaw, len * 0.46f, len * 0.07f, 0f, len * 0.18f, len * 0.18f, len * 0.18f, carry)
                     }
                 } else {
                     val y = GroundHeight.at(x, z) + len * 0.18f
@@ -954,7 +1029,7 @@ class WorldRenderer(
                     }
                     if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
                         val carry = WorldPalette.food3d(if (ant.carrying == CarryKind.SUGAR) FoodKind.SUGAR else FoodKind.PROTEIN)
-                        pose(bits, x, y, z, yaw, -len * 0.15f, len * 0.16f, 0f, len * 0.22f, len * 0.22f, len * 0.22f, carry)
+                        pose(carryBatch(ant.carrying), x, y, z, yaw, -len * 0.15f, len * 0.16f, 0f, len * 0.22f, len * 0.22f, len * 0.22f, carry)
                     }
                 }
             }
