@@ -5,6 +5,10 @@ import com.neojou.myants.wallClockHm
 
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.WorldPalette
+import com.neojou.myants.render3d.clockCellAlong
+import com.neojou.myants.render3d.clockMetrics
+import com.neojou.myants.render3d.clockSlots
+import com.neojou.myants.render3d.clockStrokes
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.AntState
@@ -61,10 +65,6 @@ private val DIGIT = WorldPalette.digit2d
 private val PANE = WorldPalette.pane
 private val DIVIDER = WorldPalette.divider
 private val RAIN = WorldPalette.rain2d
-
-private val SEGMENTS = intArrayOf(
-    0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F,
-)
 
 fun KoolApplication.addAntSimScene(session: AppSession) = addScene {
     session.classicScene = this
@@ -315,37 +315,20 @@ private fun drawClock(session: AppSession, draw: SpriteDraw, leftW: Float, winH:
     val (hh, mm) = wallClockHm()
     val text = "${hh.toString().padStart(2, '0')}${mm.toString().padStart(2, '0')}"
     val s = (session.fitScale(leftW, winH) * session.zoom).toFloat()
-    val h = SimConfig.clock.fontSize.toFloat() * s
-    val dw = h * 0.62f
-    val gap = h * 0.18f
-    val total = dw * 4f + gap * 3f + h * 0.35f
+    val metrics = clockMetrics(SimConfig.clock.fontSize.toFloat() * s)
     val (cx, cy) = session.worldToScreen(SimConfig.width / 2.0, SimConfig.height / 2.0, leftW, winH)
-    var x = cx - total * 0.5f + dw * 0.5f
+    val slots = clockSlots(cx, metrics)
+    val along = clockCellAlong(metrics.digitHeight)
+    val dot = metrics.dotSize
+    // Classic keeps the colon lit. Screen-up is the smaller cy.
+    draw.rect(slots.colonX, cy - along, dot, dot, DIGIT)
+    draw.rect(slots.colonX, cy + along, dot, dot, DIGIT)
+    val centers = floatArrayOf(slots.hourTens, slots.hourOnes, slots.minuteTens, slots.minuteOnes)
     for (i in text.indices) {
-        if (i == 2) {
-            val dot = h * 0.12f
-            draw.rect(x, cy - h * 0.18f, dot, dot, DIGIT)
-            draw.rect(x, cy + h * 0.18f, dot, dot, DIGIT)
-            x += h * 0.35f
+        for (stroke in clockStrokes(centers[i], cy, metrics, text[i] - '0')) {
+            draw.rect(stroke.x, cy - (stroke.y - cy), stroke.sx, stroke.sy, DIGIT)
         }
-        drawDigit(draw, x, cy, dw, h, text[i] - '0')
-        x += dw + gap
     }
-}
-
-private fun drawDigit(draw: SpriteDraw, cx: Float, cy: Float, w: Float, h: Float, digit: Int) {
-    val mask = SEGMENTS[digit.coerceIn(0, 9)]
-    val t = (h * 0.12f).coerceAtLeast(1f)
-    val hw = w * 0.5f
-    val hh = h * 0.5f
-    val mid = h * 0.25f
-    if (mask and 0x01 != 0) draw.rect(cx, cy - hh + t * 0.5f, w, t, DIGIT)
-    if (mask and 0x02 != 0) draw.rect(cx + hw - t * 0.5f, cy - mid * 0.5f, t, mid, DIGIT)
-    if (mask and 0x04 != 0) draw.rect(cx + hw - t * 0.5f, cy + mid * 0.5f, t, mid, DIGIT)
-    if (mask and 0x08 != 0) draw.rect(cx, cy + hh - t * 0.5f, w, t, DIGIT)
-    if (mask and 0x10 != 0) draw.rect(cx - hw + t * 0.5f, cy + mid * 0.5f, t, mid, DIGIT)
-    if (mask and 0x20 != 0) draw.rect(cx - hw + t * 0.5f, cy - mid * 0.5f, t, mid, DIGIT)
-    if (mask and 0x40 != 0) draw.rect(cx, cy, w, t, DIGIT)
 }
 
 private fun AppSession.worldToScreen(wx: Double, wy: Double, leftW: Float, winH: Float): Pair<Float, Float> =

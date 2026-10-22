@@ -77,10 +77,6 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "RENDER"
 
-private val SEGMENTS = intArrayOf(
-    0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F,
-)
-
 fun KoolApplication.addWorldScene(session: AppSession) = addScene {
     clearColor = ClearColorFill(WorldPalette.sky)
     WorldRenderer(this, session).install()
@@ -848,48 +844,27 @@ class WorldRenderer(
     private fun pushClock() {
         val (hh, mm, ss) = wallClockHms()
         val text = "${hh.toString().padStart(2, '0')}${mm.toString().padStart(2, '0')}"
-        val colon = clockColonLit(ss)
         val stone = session.world.terrain.clockStone
-        val h = SimConfig.clock.fontSize.toFloat()
-        val dw = h * 0.62f
-        val gap = h * 0.18f
-        val total = dw * 4f + gap * 3f + h * 0.35f
-        var x = stone.x.toFloat() - total * 0.5f + dw * 0.5f
+        val metrics = clockMetrics(SimConfig.clock.fontSize.toFloat())
+        val slots = clockSlots(stone.x.toFloat(), metrics)
         val z = stone.y.toFloat() + stone.radius.toFloat() * 0.15f
         val y = GroundHeight.at(stone.x.toFloat(), stone.y.toFloat()) + 52f
         val color = WorldPalette.digit3d
+        if (clockColonLit(ss)) {
+            val along = clockCellAlong(metrics.digitHeight)
+            val dot = metrics.dotSize
+            val up = flatClockDot(slots.colonX, y, z, along, dot, dot)
+            val down = flatClockDot(slots.colonX, y, z, -along, dot, dot)
+            pose(digits, up.x, up.y, up.z, 0f, 0f, 0f, 0f, up.sx, up.sy, up.sz, color)
+            pose(digits, down.x, down.y, down.z, 0f, 0f, 0f, 0f, down.sx, down.sy, down.sz, color)
+        }
+        val centers = floatArrayOf(slots.hourTens, slots.hourOnes, slots.minuteTens, slots.minuteOnes)
         for (i in text.indices) {
-            if (i == 2) {
-                if (colon) {
-                    val dot = h * 0.12f
-                    val up = flatClockDot(x, y, z, h * 0.18f, dot, dot)
-                    val down = flatClockDot(x, y, z, -h * 0.18f, dot, dot)
-                    pose(digits, up.x, up.y, up.z, 0f, 0f, 0f, 0f, up.sx, up.sy, up.sz, color)
-                    pose(digits, down.x, down.y, down.z, 0f, 0f, 0f, 0f, down.sx, down.sy, down.sz, color)
-                }
-                x += h * 0.35f
+            for (stroke in clockStrokes(centers[i], y, metrics, text[i] - '0')) {
+                val box = flatClockSeg(y, z, stroke.x, stroke.y, stroke.sx, stroke.sy, metrics.thickness)
+                pose(digits, box.x, box.y, box.z, 0f, 0f, 0f, 0f, box.sx, box.sy, box.sz, color)
             }
-            digitBoxes(x, y, z, dw, h, text[i] - '0', color)
-            x += dw + gap
         }
-    }
-
-    private fun digitBoxes(cx: Float, cy: Float, z: Float, w: Float, h: Float, digit: Int, color: Color) {
-        val mask = SEGMENTS[digit.coerceIn(0, 9)]
-        val t = (h * 0.12f).coerceAtLeast(1f)
-        val hw = w * 0.5f
-        val mid = h * 0.25f
-        fun seg(x: Float, segY: Float, sx: Float, sy: Float) {
-            val box = flatClockSeg(cy, z, x, segY, sx, sy, t)
-            pose(digits, box.x, box.y, box.z, 0f, 0f, 0f, 0f, box.sx, box.sy, box.sz, color)
-        }
-        if (mask and 0x01 != 0) seg(cx, cy + h * 0.5f - t * 0.5f, w, t)
-        if (mask and 0x02 != 0) seg(cx + hw - t * 0.5f, cy + mid * 0.5f, t, mid)
-        if (mask and 0x04 != 0) seg(cx + hw - t * 0.5f, cy - mid * 0.5f, t, mid)
-        if (mask and 0x08 != 0) seg(cx, cy - h * 0.5f + t * 0.5f, w, t)
-        if (mask and 0x10 != 0) seg(cx - hw + t * 0.5f, cy - mid * 0.5f, t, mid)
-        if (mask and 0x20 != 0) seg(cx - hw + t * 0.5f, cy + mid * 0.5f, t, mid)
-        if (mask and 0x40 != 0) seg(cx, cy, w, t)
     }
 
     private fun pushFood(preset: QualityPreset) {
