@@ -65,14 +65,18 @@ object WorldPalette {
     val honey = Color(0.95f, 0.78f, 0.28f, 1f)
     val particle = Color(0.8f, 0.8f, 0.8f, 1f)
 
-    val nestChamber = Color(0.20f, 0.15f, 0.11f, 1f)
-    val nestTunnel = Color(0.28f, 0.20f, 0.14f, 1f)
+    // The present-scene readback keeps these channels, so they are the browns
+    // on the panel: dark soil, a light cut, and a darker floor.
+    val nestChamber = Color(0.09f, 0.06f, 0.045f, 1f)
+    val nestChamberRim = Color(0.64f, 0.49f, 0.36f, 1f)
+    val nestTunnel = Color(0.13f, 0.09f, 0.065f, 1f)
     val egg3d = Color(0.92f, 0.9f, 0.82f, 1f)
     val larva3d = Color(0.85f, 0.72f, 0.32f, 1f)
     val pupa3d = Color(0.7f, 0.5f, 0.28f, 1f)
     val nestSugar = Color(0.95f, 0.85f, 0.35f, 1f)
     val nestProtein = Color(0.75f, 0.25f, 0.22f, 1f)
-    val nestSoil = Color(0.45f, 0.32f, 0.22f, 1f)
+    val nestSoil = Color(0.22f, 0.15f, 0.11f, 1f)
+    val nestSoilDeep = Color(0.18f, 0.12f, 0.09f, 1f)
 
     val antChitin = Color(0.07f, 0.07f, 0.075f, 1f)
     val antEye = Color(0.02f, 0.02f, 0.025f, 1f)

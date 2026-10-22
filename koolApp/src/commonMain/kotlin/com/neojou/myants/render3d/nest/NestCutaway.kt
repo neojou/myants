@@ -60,6 +60,7 @@ object NestCutaway {
     private var holes: MeshInstanceList<InstanceLayouts.ModelMatColor>? = null
     private var actors: MeshInstanceList<InstanceLayouts.ModelMatColor>? = null
     private var dirt: Mesh<*>? = null
+    private var soilBand: Mesh<*>? = null
     private var pheroMesh: Mesh<*>? = null
     private var ring: Mesh<*>? = null
     private val field = PheromoneField("nest3d")
@@ -80,57 +81,76 @@ object NestCutaway {
         val nest = session.world.colonies[0].nest
         val frame = layout(winW, winH, nest.width.toFloat(), nest.height.toFloat())
         place(dirt, frame.cx, frame.cy, frame.drawW, frame.drawH, 0.2f)
+        val bandH = frame.drawH * SOIL_BAND_FRACTION
+        place(soilBand, frame.cx, frame.oy + frame.drawH - bandH * 0.5f, frame.drawW, bandH, 0.28f)
         val dug = holes ?: return
         val ants = actors ?: return
         dug.clear()
         ants.clear()
         for (node in nest.nodes) {
-            val d = (node.radius * 2.0 * frame.fit).toFloat()
-            val color = if (node.type == NestNodeKind.CHAMBER) {
-                WorldPalette.nestChamber
-            } else {
-                WorldPalette.nestTunnel
-            }
-            put(dug, frame.sx(node.x.toFloat()), frame.sy(node.y.toFloat()), 0.4f, d, d, color, 0f)
+            if (node.type != NestNodeKind.CHAMBER) continue
+            val floor = (node.radius * 2.0 * frame.fit).toFloat()
+            val rim = chamberRimDiameter(floor)
+            put(dug, frame.sx(node.x.toFloat()), frame.sy(node.y.toFloat()), 0.35f, rim, rim, WorldPalette.nestChamberRim, 0f)
+        }
+        for (node in nest.nodes) {
+            if (node.type == NestNodeKind.CHAMBER) continue
+            val d = tunnelDrawDiameter((node.radius * 2.0 * frame.fit).toFloat())
+            put(dug, frame.sx(node.x.toFloat()), frame.sy(node.y.toFloat()), 0.38f, d, d, WorldPalette.nestTunnel, 0f)
+        }
+        for (node in nest.nodes) {
+            if (node.type != NestNodeKind.CHAMBER) continue
+            val floor = (node.radius * 2.0 * frame.fit).toFloat()
+            put(dug, frame.sx(node.x.toFloat()), frame.sy(node.y.toFloat()), 0.4f, floor, floor, WorldPalette.nestChamber, 0f)
         }
         val colony = session.world.colonies[0]
         for (brood in colony.brood) {
             if (brood.carrier != null) continue
-            val color = WorldPalette.brood3d(brood.stage)
-            val d = (if (brood.stage == BroodStage.EGG) 4f else 7f) * frame.fit
-            put(ants, frame.sx(brood.x.toFloat()), frame.sy(brood.y.toFloat()), 0.6f, d, d * 0.65f, color, 0f)
-        }
-        val queen = colony.queen
-        put(
-            ants,
-            frame.sx(queen.x.toFloat()),
-            frame.sy(queen.y.toFloat()),
-            0.7f,
-            22f * frame.fit,
-            14f * frame.fit,
-            WorldPalette.queen,
-            0f,
-        )
-        for (ant in colony.ants) {
-            if (ant.location != AntPlace.NEST) continue
-            val length = (if (ant.type == AntKind.SOLDIER) 16f else 12f) * ant.sizeVar.toFloat() * frame.fit
+            val jitter = broodJitter(brood.x.toFloat(), brood.y.toFloat())
+            val span = broodSpan(brood.stage, frame.fit, jitter)
+            val angle = if (brood.stage == BroodStage.EGG) 0f else (jitter - 0.5f) * 1.2f
             put(
                 ants,
-                frame.sx(ant.x.toFloat()),
-                frame.sy(ant.y.toFloat()),
-                0.8f,
-                length,
-                length * 0.45f,
-                session.antColor,
-                ant.angle.toFloat(),
+                frame.sx(brood.x.toFloat()),
+                frame.sy(brood.y.toFloat()),
+                0.6f,
+                span.length,
+                span.width,
+                WorldPalette.brood3d(brood.stage),
+                angle,
             )
+        }
+        val queen = colony.queen
+        val qx = frame.sx(queen.x.toFloat())
+        val qy = frame.sy(queen.y.toFloat())
+        for ((i, mark) in queenMarks(frame.fit).withIndex()) {
+            put(ants, qx + mark.dx, qy, if (i == 0) 0.68f else 0.72f, mark.w, mark.h, WorldPalette.queen, 0f)
+        }
+        for (ant in colony.ants) {
+            if (ant.location != AntPlace.NEST) continue
+            val soldier = ant.type == AntKind.SOLDIER
+            val length = (if (soldier) 16f else 12f) * ant.sizeVar.toFloat() * frame.fit
+            val ang = ant.angle.toFloat()
+            val c = cos(ang)
+            val s = sin(ang)
+            val sx = frame.sx(ant.x.toFloat())
+            val sy = frame.sy(ant.y.toFloat())
+            val shape = nestAntParts(soldier)
+            val parts = listOf(shape.gaster to 0.78f, shape.thorax to 0.82f, shape.head to 0.86f)
+            for ((part, z) in parts) {
+                val along = part.along * length
+                val color = if (soldier && part === shape.head) WorldPalette.soldierHead3d else session.antColor
+                put(ants, sx + c * along, sy + s * along, z, part.length * length, part.width * length, color, ang)
+            }
             if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
                 val color = if (ant.carrying == CarryKind.SUGAR) {
                     WorldPalette.nestSugar
                 } else {
                     WorldPalette.nestProtein
                 }
-                put(ants, frame.sx(ant.x.toFloat()), frame.sy(ant.y.toFloat()), 0.9f, length * 0.35f, length * 0.35f, color, 0f)
+                val along = NEST_CARRY_ALONG * length
+                val crumb = length * 0.22f
+                put(ants, sx + c * along, sy + s * along, 0.9f, crumb, crumb, color, 0f)
             }
         }
         val mesh = pheroMesh
@@ -180,17 +200,22 @@ object NestCutaway {
             generate { rect { size.set(1f, 1f) } }
             shader = flat(WorldPalette.nestSoil)
         }
+        soilBand = node.addMesh(VertexLayouts.Position) {
+            isFrustumChecked = false
+            generate { rect { size.set(1f, 1f) } }
+            shader = flat(WorldPalette.nestSoilDeep)
+        }
         val dug = MeshInstanceList(layout, 4096)
         node.addMesh(VertexLayouts.Position, instances = dug) {
             isFrustumChecked = false
-            generate { uvSphere { radius = 0.5f; steps = 8 } }
+            generate { uvSphere { radius = 0.5f; steps = 32 } }
             shader = instances()
         }
         holes = dug
-        val batch = MeshInstanceList(layout, 1024)
+        val batch = MeshInstanceList(layout, 4096)
         node.addMesh(VertexLayouts.Position, instances = batch) {
             isFrustumChecked = false
-            generate { uvSphere { radius = 0.5f; steps = 6 } }
+            generate { uvSphere { radius = 0.5f; steps = 16 } }
             shader = instances()
         }
         actors = batch
