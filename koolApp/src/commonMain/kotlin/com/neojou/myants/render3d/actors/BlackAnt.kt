@@ -8,41 +8,59 @@ import de.fabmax.kool.scene.InstanceLayouts
 import de.fabmax.kool.scene.Mesh
 import de.fabmax.kool.scene.MeshInstanceList
 import com.neojou.myants.render3d.WorldPalette
+import com.neojou.myants.sim.AntKind
 import de.fabmax.kool.util.Color
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
 
-internal class AntTint(val chitin: Color, val eye: Color, val jaw: Color)
+internal class AntTint(val chitin: Color, val head: Color, val eye: Color, val jaw: Color)
 
-/** Colony 0 is black chitin. A rival colony stays dark, with a warm brown cast. */
-internal fun outdoorAntTint(colonyId: Int): AntTint = if (colonyId == 0) {
-    AntTint(WorldPalette.antChitin, WorldPalette.antEye, WorldPalette.antJaw)
-} else {
-    AntTint(WorldPalette.rivalChitin, WorldPalette.rivalEye, WorldPalette.rivalJaw)
+/**
+ * Colony 0 is black chitin. A rival colony stays dark, with a warm brown cast.
+ * A soldier's head uses the red marker. The body keeps the colony color.
+ */
+internal fun outdoorAntTint(colonyId: Int, kind: AntKind = AntKind.WORKER): AntTint {
+    val chitin: Color
+    val eye: Color
+    val jaw: Color
+    if (colonyId == 0) {
+        chitin = WorldPalette.antChitin
+        eye = WorldPalette.antEye
+        jaw = WorldPalette.antJaw
+    } else {
+        chitin = WorldPalette.rivalChitin
+        eye = WorldPalette.rivalEye
+        jaw = WorldPalette.rivalJaw
+    }
+    val head = if (kind == AntKind.SOLDIER) WorldPalette.soldierHead3d else chitin
+    return AntTint(chitin, head, eye, jaw)
 }
 
 internal fun uploadAntMeshes(
     ant: GltfAnt,
     body: Mesh<*>,
+    head: Mesh<*>,
     eyes: Mesh<*>,
     jaws: Mesh<*>,
     legs: List<Mesh<*>>,
 ) {
     body.upload(ant.body)
+    head.upload(ant.head)
     eyes.upload(ant.eyes)
     jaws.upload(ant.mandibles)
     for (i in ant.legs.indices) legs[i].upload(ant.legs[i].mesh)
 }
 
 /**
- * One outdoor ant. The body, eyes and jaws share one rigid pose.
+ * One outdoor ant. The body, head, eyes and jaws share one rigid pose.
  * Each leg pivots at the thoracic socket stored in the glTF node.
  * Tripod: L1, R2, L3 move together; the other three are half a step away.
  */
 internal fun GltfAnt.draw(
     body: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    head: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     eyes: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     jaws: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     legs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>,
@@ -58,6 +76,7 @@ internal fun GltfAnt.draw(
     scale: MutableVec3f,
 ) {
     rigid(body, x, y, z, yaw, length, tint.chitin, mat, scale)
+    rigid(head, x, y, z, yaw, length, tint.head, mat, scale)
     rigid(eyes, x, y, z, yaw, length, tint.eye, mat, scale)
     rigid(jaws, x, y, z, yaw, length, tint.jaw, mat, scale)
     val layout = InstanceLayouts.ModelMatColor

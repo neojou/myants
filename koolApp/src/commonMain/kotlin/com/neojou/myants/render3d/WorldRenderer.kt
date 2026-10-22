@@ -115,15 +115,8 @@ class WorldRenderer(
     private lateinit var bodies: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var heads: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var legs: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    private var blackAnt: GltfAnt? = null
-    private lateinit var antBody: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    private lateinit var antEyes: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    private lateinit var antJaws: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    private lateinit var antLegs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>
-    private lateinit var antBodyMesh: Mesh<*>
-    private lateinit var antEyeMesh: Mesh<*>
-    private lateinit var antJawMesh: Mesh<*>
-    private lateinit var antLegMeshes: List<Mesh<*>>
+    private lateinit var workerAnt: AntSlot
+    private lateinit var soldierAnt: AntSlot
     private var greenAphid: GltfAphid? = null
     private lateinit var aphidBody: MeshInstanceList<InstanceLayouts.ModelMatColor>
     private lateinit var aphidEyes: MeshInstanceList<InstanceLayouts.ModelMatColor>
@@ -164,7 +157,8 @@ class WorldRenderer(
         val forward = Node("world-forward").apply { isFrustumChecked = false }
         buildContent(content)
         buildForward(forward)
-        loadBlackAnt()
+        loadAnt("models/ants/worker_black.glb", workerAnt, "worker")
+        loadAnt("models/ants/soldier.glb", soldierAnt, "soldier")
         loadGreenAphid()
 
         scene.onUpdate {
@@ -387,16 +381,8 @@ class WorldRenderer(
         instanced(content, heads, "ant-head") { icoSphere { steps = 1; radius = 0.22f } }
         legs = MeshInstanceList(layout, 8192)
         instanced(content, legs, "ant-leg") { cube { size.set(0.16f, 0.55f, 0.1f) } }
-        antBody = MeshInstanceList(layout, 2048)
-        antBodyMesh = shadedInstances(content, antBody, "ant-chitin", 0.42f, 0.08f)
-        antEyes = MeshInstanceList(layout, 2048)
-        antEyeMesh = shadedInstances(content, antEyes, "ant-eye", 0.12f, 0.02f)
-        antJaws = MeshInstanceList(layout, 2048)
-        antJawMesh = shadedInstances(content, antJaws, "ant-jaw", 0.38f, 0.12f)
-        antLegs = List(6) { MeshInstanceList(layout, 2048) }
-        antLegMeshes = antLegs.mapIndexed { index, batch ->
-            shadedInstances(content, batch, "ant-leg-$index", 0.42f, 0.08f)
-        }
+        workerAnt = antSlot(content, "worker")
+        soldierAnt = antSlot(content, "soldier")
         aphidBody = MeshInstanceList(layout, 64)
         aphidBodyMesh = shadedInstances(content, aphidBody, "aphid-cuticle", 0.42f, 0.02f)
         aphidEyes = MeshInstanceList(layout, 64)
@@ -476,20 +462,42 @@ class WorldRenderer(
         }
     }
 
-    private fun loadBlackAnt() {
+    private fun antSlot(content: Node, name: String): AntSlot {
+        val body = MeshInstanceList(layout, 2048)
+        val head = MeshInstanceList(layout, 2048)
+        val eyes = MeshInstanceList(layout, 2048)
+        val jaws = MeshInstanceList(layout, 2048)
+        val legs = List(6) { MeshInstanceList(layout, 2048) }
+        return AntSlot(
+            body,
+            head,
+            eyes,
+            jaws,
+            legs,
+            shadedInstances(content, body, "$name-chitin", 0.42f, 0.08f),
+            shadedInstances(content, head, "$name-head", 0.42f, 0.08f),
+            shadedInstances(content, eyes, "$name-eye", 0.12f, 0.02f),
+            shadedInstances(content, jaws, "$name-jaw", 0.38f, 0.12f),
+            legs.mapIndexed { index, batch ->
+                shadedInstances(content, batch, "$name-leg-$index", 0.42f, 0.08f)
+            },
+        )
+    }
+
+    private fun loadAnt(path: String, slot: AntSlot, label: String) {
         scene.coroutineScope.launch {
-            val loaded = Assets.defaultLoader.loadBlob("models/ants/worker_black.glb")
+            val loaded = Assets.defaultLoader.loadBlob(path)
             loaded.onSuccess { buf ->
                 try {
                     val parsed = parseGltfAnt(buf.toArray())
-                    uploadAntMeshes(parsed, antBodyMesh, antEyeMesh, antJawMesh, antLegMeshes)
-                    blackAnt = parsed
-                    MyLog.add(TAG, "black ant gltf tris=${parsed.triangles}", LogLevel.DEBUG)
+                    uploadAntMeshes(parsed, slot.bodyMesh, slot.headMesh, slot.eyeMesh, slot.jawMesh, slot.legMeshes)
+                    slot.model = parsed
+                    MyLog.add(TAG, "$label gltf tris=${parsed.triangles}", LogLevel.DEBUG)
                 } catch (err: Throwable) {
-                    MyLog.add(TAG, "Black ant glTF failed: ${err.message}. Using block ants.", LogLevel.DEBUG)
+                    MyLog.add(TAG, "$label glTF failed: ${err.message}. Using block ants.", LogLevel.DEBUG)
                 }
             }.onFailure { err ->
-                MyLog.add(TAG, "Black ant glTF missing: ${err.message}. Using block ants.", LogLevel.DEBUG)
+                MyLog.add(TAG, "$label glTF missing: ${err.message}. Using block ants.", LogLevel.DEBUG)
             }
         }
     }
@@ -596,8 +604,8 @@ class WorldRenderer(
     private fun pushActors(preset: QualityPreset) {
         grass.clear(); rocks.clear(); leaves.clear(); flowers.clear()
         bodies.clear(); heads.clear(); legs.clear(); food.clear(); insects.clear(); digits.clear(); bits.clear()
-        antBody.clear(); antEyes.clear(); antJaws.clear()
-        for (batch in antLegs) batch.clear()
+        workerAnt.clear()
+        soldierAnt.clear()
         aphidBody.clear(); aphidEyes.clear(); honey.clear(); molts.clear()
         for (batch in aphidLegs) batch.clear()
         val time = Time.gameTime.toFloat()
@@ -834,13 +842,14 @@ class WorldRenderer(
                 val bucket = PoseBuckets.index(ant.forageSeed.toFloat(), speed, buckets)
                 val phase = PoseBuckets.phase(bucket, buckets, time, moving && preset.legAnimation)
                 val len = (if (ant.type == AntKind.SOLDIER) 16f else 12f) * ant.sizeVar.toFloat()
-                val model = blackAnt
+                val slot = if (ant.type == AntKind.SOLDIER) soldierAnt else workerAnt
+                val model = slot.model
                 if (model != null) {
                     val y = GroundHeight.at(x, z)
                     model.draw(
-                        antBody, antEyes, antJaws, antLegs,
+                        slot.body, slot.head, slot.eyes, slot.jaws, slot.legs,
                         x, y, z, yaw, len, phase, moving && preset.legAnimation,
-                        outdoorAntTint(colony.id), mat, scale,
+                        outdoorAntTint(colony.id, ant.type), mat, scale,
                     )
                     if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
                         val carry = WorldPalette.food3d(if (ant.carrying == CarryKind.SUGAR) FoodKind.SUGAR else FoodKind.PROTEIN)
@@ -918,6 +927,29 @@ class WorldRenderer(
             set(layout.modelMat, mat)
             set(layout.color, color)
         }
+    }
+}
+
+/** One outdoor caste. A missing model leaves [model] null and the block ant draws instead. */
+private class AntSlot(
+    val body: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    val head: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    val eyes: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    val jaws: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    val legs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>,
+    val bodyMesh: Mesh<*>,
+    val headMesh: Mesh<*>,
+    val eyeMesh: Mesh<*>,
+    val jawMesh: Mesh<*>,
+    val legMeshes: List<Mesh<*>>,
+    var model: GltfAnt? = null,
+) {
+    fun clear() {
+        body.clear()
+        head.clear()
+        eyes.clear()
+        jaws.clear()
+        for (batch in legs) batch.clear()
     }
 }
 

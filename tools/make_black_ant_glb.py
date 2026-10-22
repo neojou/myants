@@ -12,8 +12,8 @@ import struct
 from pathlib import Path
 
 TAU = math.pi * 2.0
-STACKS = 8
-SLICES = 12
+STACKS = 10
+SLICES = 14
 SIDES = 8
 
 CHITIN = 0
@@ -217,46 +217,51 @@ class Builder(object):
         )
 
 
-def build():
+def build(soldier=False):
     b = Builder()
     root = b.add_node("Ant", None)
 
     # Design space, head toward +X, feet on y = 0. The root scale fits this to length 1.
-    head_c = (6.70, 1.32, 0.0)
+    # A soldier keeps the same nodes and has a larger head, eyes, and jaws.
+    hs = 1.42 if soldier else 1.0
+    js = 1.7 if soldier else 1.0
+    ps = 1.22 if soldier else 1.0
+    head_c = (6.95 if soldier else 6.62, 1.22, 0.0)
     head = b.add_node("Head", root, translation=head_c)
-    b.sphere_node("HeadShell", head, (0, 0, 0), (0.74, 0.56, 0.64))
-    b.sphere_node("EyeL", head, (0.16, 0.10, 0.50), (0.26, 0.20, 0.18), EYE)
-    b.sphere_node("EyeR", head, (0.16, 0.10, -0.50), (0.26, 0.20, 0.18), EYE)
+    b.sphere_node("HeadShell", head, (0.06, -0.02, 0.0), (0.88 * hs, 0.62 * hs, 0.76 * hs))
+    b.sphere_node("Clypeus", head, (0.58 * hs, -0.18, 0.0), (0.30 * hs, 0.18 * hs, 0.32 * hs))
+    b.sphere_node("EyeL", head, (0.24 * hs, 0.14, 0.50 * hs), (0.30 * hs, 0.22 * hs, 0.18 * hs), EYE)
+    b.sphere_node("EyeR", head, (0.24 * hs, 0.14, -0.50 * hs), (0.30 * hs, 0.22 * hs, 0.18 * hs), EYE)
 
     def antenna(side, zsign):
         name = "Antenna" + side
-        socket = (0.34, 0.34, 0.16 * zsign)
-        elbow = (0.78, 0.72, 0.62 * zsign)
-        tip = (1.35, 0.28, 0.98 * zsign)
+        socket = (0.46 * hs, 0.40 * hs, 0.20 * hs * zsign)
+        elbow = (1.05 * hs, 0.96 * hs, 0.78 * hs * zsign)
+        tip = (1.95 * hs, 0.18 * hs, 1.22 * hs * zsign)
         node = b.add_node(name, head, translation=socket)
-        b.rod("Scape" + side, node, (0, 0, 0), sub(elbow, socket), 0.055, 0.045)
-        b.rod("Funiculus" + side, node, sub(elbow, socket), sub(tip, socket), 0.042, 0.028)
+        b.rod("Scape" + side, node, (0, 0, 0), sub(elbow, socket), 0.050, 0.040)
+        b.rod("Funiculus" + side, node, sub(elbow, socket), sub(tip, socket), 0.036, 0.018)
 
     antenna("L", 1.0)
     antenna("R", -1.0)
 
     def mandible(side, zsign):
         name = "Mandible" + side
-        base = (0.62, -0.16, 0.22 * zsign)
-        mid = (0.98, -0.28, 0.34 * zsign)
-        tip = (1.28, -0.38, 0.08 * zsign)
+        base = (0.60 * hs, -0.20, 0.26 * hs * zsign)
+        mid = (1.08 * js, -0.36, 0.46 * hs * zsign)
+        tip = (1.52 * js, -0.50, 0.04 * zsign)
         node = b.add_node(name, head, translation=base)
-        b.rod("MandibleBase" + side, node, (0, 0, 0), sub(mid, base), 0.11, 0.08, MANDIBLE)
-        b.rod("MandibleTip" + side, node, sub(mid, base), sub(tip, base), 0.08, 0.035, MANDIBLE)
+        b.rod("MandibleBase" + side, node, (0, 0, 0), sub(mid, base), 0.12 * js, 0.08 * js, MANDIBLE)
+        b.rod("MandibleTip" + side, node, sub(mid, base), sub(tip, base), 0.08 * js, 0.030 * js, MANDIBLE)
 
     mandible("L", 1.0)
     mandible("R", -1.0)
 
     thorax = b.add_node("Thorax", root)
     segments = (
-        ("Prothorax", (5.78, 1.38, 0.0), (0.40, 0.34, 0.36)),
-        ("Mesothorax", (4.95, 1.56, 0.0), (0.38, 0.36, 0.38)),
-        ("Metathorax", (4.10, 1.32, 0.0), (0.42, 0.32, 0.36)),
+        ("Prothorax", (5.78, 1.38, 0.0), (0.48 * ps, 0.36 * ps, 0.46 * ps)),
+        ("Mesothorax", (4.95, 1.72, 0.0), (0.50, 0.46, 0.48)),
+        ("Metathorax", (4.10, 1.28, 0.0), (0.40, 0.28, 0.36)),
     )
     segment_index = {}
     for name, center, radii in segments:
@@ -315,14 +320,16 @@ def build():
         (2.15, 0.00, -1.52),
     ], (0.20, 0.16, 0.13, 0.09, 0.05))
 
-    petiole_c = (3.30, 1.28, 0.0)
+    petiole_c = (3.30, 1.22, 0.0)
     petiole = b.add_node("Petiole", root, translation=petiole_c)
-    b.sphere_node("PetioleShell", petiole, (0, 0, 0), (0.26, 0.40, 0.26))
+    b.sphere_node("PetioleShell", petiole, (0, 0, 0), (0.16, 0.30, 0.16))
+    post = b.add_node("Postpetiole", root, translation=(2.68, 1.16, 0.0))
+    b.sphere_node("PostpetioleShell", post, (0, 0, 0), (0.24, 0.32, 0.24))
 
-    gaster = b.add_node("Gaster", root, translation=(1.55, 1.18, 0.0))
-    b.sphere_node("GasterRear", gaster, (0, 0, 0), (1.15, 0.92, 1.02))
-    b.sphere_node("GasterFront", gaster, (0.85, 0.02, 0.0), (0.70, 0.62, 0.70))
-    b.sphere_node("GasterTip", gaster, (-0.95, -0.02, 0.0), (0.42, 0.48, 0.50))
+    gaster = b.add_node("Gaster", root, translation=(1.28, 1.08, 0.0))
+    b.sphere_node("GasterRear", gaster, (-0.15, 0.0, 0.0), (1.32, 1.08, 1.18))
+    b.sphere_node("GasterFront", gaster, (0.95, 0.06, 0.0), (0.58, 0.50, 0.58))
+    b.sphere_node("GasterTip", gaster, (-1.20, 0.02, 0.0), (0.36, 0.40, 0.40))
     return b
 
 
@@ -662,17 +669,19 @@ def _write_png(path, width, height, rows):
 
 
 def main():
-    builder = build()
-    fit_root(builder)
-    world = check(builder)
-    data, _ = pack_glb(builder)
-    out = Path(__file__).resolve().parents[1] / "koolApp" / "assets" / "models" / "ants" / "worker_black.glb"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_bytes(data)
-    preview_path = Path("/tmp/worker_black_ant.png")
-    preview(builder, world, preview_path)
-    print("wrote", out, "bytes", len(data))
-    print("preview", preview_path)
+    root = Path(__file__).resolve().parents[1] / "koolApp" / "assets" / "models" / "ants"
+    root.mkdir(parents=True, exist_ok=True)
+    for soldier, name in ((False, "worker_black.glb"), (True, "soldier.glb")):
+        builder = build(soldier)
+        fit_root(builder)
+        world = check(builder)
+        data, _ = pack_glb(builder)
+        out = root / name
+        out.write_bytes(data)
+        preview_path = Path("/tmp") / (name.replace(".glb", "") + ".png")
+        preview(builder, world, preview_path)
+        print("wrote", out, "bytes", len(data))
+        print("preview", preview_path)
 
 
 if __name__ == "__main__":

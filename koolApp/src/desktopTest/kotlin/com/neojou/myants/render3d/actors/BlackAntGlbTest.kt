@@ -2,14 +2,22 @@ package com.neojou.myants.render3d.actors
 
 import java.io.File
 import kotlin.math.abs
+import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class BlackAntGlbTest {
     @Test
-    fun gltf2BlackAntHasThreeBodyPartsAndSixLegs() {
-        val ant = parseGltfAnt(glbFile().readBytes())
+    fun gltf2WorkerAndSoldierShareTheNodeContract() {
+        val worker = parseGltfAnt(glbFile("worker_black.glb").readBytes())
+        val soldier = parseGltfAnt(glbFile("soldier.glb").readBytes())
+        assertContract(worker)
+        assertContract(soldier)
+        assertTrue(headReach(soldier) > headReach(worker), "soldier head should read larger")
+    }
+
+    private fun assertContract(ant: GltfAnt) {
         val names = ant.nodes.associateBy { it.name }
         for (required in listOf(
             "Head", "EyeL", "EyeR", "AntennaL", "AntennaR", "MandibleL", "MandibleR",
@@ -38,19 +46,20 @@ class BlackAntGlbTest {
         var maxX = Float.NEGATIVE_INFINITY
         var minX = Float.POSITIVE_INFINITY
         var i = 0
-        while (i < ant.body.positions.size) {
-            val x = ant.body.positions[i]
+        while (i < ant.head.positions.size) {
+            val x = ant.head.positions[i]
             if (x > maxX) maxX = x
             if (x < minX) minX = x
             i += 3
         }
         assertTrue(maxX > headX + 0.12f, "antenna maxX=$maxX head=$headX")
+        assertTrue(ant.head.indices.isNotEmpty())
         assertTrue(ant.eyes.indices.isNotEmpty())
         assertTrue(ant.mandibles.indices.isNotEmpty())
         assertTrue(ant.triangles in 1500..6000, "tris=${ant.triangles}")
         var spanMin = minX
         var spanMax = maxX
-        for (part in listOf(ant.eyes, ant.mandibles) + ant.legs.map { it.mesh }) {
+        for (part in listOf(ant.body, ant.eyes, ant.mandibles) + ant.legs.map { it.mesh }) {
             var v = 0
             while (v < part.positions.size) {
                 val x = part.positions[v]
@@ -62,11 +71,27 @@ class BlackAntGlbTest {
         assertTrue(abs((spanMax - spanMin) - 1f) < 0.02f, "length=${spanMax - spanMin}")
     }
 
-    private fun glbFile(): File {
+    private fun headReach(ant: GltfAnt): Float {
+        val node = ant.nodes.first { it.name == "Head" }
+        var max = 0f
+        var i = 0
+        val positions = ant.head.positions
+        while (i < positions.size) {
+            val dx = positions[i] - node.x
+            val dy = positions[i + 1] - node.y
+            val dz = positions[i + 2] - node.z
+            val reach = sqrt(dx * dx + dy * dy + dz * dz)
+            if (reach > max) max = reach
+            i += 3
+        }
+        return max
+    }
+
+    private fun glbFile(name: String): File {
         val found = listOf(
-            File("assets/models/ants/worker_black.glb"),
-            File("koolApp/assets/models/ants/worker_black.glb"),
+            File("assets/models/ants/$name"),
+            File("koolApp/assets/models/ants/$name"),
         ).firstOrNull { it.isFile }
-        return found ?: error("worker_black.glb not found from ${File(".").absolutePath}")
+        return found ?: error("$name not found from ${File(".").absolutePath}")
     }
 }

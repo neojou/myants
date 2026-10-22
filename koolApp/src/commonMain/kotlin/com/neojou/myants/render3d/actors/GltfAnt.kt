@@ -10,13 +10,14 @@ internal class GltfAnt(
     val nodes: List<AntNode>,
     val materials: List<String>,
     val body: AntMesh,
+    val head: AntMesh,
     val eyes: AntMesh,
     val mandibles: AntMesh,
     val legs: List<AntLeg>,
 ) {
     val triangles: Int
         get() {
-            var count = body.indices.size + eyes.indices.size + mandibles.indices.size
+            var count = body.indices.size + head.indices.size + eyes.indices.size + mandibles.indices.size
             for (leg in legs) count += leg.mesh.indices.size
             return count / 3
         }
@@ -112,6 +113,7 @@ internal fun parseGltfAnt(bytes: ByteArray): GltfAnt {
     for (rootIndex in sceneNodes) visit(rootIndex, null)
 
     val body = MeshAccum()
+    val head = MeshAccum()
     val eyes = MeshAccum()
     val jaws = MeshAccum()
     val legAccum = LinkedHashMap<String, MeshAccum>()
@@ -132,6 +134,7 @@ internal fun parseGltfAnt(bytes: ByteArray): GltfAnt {
             val accum = when {
                 bucket == "eye" -> eyes
                 bucket == "jaw" -> jaws
+                bucket == "head" -> head
                 bucket.startsWith("Leg") -> legAccum.getOrPut(bucket) { MeshAccum() }
                 else -> body
             }
@@ -168,25 +171,27 @@ internal fun parseGltfAnt(bytes: ByteArray): GltfAnt {
         val here = world[i] ?: floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1f)
         nodes += AntNode(names[i], parent[i], here[12], here[13], here[14])
     }
-    val ant = GltfAnt(nodes, materials, body.finish(), eyes.finish(), jaws.finish(), legs)
-    if (ant.body.indices.isEmpty() || ant.eyes.indices.isEmpty() || ant.mandibles.indices.isEmpty()) {
-        error("black ant is missing a body part")
+    val ant = GltfAnt(nodes, materials, body.finish(), head.finish(), eyes.finish(), jaws.finish(), legs)
+    if (ant.body.indices.isEmpty() || ant.head.indices.isEmpty() || ant.eyes.indices.isEmpty() || ant.mandibles.indices.isEmpty()) {
+        error("ant is missing a body part")
     }
     return ant
 }
 
 private fun bucketFor(index: Int, names: Array<String>, parent: IntArray): String {
     var cursor = index
+    var onHead = false
     while (cursor >= 0) {
         val name = names[cursor]
         when {
             name.startsWith("Eye") -> return "eye"
             name.startsWith("Mandible") -> return "jaw"
             name.startsWith("Leg") -> return name
+            name == "Head" -> onHead = true
         }
         cursor = parent[cursor]
     }
-    return "body"
+    return if (onHead) "head" else "body"
 }
 
 internal class MeshAccum {

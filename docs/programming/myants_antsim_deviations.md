@@ -42,7 +42,7 @@
 - 正常鏡頭是俯視正交，俯角預設 -70°（-90° 到 -60°），平移與滾輪縮放鎖在游標打到的地面點，不旋轉。`CameraMode.ANT_POV` 只留介面，導演拒絕切換。
 - Bloom 只在 `KoolSystem.features.computeShaders` 為真且後端類名含 Vk 或 WebGpu 時開啟。Desktop GL 即使回報 computeShaders 也不開。雨與選取環畫在 deferred output quad 之後。
 - 品質檔位的模擬上限沒變。`QualityPreset` 只改渲染。前 5 秒平均低於 40 fps 時只加 `renderTierBias`，不呼叫 `setQuality`。手動選品質會把 bias 歸零。陰影貼圖大小在第一個 3D 影圖建立時固定為 2048；Ultra 的 4096 與 zoom≥4 的 CSM 這版沒有依檔位重建。
-- 左側出洞後的 3D 螞蟻讀 `models/ants/worker_black.glb`（自製 glTF 2.0，頭朝 +X）。載入失敗仍用方塊蟻。右側巢穴與 Classic 2D 不變。步行仍用姿態桶，支點來自模型的胸節。
+- 左側出洞後的 3D 工蟻讀 `models/ants/worker_black.glb`，兵蟻讀 `models/ants/soldier.glb`（自製 glTF 2.0，頭朝 +X）。兵蟻的頭是紅色，身體跟群色。任一檔載入失敗，該階級退回方塊蟻。右側巢穴與 Classic 2D 不變。步行仍用姿態桶，支點來自模型的胸節。頭與身體分成兩份實例，所以頭可以另外上色。
 - 3D 巢穴畫在 present 場景，用跟 Classic 2D 相同的螢幕正交相機（近裁剪面必須是負的，否則 z=0 的四邊形會被裁掉）。kool 0.19 的 `AttachmentConfig.singleColorDefaultDepth(format, clearColor)` 不使用傳入的清除色，一律清成黑；在 MoltenVK 上把 `OffscreenPass2d` 的顏色貼圖貼回畫面時，取樣結果也是黑，剖面幾何沒有出現在那張貼圖裡。因此不走離屏貼圖，直接在右側 26% 畫土塊、隧道節點與蟻后／幼體／巢內蟻。Unlit 顏色要設 `LinearToSrgb`，否則會以線性值寫進交換鏈，土色會暗成接近黑。`nest3dActive` 為假時才回到 2D 巢穴疊層。巢穴點擊只在 3D 巢穴有效時做 inspect。
 - 這台 Mac（Apple M4 Pro、MoltenVK api 1.2.296）已開過 Vulkan 視窗，BloomPass 有建立，`ImageIO` 有寫出 PNG。尚未量到的項目：Medium、雙群約 300 蟻是否 ≥ 60 fps，以及 Ultra 1200 蟻是否 ≥ 30 fps。截圖當下族群 34，HUD 約 43–48 fps，不能當成達標。GL 3.3 context 沒測。費洛蒙貼圖的上下方向，以及螞蟻朝向是否與移動方向一致，靜態圖看不出來。對照見 `docs/programming/3d_refs/shots/REVIEW.md`。
 
