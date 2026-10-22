@@ -4,9 +4,12 @@
 Head toward +X, feet on y = 0, length 1 after fit. Not from Sketchfab.
 The beetle file is made by tools/make_stag_beetle_glb.py instead of this script.
 Run from anywhere. Files land in koolApp/assets/models/insects/.
+Pass a name, for example ladybug, to write only that file.
 """
 
 import importlib.util
+import math
+import sys
 from pathlib import Path
 
 _ant_path = Path(__file__).with_name("make_black_ant_glb.py")
@@ -110,24 +113,59 @@ def build_spider():
     return b
 
 
+def _on_dome(center, radii, x, z):
+    """Upper shell at this top-view point. A flat direction would sit on the crown."""
+    dx = (x - center[0]) / radii[0]
+    dz = (z - center[2]) / radii[2]
+    flat = dx * dx + dz * dz
+    if flat >= 0.92:
+        raise SystemExit("spot %s,%s sits on the rim" % (x, z))
+    y = center[1] + math.sqrt(1.0 - flat) * radii[1]
+    return (x, y, z)
+
+
+def _sphere(b, name, parent, center, radii, material, stacks, slices):
+    saved = (ant.STACKS, ant.SLICES)
+    ant.STACKS, ant.SLICES = stacks, slices
+    try:
+        mesh = ant.uv_sphere()
+    finally:
+        ant.STACKS, ant.SLICES = saved
+    return b.add_node(name, parent, translation=center, scale=radii, mesh=mesh, material=material)
+
+
 def build_ladybug():
+    """High round elytra. Spot* meshes take the black tint; a HeadShell would stay red."""
     b = ant.Builder()
     root = b.add_node("Ladybug", None)
-    b.sphere_node("Dome", root, (0.70, 0.58, 0.0), (0.85, 0.55, 0.72))
-    b.sphere_node("Spot1", root, (0.95, 1.08, 0.26), (0.18, 0.10, 0.16), MARK)
-    b.sphere_node("Spot2", root, (0.95, 1.08, -0.26), (0.18, 0.10, 0.16), MARK)
-    b.sphere_node("Spot3", root, (0.42, 1.02, 0.22), (0.16, 0.09, 0.14), MARK)
-    b.sphere_node("Spot4", root, (0.42, 1.02, -0.22), (0.16, 0.09, 0.14), MARK)
-    center = (1.45, 0.42, 0.0)
+    # Height is a bit over half the width, so the shell reads as a dome rather than a ball.
+    dome_c = (0.0, 0.50, 0.0)
+    dome_r = (0.74, 0.50, 0.72)
+    _sphere(b, "Dome", root, dome_c, dome_r, CHITIN, 12, 16)
+    # Seven-spot layout: one on the midline by the pronotum, then three a side.
+    # Head is +X. Values are top-view positions on the shell, not a direction.
+    spots = (
+        (0.48, 0.00),
+        (0.28, 0.34),
+        (0.28, -0.34),
+        (-0.02, 0.42),
+        (-0.02, -0.42),
+        (-0.38, 0.18),
+        (-0.38, -0.18),
+    )
+    spot_r = (0.11, 0.11, 0.11)
+    for index, (x, z) in enumerate(spots, start=1):
+        _sphere(b, "Spot%d" % index, root, _on_dome(dome_c, dome_r, x, z), spot_r, MARK, 8, 10)
+    center = (0.48, 0.22, 0.0)
     thorax = b.add_node("Thorax", root, translation=center)
-    b.sphere_node("Pronotum", thorax, (0.15, 0.12, 0.0), (0.28, 0.16, 0.40))
-    head = b.add_node("Head", root, translation=(1.95, 0.40, 0.0))
-    b.sphere_node("HeadShell", head, (0.0, 0.0, 0.0), (0.26, 0.20, 0.32))
-    b.sphere_node("EyeL", head, (0.08, 0.04, 0.14), (0.06, 0.06, 0.05), EYE)
-    b.sphere_node("EyeR", head, (0.08, 0.04, -0.14), (0.06, 0.06, 0.05), EYE)
-    pair(b, thorax, center, 1, 0.02, 0.22, 1.80, 0.55, 0.04)
-    pair(b, thorax, center, 2, 0.00, 0.24, 1.45, 0.62, 0.04)
-    pair(b, thorax, center, 3, 0.00, 0.22, 1.05, 0.55, 0.04)
+    _sphere(b, "SpotPronotum", thorax, (0.32, 0.08, 0.0), (0.16, 0.11, 0.36), MARK, 8, 10)
+    head = b.add_node("Head", root, translation=(1.04, 0.30, 0.0))
+    _sphere(b, "SpotHead", head, (0.0, 0.0, 0.0), (0.14, 0.12, 0.16), MARK, 8, 10)
+    _sphere(b, "EyeL", head, (0.05, 0.04, 0.08), (0.04, 0.04, 0.035), EYE, 6, 8)
+    _sphere(b, "EyeR", head, (0.05, 0.04, -0.08), (0.04, 0.04, 0.035), EYE, 6, 8)
+    pair(b, thorax, center, 1, 0.22, 0.26, 0.70, 0.78, 0.038)
+    pair(b, thorax, center, 2, 0.20, 0.28, 0.34, 0.88, 0.038)
+    pair(b, thorax, center, 3, 0.20, 0.24, -0.04, 0.76, 0.038)
     return b
 
 
@@ -166,9 +204,18 @@ def check(builder, leg_count):
 def main():
     ant.STACKS = 8
     ant.SLICES = 10
+    selected = set()
+    for arg in sys.argv[1:]:
+        selected.add(arg if arg.endswith(".glb") else arg + ".glb")
+    known = {name for name, _builder_fn, _legs in BUILDERS}
+    unknown = selected - known
+    if unknown:
+        raise SystemExit("unknown insect: %s" % ", ".join(sorted(unknown)))
     out_dir = Path(__file__).resolve().parents[1] / "koolApp" / "assets" / "models" / "insects"
     out_dir.mkdir(parents=True, exist_ok=True)
     for name, builder_fn, legs in BUILDERS:
+        if selected and name not in selected:
+            continue
         builder = builder_fn()
         ant.fit_root(builder)
         world = check(builder, legs)

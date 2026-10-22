@@ -14,6 +14,26 @@ class CritterGlbTest {
         assertCritter("spider.glb", 8, marks = false)
         assertCritter("beetle.glb", 6, marks = true)
         assertCritter("ladybug.glb", 6, marks = true)
+        assertLadybugDome()
+    }
+
+    private fun assertLadybugDome() {
+        val critter = parseGltfCritter(glb("ladybug.glb").readBytes())
+        val names = critter.nodes.map { it.name }.toSet()
+        for (name in listOf(
+            "Dome",
+            "Spot1", "Spot2", "Spot3", "Spot4", "Spot5", "Spot6", "Spot7",
+            "SpotHead", "SpotPronotum",
+        )) {
+            assertTrue(name in names, name)
+        }
+        val shell = horizontalSpan(critter.body)
+        val length = modelLength(critter)
+        assertTrue(shell.dx > 0.6f * length, "shell=${shell.dx} length=$length")
+        assertTrue(
+            abs(shell.dz - shell.dx) < 0.15f * shell.dx,
+            "shell x=${shell.dx} z=${shell.dz}",
+        )
     }
 
     private fun assertCritter(name: String, legs: Int, marks: Boolean) {
@@ -44,6 +64,43 @@ class CritterGlbTest {
             }
         }
         assertTrue(abs((spanMax - spanMin) - 1f) < 0.02f, "$name length=${spanMax - spanMin}")
+    }
+
+    private class Span(val dx: Float, val dz: Float)
+
+    private fun horizontalSpan(part: AntMesh): Span {
+        var minX = Float.POSITIVE_INFINITY
+        var maxX = Float.NEGATIVE_INFINITY
+        var minZ = Float.POSITIVE_INFINITY
+        var maxZ = Float.NEGATIVE_INFINITY
+        var v = 0
+        val positions = part.positions
+        while (v < positions.size) {
+            val x = positions[v]
+            val z = positions[v + 2]
+            if (x < minX) minX = x
+            if (x > maxX) maxX = x
+            if (z < minZ) minZ = z
+            if (z > maxZ) maxZ = z
+            v += 3
+        }
+        return Span(maxX - minX, maxZ - minZ)
+    }
+
+    private fun modelLength(critter: GltfCritter): Float {
+        var minX = Float.POSITIVE_INFINITY
+        var maxX = Float.NEGATIVE_INFINITY
+        val parts = listOf(critter.body, critter.eyes, critter.marks) + critter.legs.map { it.mesh }
+        for (part in parts) {
+            var v = 0
+            while (v < part.positions.size) {
+                val x = part.positions[v]
+                if (x < minX) minX = x
+                if (x > maxX) maxX = x
+                v += 3
+            }
+        }
+        return maxX - minX
     }
 
     private fun glb(name: String): File {

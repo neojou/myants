@@ -43,7 +43,7 @@
 - Bloom 只在 `KoolSystem.features.computeShaders` 為真且後端類名含 Vk 或 WebGpu 時開啟。Desktop GL 即使回報 computeShaders 也不開。雨與選取環畫在 deferred output quad 之後。
 - 品質檔位的模擬上限沒變。`QualityPreset` 只改渲染。前 5 秒平均低於 40 fps 時只加 `renderTierBias`，不呼叫 `setQuality`。手動選品質會把 bias 歸零。陰影貼圖大小在第一個 3D 影圖建立時固定為 2048；Ultra 的 4096 與 zoom≥4 的 CSM 這版沒有依檔位重建。
 - 左側出洞後的 3D 工蟻讀 `models/ants/worker_black.glb`，兵蟻讀 `models/ants/soldier.glb`（自製 glTF 2.0，頭朝 +X）。兵蟻的頭是紅色，身體跟群色。任一檔載入失敗，該階級退回方塊蟻。右側巢穴與 Classic 2D 不變。步行仍用姿態桶，支點來自模型的胸節。頭與身體分成兩份實例，所以頭可以另外上色。
-- 左側獵物、捕食者、蜘蛛、甲蟲、瓢蟲讀 `models/insects/` 下對應的自製 glb。蜘蛛八腳。瓢蟲斑點是深色實例。甲蟲的室外模型是鍬形蟲剪影，頭近黑，鞘翅是深栗褐的整片盾。缺檔退回方塊。蚜蟲仍是 `aphid_green.glb`。Classic 2D 不變。
+- 左側獵物、捕食者、蜘蛛、甲蟲、瓢蟲讀 `models/insects/` 下對應的自製 glb。蜘蛛八腳。瓢蟲的圓背是紅的，頭和斑點是黑的。甲蟲的室外模型是鍬形蟲剪影，頭近黑，鞘翅是深栗褐的整片盾。缺檔退回方塊。蚜蟲仍是 `aphid_green.glb`。Classic 2D 不變。
 - 地面糖堆、蛋白堆，以及嘴上搬運的糖和蛋白，讀 `models/food/sugar.glb` 與 `protein.glb`。屍體仍是球。缺檔退回球。
 - 小石與障礙石共用 `models/nature/pebble.glb`，落葉是 `leaf.glb`，時鐘石體是 `clock_stone.glb`。數字仍是七段方塊。缺檔退回方塊或圓球。左側 3D 的草是貼地的三葉草叢，約五叢有兩叢在同一點開白花；缺檔退回方柱和彩球。Classic 2D 的草仍是綠色橢圓。Medium 300 蟻是否 ≥ 60 fps 這次沒有重測。
 - 3D 巢穴畫在 present 場景，用跟 Classic 2D 相同的螢幕正交相機（近裁剪面必須是負的，否則 z=0 的四邊形會被裁掉）。kool 0.19 的 `AttachmentConfig.singleColorDefaultDepth(format, clearColor)` 不使用傳入的清除色，一律清成黑；在 MoltenVK 上把 `OffscreenPass2d` 的顏色貼圖貼回畫面時，取樣結果也是黑，剖面幾何沒有出現在那張貼圖裡。因此不走離屏貼圖，直接在右側 26% 畫土塊、隧道節點與蟻后／幼體／巢內蟻。Unlit 顏色要設 `LinearToSrgb`，否則會以線性值寫進交換鏈，土色會暗成接近黑。`nest3dActive` 為假時才回到 2D 巢穴疊層。巢穴點擊只在 3D 巢穴有效時做 inspect。
