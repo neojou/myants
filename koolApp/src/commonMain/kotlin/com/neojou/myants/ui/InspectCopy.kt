@@ -3,7 +3,10 @@ package com.neojou.myants.ui
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntState
+import com.neojou.myants.sim.Brood
+import com.neojou.myants.sim.BroodStage
 import com.neojou.myants.sim.CarryKind
+import com.neojou.myants.sim.ChamberRole
 import com.neojou.myants.sim.FoodKind
 import com.neojou.myants.sim.InsectKind
 
@@ -73,6 +76,54 @@ internal object InspectCopy {
         if (lang == UiLanguage.EN) type.name else insect(type, lang),
         listOf("${word(UiText.INSPECT_HP, lang)} $health"),
     )
+
+    fun broodLine(brood: Brood, lang: UiLanguage = L10n.language.value): String {
+        val age = brood.age.toInt()
+        val stage = word(stageKey(brood.stage), lang)
+        val base = "$stage ${word(UiText.INSPECT_AGE, lang)}=$age"
+        val withHunger = if (brood.stage == BroodStage.LARVA) {
+            "$base ${word(UiText.INSPECT_HUNGER, lang)}=${brood.hunger.toInt()}"
+        } else {
+            base
+        }
+        val caste = brood.destinedCaste
+        return if (brood.stage == BroodStage.PUPA && caste != null) "$withHunger ${kind(caste, lang)}" else withHunger
+    }
+
+    fun broodPanel(brood: Brood, lang: UiLanguage = L10n.language.value): InspectPanel {
+        val rows = ArrayList<String>()
+        rows += "${word(UiText.INSPECT_AGE, lang)}=${brood.age.toInt()}"
+        if (brood.stage == BroodStage.LARVA) {
+            rows += "${word(UiText.INSPECT_HUNGER, lang)}=${brood.hunger.toInt()}"
+        }
+        val caste = brood.destinedCaste
+        if (brood.stage == BroodStage.PUPA && caste != null) rows += kind(caste, lang)
+        return InspectPanel(word(stageKey(brood.stage), lang), rows)
+    }
+
+    fun chamberLine(role: ChamberRole, radius: Int, lang: UiLanguage = L10n.language.value): String =
+        "${word(UiText.INSPECT_CHAMBER, lang)} ${word(roleKey(role), lang)} ${word(UiText.INSPECT_RADIUS, lang)}=$radius"
+
+    fun chamberPanel(role: ChamberRole, radius: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
+        word(UiText.INSPECT_CHAMBER, lang),
+        listOf(
+            word(roleKey(role), lang),
+            "${word(UiText.INSPECT_RADIUS, lang)}=$radius",
+        ),
+    )
+
+    private fun stageKey(stage: BroodStage): UiText = when (stage) {
+        BroodStage.EGG -> UiText.INSPECT_EGG
+        BroodStage.LARVA -> UiText.INSPECT_LARVA
+        BroodStage.PUPA -> UiText.INSPECT_PUPA
+    }
+
+    private fun roleKey(role: ChamberRole): UiText = when (role) {
+        ChamberRole.QUEEN -> UiText.INSPECT_ROLE_QUEEN
+        ChamberRole.BROOD -> UiText.INSPECT_ROLE_BROOD
+        ChamberRole.STORAGE -> UiText.INSPECT_ROLE_STORAGE
+        ChamberRole.CEMETERY -> UiText.INSPECT_ROLE_CEMETERY
+    }
 
     fun kind(kind: AntKind, lang: UiLanguage): String = name(KIND, kind.name, lang)
     fun state(state: AntState, lang: UiLanguage): String = name(STATE, state.name, lang)

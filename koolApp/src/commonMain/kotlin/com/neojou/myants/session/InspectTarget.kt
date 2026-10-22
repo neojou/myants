@@ -2,6 +2,8 @@ package com.neojou.myants.session
 
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntPlace
+import com.neojou.myants.sim.Brood
+import com.neojou.myants.sim.Chamber
 import com.neojou.myants.sim.Colony
 import com.neojou.myants.sim.Food
 import com.neojou.myants.sim.Insect
@@ -56,5 +58,22 @@ internal sealed class InspectTarget {
         override fun present(world: World): Boolean = world.colonies.any { it === colony }
         override fun line(): String = InspectCopy.queenLine(colony.queen.energy.toInt(), colony.queen.age)
         override fun panel(): InspectPanel = InspectCopy.queenPanel(colony.queen.energy.toInt(), colony.queen.age)
+    }
+
+    /** An egg, larva, or pupa that is not being carried. */
+    data class BroodItem(val brood: Brood, val colony: Colony) : InspectTarget() {
+        override val ant: Ant? get() = null
+        override fun present(world: World): Boolean =
+            world.colonies.any { it === colony } && colony.brood.any { it === brood && it.carrier == null }
+        override fun line(): String = InspectCopy.broodLine(brood)
+        override fun panel(): InspectPanel = InspectCopy.broodPanel(brood)
+    }
+
+    data class ChamberItem(val chamber: Chamber, val colony: Colony) : InspectTarget() {
+        override val ant: Ant? get() = null
+        override fun present(world: World): Boolean =
+            world.colonies.any { it === colony } && colony.nest.chambers.any { it === chamber }
+        override fun line(): String = InspectCopy.chamberLine(chamber.type, chamber.radius.toInt())
+        override fun panel(): InspectPanel = InspectCopy.chamberPanel(chamber.type, chamber.radius.toInt())
     }
 }

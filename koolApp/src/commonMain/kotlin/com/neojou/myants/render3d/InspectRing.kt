@@ -15,7 +15,8 @@ internal fun inspectRing(target: InspectTarget): InspectRing? = when (target) {
     is InspectTarget.WorldAnt -> InspectRing(target.subject.x, target.subject.y, worldAntRingScale(target.subject.sizeVar))
     is InspectTarget.FoodItem -> InspectRing(target.food.x, target.food.y, foodRingScale(target.food.amount))
     is InspectTarget.InsectItem -> InspectRing(target.insect.x, target.insect.y, insectRingScale(target.insect.type))
-    is InspectTarget.NestAnt, is InspectTarget.QueenTarget -> null
+    is InspectTarget.NestAnt, is InspectTarget.QueenTarget,
+    is InspectTarget.BroodItem, is InspectTarget.ChamberItem -> null
 }
 
 /** Same scale the world ant ring has always used. */

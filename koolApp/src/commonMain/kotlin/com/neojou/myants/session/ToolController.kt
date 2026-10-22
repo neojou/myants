@@ -15,6 +15,10 @@ import de.fabmax.kool.modules.ui2.mutableStateOf
  */
 class ToolController {
     var tool: SimTool = SimTool.INSPECT
+
+    private companion object {
+        const val BROOD_PICK = 12.0
+    }
     var inspectedAnt: Ant? = null
     /** Historical one-line text. Tests lock the English wording. The HUD shows [inspectPanel]. */
     val inspect = mutableStateOf("")
@@ -103,11 +107,30 @@ class ToolController {
             }
         }
         val queen = colony.queen
-        val qdx = queen.x - nx
-        val qdy = queen.y - ny
-        val qd = qdx * qdx + qdy * qdy
+        val qd = dist2(queen.x, queen.y, nx, ny)
         if (qd < best && qd <= 40.0 * 40.0) picked = InspectTarget.QueenTarget(colony)
+        if (picked == null) {
+            var broodBest = Double.MAX_VALUE
+            for (brood in colony.brood) {
+                if (brood.carrier != null) continue
+                val d = dist2(brood.x, brood.y, nx, ny)
+                if (d < broodBest && d <= BROOD_PICK * BROOD_PICK) {
+                    broodBest = d
+                    picked = InspectTarget.BroodItem(brood, colony)
+                }
+            }
+        }
+        if (picked == null) {
+            val chamber = colony.nest.chamberAt(nx, ny)
+            if (chamber != null) picked = InspectTarget.ChamberItem(chamber, colony)
+        }
         show(picked)
+    }
+
+    private fun dist2(x: Double, y: Double, px: Double, py: Double): Double {
+        val dx = x - px
+        val dy = y - py
+        return dx * dx + dy * dy
     }
 
     private fun show(picked: InspectTarget?) {

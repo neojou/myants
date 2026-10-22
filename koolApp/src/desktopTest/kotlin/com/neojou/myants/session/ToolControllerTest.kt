@@ -4,6 +4,9 @@ import com.neojou.myants.SimTool
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
+import com.neojou.myants.sim.Brood
+import com.neojou.myants.sim.BroodStage
+import com.neojou.myants.sim.ChamberRole
 import com.neojou.myants.sim.Food
 import com.neojou.myants.sim.FoodKind
 import com.neojou.myants.sim.InsectKind
@@ -104,6 +107,60 @@ class ToolControllerTest {
         assertNull(t.inspectedAnt)
         assertTrue(t.inspectTarget() is InspectTarget.QueenTarget)
         assertTrue(t.inspect.value.startsWith("Queen"))
+    }
+
+    @Test
+    fun inspectNestFindsBroodThenChamber() {
+        val colony = world.colonies[0]
+        val q = colony.queen
+        colony.ants.clear()
+        colony.brood.clear()
+        val egg = Brood(q.x + 60, q.y).apply { stage = BroodStage.EGG; age = 3.0 }
+        val larva = Brood(q.x, q.y + 70).apply { stage = BroodStage.LARVA; age = 4.0; hunger = 6.0 }
+        val pupa = Brood(q.x - 60, q.y).apply {
+            stage = BroodStage.PUPA
+            age = 1.0
+            destinedCaste = AntKind.SOLDIER
+        }
+        val carried = Brood(20.0, 20.0).apply {
+            stage = BroodStage.EGG
+            age = 1.0
+            carrier = Ant(0.0, 0.0, AntKind.WORKER)
+        }
+        colony.brood += listOf(egg, larva, pupa, carried)
+        val t = ToolController()
+        t.inspectNest(world, egg.x, egg.y)
+        assertEquals("EGG age=3", t.inspect.value)
+        assertEquals("EGG", t.inspectPanel.value?.title)
+        assertEquals(listOf("age=3"), t.inspectPanel.value?.rows)
+
+        t.inspectNest(world, larva.x, larva.y)
+        assertEquals("LARVA age=4 hunger=6", t.inspect.value)
+        assertTrue(t.inspectPanel.value!!.rows.contains("hunger=6"))
+
+        t.inspectNest(world, pupa.x, pupa.y)
+        assertEquals("PUPA age=1 SOLDIER", t.inspect.value)
+
+        // Queen stays ahead of a brood that is also inside the queen radius.
+        val near = Brood(q.x + 15, q.y).apply { stage = BroodStage.EGG; age = 1.0 }
+        colony.brood += near
+        t.inspectNest(world, near.x, near.y)
+        assertTrue(t.inspectTarget() is InspectTarget.QueenTarget)
+
+        val room = colony.nest.addChamber(24.0, 24.0, 30.0, ChamberRole.STORAGE)
+        t.inspectNest(world, carried.x, carried.y)
+        assertTrue(t.inspectTarget() is InspectTarget.ChamberItem)
+        assertEquals("CHAMBER STORAGE r=30", t.inspect.value)
+        assertEquals(listOf("STORAGE", "r=30"), t.inspectPanel.value?.rows)
+        assertEquals(room.x, 24.0)
+
+        L10n.language.value = UiLanguage.ZH_TW
+        t.inspectNest(world, egg.x, egg.y)
+        assertEquals("卵", t.inspectPanel.value?.title)
+        assertEquals("卵 年齡=3", t.inspect.value)
+        t.inspectNest(world, room.x, room.y)
+        assertEquals("巢間", t.inspectPanel.value?.title)
+        assertEquals(listOf("存放", "半徑=30"), t.inspectPanel.value?.rows)
     }
 
     @Test
