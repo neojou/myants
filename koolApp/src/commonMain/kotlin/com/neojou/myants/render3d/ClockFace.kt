@@ -15,7 +15,8 @@ internal data class ClockSeg(
 
 /**
  * Lays a standing segment onto the stone. The old height was world Y, which the
- * overhead camera sees edge-on. That height becomes world Z, and [thickness] stays up.
+ * overhead camera sees edge-on. Straight down, screen-up is world −Z, so the
+ * high end of the digit moves toward −Z. [thickness] stays up.
  */
 internal fun flatClockSeg(
     digitY: Float,
@@ -28,13 +29,13 @@ internal fun flatClockSeg(
 ): ClockSeg = ClockSeg(
     x = segX,
     y = digitY,
-    z = digitZ + (segY - digitY),
+    z = digitZ - (segY - digitY),
     sx = sx,
     sy = thickness,
     sz = sy,
 )
 
-/** A colon cube. [along] used to be a world-Y offset; it now runs across the stone. */
+/** A colon cube. Positive [along] is the upper dot, toward screen-up (−Z). */
 internal fun flatClockDot(
     x: Float,
     digitY: Float,
@@ -45,7 +46,7 @@ internal fun flatClockDot(
 ): ClockSeg = ClockSeg(
     x = x,
     y = digitY,
-    z = digitZ + along,
+    z = digitZ - along,
     sx = size,
     sy = thickness,
     sz = size,
