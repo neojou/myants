@@ -222,46 +222,51 @@ def build(soldier=False):
     root = b.add_node("Ant", None)
 
     # Design space, head toward +X, feet on y = 0. The root scale fits this to length 1.
-    # A soldier keeps the same nodes and has a larger head, eyes, and jaws.
-    hs = 1.42 if soldier else 1.0
-    js = 1.7 if soldier else 1.0
-    ps = 1.22 if soldier else 1.0
-    head_c = (6.95 if soldier else 6.62, 1.22, 0.0)
+    # Proportions follow a fire-ant photo: a wider head, one low mesosoma, a
+    # narrow two-node waist, and one long oval gaster. A soldier keeps the same
+    # nodes, with a larger head and thicker jaws that stay in front of the head.
+    hs = 1.38 if soldier else 1.0
+    js = 1.22 if soldier else 1.0
+    ps = 1.10 if soldier else 1.0
+    head_rx = 0.62 * hs
+    pro_front = 5.40 + 0.46 * ps
+    head_c = (pro_front + 0.36 + head_rx, 1.16, 0.0)
     head = b.add_node("Head", root, translation=head_c)
-    b.sphere_node("HeadShell", head, (0.06, -0.02, 0.0), (0.88 * hs, 0.62 * hs, 0.76 * hs))
-    b.sphere_node("Clypeus", head, (0.58 * hs, -0.18, 0.0), (0.30 * hs, 0.18 * hs, 0.32 * hs))
-    b.sphere_node("EyeL", head, (0.24 * hs, 0.14, 0.50 * hs), (0.30 * hs, 0.22 * hs, 0.18 * hs), EYE)
-    b.sphere_node("EyeR", head, (0.24 * hs, 0.14, -0.50 * hs), (0.30 * hs, 0.22 * hs, 0.18 * hs), EYE)
+    b.sphere_node("HeadShell", head, (0.0, -0.02, 0.0), (head_rx, 0.44 * hs, 0.72 * hs))
+    b.sphere_node("Neck", head, (-head_rx - 0.06, -0.08, 0.0), (0.32, 0.15, 0.17))
+    b.sphere_node("Clypeus", head, (0.36 * hs, -0.12, 0.0), (0.18 * hs, 0.10 * hs, 0.26 * hs))
+    b.sphere_node("EyeL", head, (0.06 * hs, 0.12 * hs, 0.58 * hs), (0.16 * hs, 0.12 * hs, 0.10 * hs), EYE)
+    b.sphere_node("EyeR", head, (0.06 * hs, 0.12 * hs, -0.58 * hs), (0.16 * hs, 0.12 * hs, 0.10 * hs), EYE)
 
     def antenna(side, zsign):
         name = "Antenna" + side
-        socket = (0.46 * hs, 0.40 * hs, 0.20 * hs * zsign)
-        elbow = (1.05 * hs, 0.96 * hs, 0.78 * hs * zsign)
-        tip = (1.95 * hs, 0.18 * hs, 1.22 * hs * zsign)
+        socket = (0.28 * hs, 0.32 * hs, 0.28 * hs * zsign)
+        elbow = (0.95 * hs, 0.62 * hs, 0.62 * hs * zsign)
+        tip = (1.70 * hs, 0.22 * hs, 0.95 * hs * zsign)
         node = b.add_node(name, head, translation=socket)
-        b.rod("Scape" + side, node, (0, 0, 0), sub(elbow, socket), 0.050, 0.040)
-        b.rod("Funiculus" + side, node, sub(elbow, socket), sub(tip, socket), 0.036, 0.018)
+        b.rod("Scape" + side, node, (0, 0, 0), sub(elbow, socket), 0.032, 0.026)
+        b.rod("Funiculus" + side, node, sub(elbow, socket), sub(tip, socket), 0.022, 0.012)
 
     antenna("L", 1.0)
     antenna("R", -1.0)
 
     def mandible(side, zsign):
         name = "Mandible" + side
-        base = (0.60 * hs, -0.20, 0.26 * hs * zsign)
-        mid = (1.08 * js, -0.36, 0.46 * hs * zsign)
-        tip = (1.52 * js, -0.50, 0.04 * zsign)
+        base = (0.42 * hs, -0.14, 0.14 * hs * zsign)
+        mid = (0.72 * js, -0.20, 0.16 * hs * zsign)
+        tip = (0.92 * js, -0.24, 0.08 * hs * zsign)
         node = b.add_node(name, head, translation=base)
-        b.rod("MandibleBase" + side, node, (0, 0, 0), sub(mid, base), 0.12 * js, 0.08 * js, MANDIBLE)
-        b.rod("MandibleTip" + side, node, sub(mid, base), sub(tip, base), 0.08 * js, 0.030 * js, MANDIBLE)
+        b.rod("MandibleBase" + side, node, (0, 0, 0), sub(mid, base), 0.055 * js, 0.040 * js, MANDIBLE)
+        b.rod("MandibleTip" + side, node, sub(mid, base), sub(tip, base), 0.038 * js, 0.018 * js, MANDIBLE)
 
     mandible("L", 1.0)
     mandible("R", -1.0)
 
     thorax = b.add_node("Thorax", root)
     segments = (
-        ("Prothorax", (5.78, 1.38, 0.0), (0.48 * ps, 0.36 * ps, 0.46 * ps)),
-        ("Mesothorax", (4.95, 1.72, 0.0), (0.50, 0.46, 0.48)),
-        ("Metathorax", (4.10, 1.28, 0.0), (0.40, 0.28, 0.36)),
+        ("Prothorax", (5.40, 1.18, 0.0), (0.46 * ps, 0.28 * ps, 0.50 * ps)),
+        ("Mesothorax", (4.58, 1.30, 0.0), (0.56, 0.32, 0.54)),
+        ("Metathorax", (3.88, 1.14, 0.0), (0.40, 0.24, 0.38)),
     )
     segment_index = {}
     for name, center, radii in segments:
@@ -283,53 +288,53 @@ def build(soldier=False):
 
     # Front pair on the prothorax, middle on the mesothorax, hind on the metathorax.
     # Each list is coxa end, femur end, tibia end, tarsus (foot on y = 0).
-    leg("L1", "Prothorax", (5.90, 1.08, 0.42), [
-        (6.20, 0.82, 0.78),
-        (6.55, 0.42, 1.20),
-        (6.30, 0.12, 1.48),
-        (6.05, 0.00, 1.62),
-    ], (0.20, 0.16, 0.13, 0.09, 0.05))
-    leg("R1", "Prothorax", (5.90, 1.08, -0.42), [
-        (6.20, 0.82, -0.78),
-        (6.55, 0.42, -1.20),
-        (6.30, 0.12, -1.48),
-        (6.05, 0.00, -1.62),
-    ], (0.20, 0.16, 0.13, 0.09, 0.05))
-    leg("L2", "Mesothorax", (4.92, 1.10, 0.44), [
-        (4.92, 0.78, 0.90),
-        (4.85, 0.38, 1.38),
-        (4.78, 0.10, 1.66),
-        (4.70, 0.00, 1.82),
-    ], (0.20, 0.16, 0.13, 0.09, 0.05))
-    leg("R2", "Mesothorax", (4.92, 1.10, -0.44), [
-        (4.92, 0.78, -0.90),
-        (4.85, 0.38, -1.38),
-        (4.78, 0.10, -1.66),
-        (4.70, 0.00, -1.82),
-    ], (0.20, 0.16, 0.13, 0.09, 0.05))
-    leg("L3", "Metathorax", (4.00, 1.02, 0.42), [
-        (3.55, 0.74, 0.82),
-        (2.95, 0.36, 1.22),
-        (2.45, 0.10, 1.42),
-        (2.15, 0.00, 1.52),
-    ], (0.20, 0.16, 0.13, 0.09, 0.05))
-    leg("R3", "Metathorax", (4.00, 1.02, -0.42), [
-        (3.55, 0.74, -0.82),
-        (2.95, 0.36, -1.22),
-        (2.45, 0.10, -1.42),
-        (2.15, 0.00, -1.52),
-    ], (0.20, 0.16, 0.13, 0.09, 0.05))
+    leg_r = (0.090, 0.070, 0.050, 0.032, 0.018)
+    leg("L1", "Prothorax", (5.50, 0.92, 0.42), [
+        (5.85, 0.62, 0.72),
+        (6.35, 0.28, 1.15),
+        (6.05, 0.08, 1.48),
+        (5.85, 0.00, 1.62),
+    ], leg_r)
+    leg("R1", "Prothorax", (5.50, 0.92, -0.42), [
+        (5.85, 0.62, -0.72),
+        (6.35, 0.28, -1.15),
+        (6.05, 0.08, -1.48),
+        (5.85, 0.00, -1.62),
+    ], leg_r)
+    leg("L2", "Mesothorax", (4.58, 0.92, 0.46), [
+        (4.55, 0.58, 0.85),
+        (4.40, 0.26, 1.35),
+        (4.20, 0.08, 1.62),
+        (4.05, 0.00, 1.78),
+    ], leg_r)
+    leg("R2", "Mesothorax", (4.58, 0.92, -0.46), [
+        (4.55, 0.58, -0.85),
+        (4.40, 0.26, -1.35),
+        (4.20, 0.08, -1.62),
+        (4.05, 0.00, -1.78),
+    ], leg_r)
+    leg("L3", "Metathorax", (3.95, 0.88, 0.34), [
+        (3.45, 0.58, 0.72),
+        (2.75, 0.26, 1.15),
+        (2.25, 0.08, 1.40),
+        (1.95, 0.00, 1.55),
+    ], leg_r)
+    leg("R3", "Metathorax", (3.95, 0.88, -0.34), [
+        (3.45, 0.58, -0.72),
+        (2.75, 0.26, -1.15),
+        (2.25, 0.08, -1.40),
+        (1.95, 0.00, -1.55),
+    ], leg_r)
 
-    petiole_c = (3.30, 1.22, 0.0)
-    petiole = b.add_node("Petiole", root, translation=petiole_c)
-    b.sphere_node("PetioleShell", petiole, (0, 0, 0), (0.16, 0.30, 0.16))
-    post = b.add_node("Postpetiole", root, translation=(2.68, 1.16, 0.0))
-    b.sphere_node("PostpetioleShell", post, (0, 0, 0), (0.24, 0.32, 0.24))
+    petiole = b.add_node("Petiole", root, translation=(3.20, 1.22, 0.0))
+    b.sphere_node("PetioleShell", petiole, (0, 0, 0), (0.10, 0.18, 0.08))
+    post = b.add_node("Postpetiole", root, translation=(2.74, 1.18, 0.0))
+    b.sphere_node("PostpetioleShell", post, (0, 0, 0), (0.14, 0.16, 0.12))
 
-    gaster = b.add_node("Gaster", root, translation=(1.28, 1.08, 0.0))
-    b.sphere_node("GasterRear", gaster, (-0.15, 0.0, 0.0), (1.32, 1.08, 1.18))
-    b.sphere_node("GasterFront", gaster, (0.95, 0.06, 0.0), (0.58, 0.50, 0.58))
-    b.sphere_node("GasterTip", gaster, (-1.20, 0.02, 0.0), (0.36, 0.40, 0.40))
+    gaster = b.add_node("Gaster", root, translation=(1.40, 1.18, 0.0))
+    b.sphere_node("GasterRear", gaster, (0.0, 0.04, 0.0), (1.20, 0.78, 0.68))
+    b.sphere_node("GasterFront", gaster, (0.88, 0.06, 0.0), (0.28, 0.24, 0.30))
+    b.sphere_node("GasterTip", gaster, (-1.05, -0.02, 0.0), (0.26, 0.20, 0.24))
     return b
 
 
