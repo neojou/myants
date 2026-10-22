@@ -7,8 +7,12 @@ import com.neojou.myants.sim.Brood
 import com.neojou.myants.sim.BroodStage
 import com.neojou.myants.sim.CarryKind
 import com.neojou.myants.sim.ChamberRole
+import com.neojou.myants.sim.Colony
 import com.neojou.myants.sim.FoodKind
 import com.neojou.myants.sim.InsectKind
+import com.neojou.myants.sim.Pheromone
+import kotlin.math.abs
+import kotlin.math.round
 
 /**
  * Inspect lines. English keeps the historical enum wording so existing tests stay valid.
@@ -112,6 +116,58 @@ internal object InspectCopy {
         ),
     )
 
+    fun stoneLine(radius: Int, clock: Boolean, lang: UiLanguage = L10n.language.value): String =
+        "${word(if (clock) UiText.INSPECT_CLOCK else UiText.INSPECT_STONE, lang)} ${word(UiText.INSPECT_RADIUS, lang)}=$radius"
+
+    fun stonePanel(radius: Int, clock: Boolean, lang: UiLanguage = L10n.language.value): InspectPanel {
+        val name = word(if (clock) UiText.INSPECT_CLOCK else UiText.INSPECT_STONE, lang)
+        return InspectPanel(name, listOf("${word(UiText.INSPECT_RADIUS, lang)}=$radius"))
+    }
+
+    fun grassLine(size: Int, lang: UiLanguage = L10n.language.value): String =
+        "${word(UiText.INSPECT_GRASS, lang)} ${word(UiText.INSPECT_SIZE, lang)}=$size"
+
+    fun grassPanel(size: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
+        word(UiText.INSPECT_GRASS, lang),
+        listOf("${word(UiText.INSPECT_SIZE, lang)}=$size"),
+    )
+
+    fun leafLine(lang: UiLanguage = L10n.language.value): String = word(UiText.INSPECT_LEAF, lang)
+
+    fun leafPanel(lang: UiLanguage = L10n.language.value): InspectPanel =
+        InspectPanel(word(UiText.INSPECT_LEAF, lang), emptyList())
+
+    fun pheromoneLine(colonies: List<Colony>, x: Double, y: Double, lang: UiLanguage = L10n.language.value): String =
+        "${word(UiText.INSPECT_PHEROMONE, lang)} " + colonies.joinToString(" ") { colonyChannels(it, x, y, lang) }
+
+    fun pheromonePanel(colonies: List<Colony>, x: Double, y: Double, lang: UiLanguage = L10n.language.value): InspectPanel {
+        val rows = ArrayList<String>()
+        for (colony in colonies) {
+            val field = colony.outdoorField
+            rows += channelRow(colony.id, UiText.INSPECT_HOME, field.get(x, y, Pheromone.HOME), lang)
+            rows += channelRow(colony.id, UiText.INSPECT_TRAIL_SUGAR, field.get(x, y, Pheromone.SUGAR), lang)
+            rows += channelRow(colony.id, UiText.INSPECT_TRAIL_PROTEIN, field.get(x, y, Pheromone.PROTEIN), lang)
+            rows += channelRow(colony.id, UiText.INSPECT_DANGER, field.get(x, y, Pheromone.DANGER), lang)
+        }
+        return InspectPanel(word(UiText.INSPECT_PHEROMONE, lang), rows)
+    }
+
+    private fun colonyChannels(colony: Colony, x: Double, y: Double, lang: UiLanguage): String {
+        val field = colony.outdoorField
+        return "c${colony.id} " + listOf(
+            channelPair(UiText.INSPECT_HOME, field.get(x, y, Pheromone.HOME), lang),
+            channelPair(UiText.INSPECT_TRAIL_SUGAR, field.get(x, y, Pheromone.SUGAR), lang),
+            channelPair(UiText.INSPECT_TRAIL_PROTEIN, field.get(x, y, Pheromone.PROTEIN), lang),
+            channelPair(UiText.INSPECT_DANGER, field.get(x, y, Pheromone.DANGER), lang),
+        ).joinToString(" ")
+    }
+
+    private fun channelRow(id: Int, key: UiText, value: Double, lang: UiLanguage): String =
+        "c$id ${channelPair(key, value, lang)}"
+
+    private fun channelPair(key: UiText, value: Double, lang: UiLanguage): String =
+        "${word(key, lang)}=${fixed2(value)}"
+
     private fun stageKey(stage: BroodStage): UiText = when (stage) {
         BroodStage.EGG -> UiText.INSPECT_EGG
         BroodStage.LARVA -> UiText.INSPECT_LARVA
@@ -213,4 +269,14 @@ internal object InspectCopy {
         val rows = KIND.values + STATE.values + CARRY.values + FOOD.values + INSECT.values
         return rows.all { row -> langs.indices.all { row.toList()[it].isNotBlank() } }
     }
+}
+
+/** Two digits after the point, without using the default locale. */
+internal fun fixed2(value: Double): String {
+    val negative = value < 0.0
+    val rounded = round(abs(value) * 100.0).toLong()
+    val whole = rounded / 100
+    val frac = (rounded % 100).toString().padStart(2, '0')
+    val text = "$whole.$frac"
+    return if (negative && rounded != 0L) "-$text" else text
 }

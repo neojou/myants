@@ -1,6 +1,7 @@
 package com.neojou.myants.session
 
 import com.neojou.myants.SimTool
+import com.neojou.myants.render3d.LeafSpot
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
@@ -9,7 +10,10 @@ import com.neojou.myants.sim.BroodStage
 import com.neojou.myants.sim.ChamberRole
 import com.neojou.myants.sim.Food
 import com.neojou.myants.sim.FoodKind
+import com.neojou.myants.sim.GrassTuft
 import com.neojou.myants.sim.InsectKind
+import com.neojou.myants.sim.Obstacle
+import com.neojou.myants.sim.Pheromone
 import com.neojou.myants.sim.Rng
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
@@ -77,8 +81,16 @@ class ToolControllerTest {
         assertTrue(t.inspectTarget() is InspectTarget.FoodItem)
         assertEquals("SUGAR 42", t.inspect.value)
 
-        t.apply(world, px + 200, py + 200)
+        world.grass.clear()
+        val (ex, ey) = emptyGround()
+        t.apply(world, ex, ey)
         assertNull(t.inspectedAnt)
+        assertTrue(t.inspectTarget() is InspectTarget.PheromoneSample)
+        assertEquals(
+            "PHEROMONE c0 home=0.00 sugar=0.00 protein=0.00 danger=0.00",
+            t.inspect.value,
+        )
+        t.apply(world, ex, ey)
         assertNull(t.inspectTarget())
         assertEquals("", t.inspect.value)
     }
@@ -202,5 +214,125 @@ class ToolControllerTest {
         assertNull(t.inspectedAnt)
         assertNull(t.inspectTarget())
         assertNull(t.inspectPanel.value)
+    }
+
+    @Test
+    fun inspectHitsStoneBeforeGrassLeafAndPheromone() {
+        world.grass.clear()
+        val t = ToolController()
+        val clock = world.terrain.clockStone
+        t.inspectNearest(world, clock.x, clock.y)
+        assertEquals("CLOCK r=${clock.radius.toInt()}", t.inspect.value)
+        assertEquals("CLOCK", t.inspectPanel.value?.title)
+
+        val stone = world.terrain.obstacles.first()
+        t.inspectNearest(world, stone.x, stone.y)
+        assertEquals("STONE r=${stone.radius.toInt()}", t.inspect.value)
+
+        world.foods.add(Food(clock.x, clock.y, FoodKind.SUGAR, 5.0))
+        t.inspectNearest(world, clock.x, clock.y)
+        assertTrue(t.inspectTarget() is InspectTarget.FoodItem)
+        world.foods.clear()
+
+        val (gx, gy) = emptyGround()
+        world.grass.add(GrassTuft(gx, gy, 3.2, 0.0))
+        val leaves = listOf(LeafSpot(gx.toFloat(), gy.toFloat()))
+        t.inspectNearest(world, gx, gy, leaves)
+        assertEquals("GRASS s=3", t.inspect.value)
+        world.grass.clear()
+        t.inspectNearest(world, gx, gy, leaves)
+        assertEquals("LEAF", t.inspect.value)
+        assertEquals("LEAF", t.inspectPanel.value?.title)
+        assertFalse(t.refresh(world, leaves))
+        assertTrue(t.refresh(world, emptyList()))
+        assertNull(t.inspectTarget())
+
+        val (ex, ey) = emptyGround()
+        t.inspectNearest(world, ex, ey)
+        assertEquals(4, t.inspectPanel.value?.rows?.size)
+        world.colonies[0].outdoorField.deposit(ex, ey, Pheromone.HOME, 0.5)
+        assertTrue(t.refresh(world))
+        assertTrue(t.inspect.value.contains("home=0.50"), t.inspect.value)
+        t.inspectNearest(world, -1.0, ey)
+        assertNull(t.inspectTarget())
+
+        L10n.language.value = UiLanguage.ZH_TW
+        t.inspectNearest(world, clock.x, clock.y)
+        assertEquals("時鐘", t.inspectPanel.value?.title)
+        t.inspectNearest(world, gx, gy, leaves)
+        assertEquals("落葉", t.inspect.value)
+    }
+
+    @Test
+    fun pheromoneSampleListsEveryColony() {
+        val previous = SimConfig.colonyCount
+        try {
+            SimConfig.colonyCount = 2
+            val both = World()
+            both.grass.clear()
+            both.foods.clear()
+            both.insects.clear()
+            for (c in both.colonies) c.ants.clear()
+            val (x, y) = emptyGround(both)
+            val t = ToolController()
+            t.inspectNearest(both, x, y)
+            assertTrue(t.inspect.value.contains("c0 "), t.inspect.value)
+            assertTrue(t.inspect.value.contains("c1 "), t.inspect.value)
+            assertEquals(8, t.inspectPanel.value?.rows?.size)
+        } finally {
+            SimConfig.colonyCount = previous
+        }
+    }
+
+    private fun emptyGround(target: World = world): Pair<Double, Double> {
+        val w = SimConfig.width.toDouble()
+        val h = SimConfig.height.toDouble()
+        var y = 2.0
+        while (y < h - 2.0) {
+            var x = 2.0
+            while (x < w - 2.0) {
+                if (!inStone(target, x, y) && !nearActor(target, x, y) && !nearGrass(target, x, y)) {
+                    return x to y
+                }
+                x += 17.0
+            }
+            y += 17.0
+        }
+        error("no empty ground")
+    }
+
+    private fun inStone(target: World, x: Double, y: Double): Boolean {
+        if (covers(target.terrain.clockStone, x, y)) return true
+        return target.terrain.obstacles.any { covers(it, x, y) }
+    }
+
+    private fun covers(stone: Obstacle, x: Double, y: Double): Boolean {
+        val dx = stone.x - x
+        val dy = stone.y - y
+        return dx * dx + dy * dy <= stone.radius * stone.radius
+    }
+
+    private fun nearActor(target: World, x: Double, y: Double): Boolean {
+        fun near(ax: Double, ay: Double): Boolean {
+            val dx = ax - x
+            val dy = ay - y
+            return dx * dx + dy * dy <= 40.0 * 40.0
+        }
+        for (colony in target.colonies) {
+            for (ant in colony.ants) {
+                if (ant.location == AntPlace.WORLD && near(ant.x, ant.y)) return true
+            }
+        }
+        if (target.foods.any { near(it.x, it.y) }) return true
+        return target.insects.any { near(it.x, it.y) }
+    }
+
+    private fun nearGrass(target: World, x: Double, y: Double): Boolean {
+        for (tuft in target.grass) {
+            val dx = tuft.x - x
+            val dy = tuft.y - y
+            if (dx * dx + dy * dy <= 8.0 * 8.0) return true
+        }
+        return false
     }
 }

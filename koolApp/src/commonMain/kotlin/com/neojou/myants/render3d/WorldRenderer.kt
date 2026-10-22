@@ -586,24 +586,11 @@ class WorldRenderer(
         val key = "$serial|${preset.fineGrass}|${preset.pebbles}|${preset.leaves}|${preset.flowers}|${session.grassDensity}"
         if (key == scatterKey) return
         scatterKey = key
-        val rnd = Random(session.seed.toLong() xor serial.toLong() * 0x9E3779B9L xor 0x51A7L)
-        extraGrass = pack(rnd, (preset.fineGrass * session.grassDensity).toInt(), 4)
-        pebbles = pack(rnd, (preset.pebbles * session.grassDensity).toInt(), 4)
-        leafPos = pack(rnd, (preset.leaves * session.grassDensity).toInt(), 4)
-        flowerPos = pack(rnd, (preset.flowers * session.grassDensity).toInt(), 4)
-    }
-
-    private fun pack(rnd: Random, count: Int, stride: Int): FloatArray {
-        val out = FloatArray(count * stride)
-        var i = 0
-        while (i < out.size) {
-            out[i] = rnd.nextFloat() * SimConfig.width
-            out[i + 1] = rnd.nextFloat() * SimConfig.height
-            out[i + 2] = rnd.nextFloat()
-            out[i + 3] = rnd.nextFloat()
-            i += stride
-        }
-        return out
+        val fields = ScatterLayout.build(session.seed, serial, preset, session.grassDensity)
+        extraGrass = fields.extraGrass
+        pebbles = fields.pebbles
+        leafPos = fields.leaves
+        flowerPos = fields.flowers
     }
 
     private fun pushActors(preset: QualityPreset) {

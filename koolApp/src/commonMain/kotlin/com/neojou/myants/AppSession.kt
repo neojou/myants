@@ -1,6 +1,8 @@
 package com.neojou.myants
 
 import com.neojou.myants.render3d.RenderMode
+import com.neojou.myants.render3d.ScatterLayout
+import com.neojou.myants.render3d.quality.QualityPreset
 import com.neojou.myants.session.CameraState
 import com.neojou.myants.session.CinemaDirector
 import com.neojou.myants.session.HudState
@@ -211,7 +213,7 @@ class AppSession(launch: LaunchConfig) {
     private fun stepSim() {
         world.update()
         if (world.age % 60 == 0) {
-            tools.refresh(world)
+            tools.refresh(world, leafSpots())
             hud.recordSample(world)
         }
     }
@@ -239,7 +241,14 @@ class AppSession(launch: LaunchConfig) {
     fun fitScale(leftW: Float, winH: Float): Double = camera.fitScale(leftW, winH)
     fun screenToWorld(px: Float, py: Float, leftW: Float, winH: Float): Pair<Double, Double> =
         camera.screenToWorld(px, py, leftW, winH)
-    fun clickWorld(wx: Double, wy: Double) { notifyInput(); tools.apply(world, wx, wy); bump() }
+    fun clickWorld(wx: Double, wy: Double) { notifyInput(); tools.apply(world, wx, wy, leafSpots()); bump() }
+
+    private fun leafSpots() = ScatterLayout.leafSpots(
+        seed,
+        worldSerial,
+        QualityPreset.from(PerformanceManager.level, renderTierBias),
+        grassDensity,
+    )
     /** Hit test for the 3D nest cutaway. Classic 2D still uses [clickWorld] only. */
     fun inspectNest(nx: Double, ny: Double) { notifyInput(); tools.inspectNest(world, nx, ny); bump() }
 
@@ -356,7 +365,7 @@ class AppSession(launch: LaunchConfig) {
         languageMenu.value = false
         view.language = lang
         L10n.language.value = lang
-        tools.refresh(world)
+        tools.refresh(world, leafSpots())
         hud.sync(world, fpsShown, Time.gameTime, force = true)
         save()
         bump()

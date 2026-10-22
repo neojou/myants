@@ -1,10 +1,14 @@
 package com.neojou.myants.session
 
 import com.neojou.myants.SimTool
+import com.neojou.myants.render3d.LeafSpot
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.FoodKind
+import com.neojou.myants.sim.GrassTuft
 import com.neojou.myants.sim.InsectKind
+import com.neojou.myants.sim.Obstacle
+import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
 import com.neojou.myants.ui.InspectPanel
 import de.fabmax.kool.modules.ui2.mutableStateOf
@@ -18,7 +22,10 @@ class ToolController {
 
     private companion object {
         const val BROOD_PICK = 12.0
+        const val GROUND_PICK = 8.0
     }
+
+    private var leaves: List<LeafSpot> = emptyList()
     var inspectedAnt: Ant? = null
     /** Historical one-line text. Tests lock the English wording. The HUD shows [inspectPanel]. */
     val inspect = mutableStateOf("")
@@ -29,12 +36,12 @@ class ToolController {
     internal fun inspectTarget(): InspectTarget? = target
 
     /** Applies the current tool at world position ([wx], [wy]). */
-    fun apply(world: World, wx: Double, wy: Double) {
+    internal fun apply(world: World, wx: Double, wy: Double, leaves: List<LeafSpot> = emptyList()) {
         when (tool) {
             SimTool.SUGAR -> world.placeFood(wx, wy, FoodKind.SUGAR)
             SimTool.PROTEIN -> world.placeFood(wx, wy, FoodKind.PROTEIN)
             SimTool.ENEMY -> world.spawnEnemyAt(wx, wy, InsectKind.PREDATOR)
-            SimTool.INSPECT -> inspectNearest(world, wx, wy)
+            SimTool.INSPECT -> inspectNearest(world, wx, wy, leaves)
         }
     }
 
@@ -49,9 +56,10 @@ class ToolController {
      * Rewrites the line and panel from the stored pick.
      * Returns whether the shown text changed. Call about once a sim second, not every frame.
      */
-    fun refresh(world: World): Boolean {
+    internal fun refresh(world: World, leaves: List<LeafSpot> = emptyList()): Boolean {
+        this.leaves = leaves
         val current = target ?: return false
-        if (!current.present(world)) {
+        if (!stillThere(current, world)) {
             clear()
             return true
         }
@@ -64,13 +72,12 @@ class ToolController {
         return changed
     }
 
-    fun inspectNearest(world: World, wx: Double, wy: Double) {
+    internal fun inspectNearest(world: World, wx: Double, wy: Double, leaves: List<LeafSpot> = emptyList()) {
+        this.leaves = leaves
         var best = Double.MAX_VALUE
         var picked: InspectTarget? = null
         fun consider(x: Double, y: Double, candidate: InspectTarget) {
-            val dx = x - wx
-            val dy = y - wy
-            val d = dx * dx + dy * dy
+            val d = dist2(x, y, wx, wy)
             if (d < best && d <= 30.0 * 30.0) {
                 best = d
                 picked = candidate
@@ -88,8 +95,70 @@ class ToolController {
         for (insect in world.insects) {
             consider(insect.x, insect.y, InspectTarget.InsectItem(insect))
         }
+        if (picked == null) picked = nearestStone(world, wx, wy)
+        if (picked == null) picked = nearestGrass(world, wx, wy)
+        if (picked == null) picked = nearestLeaf(leaves, wx, wy)
+        if (picked == null) {
+            picked = if (insideMap(wx, wy)) {
+                if (target is InspectTarget.PheromoneSample) null else InspectTarget.PheromoneSample(wx, wy, world.colonies)
+            } else {
+                null
+            }
+        }
         show(picked)
     }
+
+    private fun stillThere(current: InspectTarget, world: World): Boolean = when (current) {
+        is InspectTarget.LeafItem -> leaves.any { it.x == current.x && it.y == current.y }
+        else -> current.present(world)
+    }
+
+    private fun nearestStone(world: World, wx: Double, wy: Double): InspectTarget? {
+        var best = Double.MAX_VALUE
+        var picked: Obstacle? = null
+        fun consider(stone: Obstacle) {
+            val d = dist2(stone.x, stone.y, wx, wy)
+            if (d <= stone.radius * stone.radius && d < best) {
+                best = d
+                picked = stone
+            }
+        }
+        for (stone in world.terrain.obstacles) consider(stone)
+        consider(world.terrain.clockStone)
+        val stone = picked ?: return null
+        return InspectTarget.StoneItem(stone, clock = stone === world.terrain.clockStone)
+    }
+
+    private fun nearestGrass(world: World, wx: Double, wy: Double): InspectTarget? {
+        var best = Double.MAX_VALUE
+        var picked: GrassTuft? = null
+        for (tuft in world.grass) {
+            val d = dist2(tuft.x, tuft.y, wx, wy)
+            if (d <= GROUND_PICK * GROUND_PICK && d < best) {
+                best = d
+                picked = tuft
+            }
+        }
+        val tuft = picked ?: return null
+        return InspectTarget.GrassItem(tuft)
+    }
+
+    private fun nearestLeaf(spots: List<LeafSpot>, wx: Double, wy: Double): InspectTarget? {
+        var best = Double.MAX_VALUE
+        var picked: LeafSpot? = null
+        for (leaf in spots) {
+            val d = dist2(leaf.x.toDouble(), leaf.y.toDouble(), wx, wy)
+            if (d <= GROUND_PICK * GROUND_PICK && d < best) {
+                best = d
+                picked = leaf
+            }
+        }
+        val leaf = picked ?: return null
+        return InspectTarget.LeafItem(leaf.x, leaf.y)
+    }
+
+    private fun insideMap(x: Double, y: Double): Boolean =
+        x >= 0.0 && y >= 0.0 && x < SimConfig.width.toDouble() && y < SimConfig.height.toDouble()
 
     /** Hit test for the 3D nest cutaway (colony 0, nest coordinates). */
     fun inspectNest(world: World, nx: Double, ny: Double) {
