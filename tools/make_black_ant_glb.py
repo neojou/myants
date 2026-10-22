@@ -122,9 +122,11 @@ def uv_sphere():
     def ring(i, j):
         return 1 + (i - 1) * SLICES + j
 
+    # Winding matches the outward normals. The opposite order makes
+    # _face_outward flip both, so the visible crown keeps a downward normal.
     for j in range(SLICES):
         j1 = (j + 1) % SLICES
-        idx.extend((0, ring(1, j), ring(1, j1)))
+        idx.extend((0, ring(1, j1), ring(1, j)))
     for i in range(1, STACKS - 1):
         for j in range(SLICES):
             j1 = (j + 1) % SLICES
@@ -132,12 +134,12 @@ def uv_sphere():
             b = ring(i + 1, j)
             c = ring(i, j1)
             d = ring(i + 1, j1)
-            idx.extend((a, b, c, c, b, d))
+            idx.extend((a, c, b, c, d, b))
     bottom = len(pos) - 1
     last = STACKS - 1
     for j in range(SLICES):
         j1 = (j + 1) % SLICES
-        idx.extend((bottom, ring(last, j1), ring(last, j)))
+        idx.extend((bottom, ring(last, j), ring(last, j1)))
     return _face_outward(Mesh(pos, nrm, idx), lambda p: p)
 
 

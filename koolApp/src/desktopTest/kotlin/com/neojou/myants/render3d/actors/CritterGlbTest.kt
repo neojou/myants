@@ -34,6 +34,18 @@ class CritterGlbTest {
             abs(shell.dz - shell.dx) < 0.15f * shell.dx,
             "shell x=${shell.dx} z=${shell.dz}",
         )
+        var top = 0
+        var topY = Float.NEGATIVE_INFINITY
+        var v = 0
+        while (v < critter.body.positions.size) {
+            val y = critter.body.positions[v + 1]
+            if (y > topY) {
+                topY = y
+                top = v
+            }
+            v += 3
+        }
+        assertTrue(critter.body.normals[top + 1] > 0.5f, "crown normal Y=${critter.body.normals[top + 1]}")
     }
 
     private fun assertCritter(name: String, legs: Int, marks: Boolean) {
