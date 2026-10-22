@@ -12,7 +12,7 @@
 2. commit 前必跑：`./gradlew compileKotlinDesktop compileKotlinJs desktopTest`，全過才 commit。`HeadlessInvariantsTest` 黃金值不得改變。
 3. commit 訊息用 Conventional Commits，並引用 issue。例如 `refactor(ui): split AntSimUi.kt (Closes #8)`。部分完成用 `Refs #n`。
 4. 每完成一項：更新 `CHANGELOG.md` 的 Unreleased（附 issue 編號）、本文件第 2 與第 3 節、`docs/PLAN.md` 的 Status。這些文件跟該項程式放在同一個 commit。
-5. milestone 完成：`./configure.sh version 0.16.0`，commit `chore(release): v0.16.0`，再在本機打 `git tag v0.16.0`。不 push。Neo 之後執行 `git push origin main`、`git push origin v0.16.0`，並建 GitHub Release。
+5. milestone 的版號：`./configure.sh version x.y.z`，commit `chore(release): vX.Y.Z`，再在本機打 `git tag vX.Y.Z`。不 push。Neo 之後 push `main` 與 tag，並建 GitHub Release。0.16.0 與 0.17.0 都依這步。0.17.0 保持 #12 與 M4 開啟，因為 CI、[QE] PASS、[Artist] PASS 還沒有。
 6. 仍然遵守：不升級 kool／Kotlin／Gradle／JDK，不改 `sim` 行為，不 force-push，不改寫歷史。
 
 ### main 的保護規則（ruleset）
@@ -31,10 +31,10 @@
 
 ## 1. 目前版本與 milestone
 
-- 版本：**0.16.0**（commit 與 tag 已在 origin）。v0.15.0 涵蓋 M1＋M2。接手時 `main` 為 `390d4b9`。
+- 版本：**0.17.0**（本機 tag，尚未 push）。v0.16.0（642f082）已在 origin，涵蓋 M3。v0.15.0 涵蓋 M1＋M2。接手時 `main` 為 `390d4b9`。
 - M1、M2：已關閉。
 - **M3 UI/UX 與架構整理**：已在 origin，tag `v0.16.0`（642f082）。GitHub Release 這次沒有查。
-- **M4 Tool - Inspect（epic #12）**：進行中。現有命中（世界螞蟻、食物、昆蟲、巢內螞蟻、蟻后）的 HUD 類型與狀態約每模擬秒更新，不寫回模擬。工具列擋住指標時，暫停與速度按鈕不再清掉選取。左側世界的食物與昆蟲也畫選取圈。巢穴沒被搬走的卵、幼蟲、蛹，以及房室，已有 HUD。石頭（含時鐘石）、模擬草地、裝飾落葉，以及空白地面的室外費洛蒙也有 HUD；再點一次空白地面取消選取。這些世界物件與巢內螞蟻、蟻后、幼體、房室都有選取圈。Classic 2D 不畫圈。有世界座標的選取可從 HUD 跟隨，巢內選取不會拉左側相機。CI、[QE] PASS、[Artist] PASS 還沒有。不關 #12。尚未 push。
+- **M4 Tool - Inspect（epic #12）**：產品行為在本機 0.17.0。四類都可點選並顯示類型與狀態，約每模擬秒更新，有選取圈。有世界座標的選取可從 HUD 跟隨。巢內選取不移動左側相機。Inspect 不寫回模擬。2026-10-22 再查 GitHub：milestone M4 仍是 Open、完成度 0%、沒有到期日；#12 仍是 Open，是 milestone 裡唯一的 issue。CI、[QE] PASS、[Artist] PASS 還沒有，所以這版不關 #12，也不關 milestone。尚未 push，沒有 GitHub Release。
 - M5 glTF（epic #13）：這次不做。
 
 ## 2. 開著的 PR
@@ -58,7 +58,7 @@
 ## 4. 後續
 
 - 介面語言現為 English／繁體中文／日本語／Deutsch，預設 English（本機 40aa960，尚未 push）。入口在工具列右上角的地球圖示，Grafik 不再有語言按鈕。下雨在骷髏頭右邊。敵群、Params、品質、分析、Inspect 跟所選語言走。MIT 行仍是英文。繁中與日文用 Noto Sans CJK 圖集，HUD 數字仍是 Fira。切換語言不重建世界。
-- **M4 Inspect（#12）**：點選螞蟻／食物／巢／地形，顯示類型與狀態。做在 PointerRouter 之上。不得把玩家操作寫回模擬。巢的卵、幼蟲、蛹與房室已有 HUD。地形（石頭含時鐘石、模擬草地、裝飾落葉、空白地面費洛蒙）已有 HUD，並與巢內螞蟻、蟻后、幼體、房室一樣有選取圈。Classic 2D 不畫圈。有世界座標的選取可從 HUD 跟隨。巢內選取不跟隨。CI、[QE] PASS、[Artist] PASS 還沒有。
+- **M4 Inspect（#12）**：點選螞蟻／食物／巢／地形，顯示類型與狀態，約每模擬秒更新，有選取圈，世界選取可跟隨。做在 PointerRouter 之上。不得把玩家操作寫回模擬。本機 0.17.0 已包含這段產品行為。GitHub #12 與 milestone M4 仍開。CI、[QE] PASS、[Artist] PASS 還沒有。
 - **M5 glTF（#13）**：單位與物件改用 glTF 2.0。這次不做。
 
 ## 5. 建置與測試

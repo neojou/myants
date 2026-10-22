@@ -14,10 +14,10 @@
 
 - 日期：2026-10-22
 - Agent：Grok Build（單人模式）
-- 版本：0.16.0
-- SHA：390d4b9 是接手時的 `main`。v0.16.0（642f082）的 commit 與 tag 已在 origin。
-- 內容：M1、M2 在 v0.15.0。M3 在 v0.16.0（642f082）。其後本機 40aa960：下雨在骷髏頭右邊；右上角地球圖示切 English／繁體中文／日本語／Deutsch。不另升版，尚未 push。
-- 下一步：M4 Inspect（#12）進行中。現有命中的 HUD 類型與狀態約每模擬秒更新。工具列擋住指標時，暫停與速度按鈕不再清掉選取。左側世界的食物與昆蟲也畫選取圈。巢穴的卵、幼蟲、蛹與房室已有 HUD。石頭（含時鐘石）、模擬草地、裝飾落葉，以及空白地面的室外費洛蒙也有 HUD；再點一次空白地面取消選取。這些世界物件與巢內螞蟻、蟻后、幼體、房室都有選取圈。Classic 2D 不畫圈。有世界座標的選取可從 HUD 跟隨，巢內選取不會拉左側相機。CI、[QE] PASS、[Artist] PASS 還沒有，#12 與 milestone 仍開著。尚未 push。M5 glTF（#13）這次不做。
+- 版本：0.17.0
+- SHA：390d4b9 是接手時的 `main`。v0.16.0（642f082）的 commit 與 tag 已在 origin。v0.17.0 的 tag 在本機，尚未 push。
+- 內容：M1、M2 在 v0.15.0。M3 在 v0.16.0（642f082）。0.17.0 涵蓋其後的介面語言，以及 M4 Inspect 的產品行為：四類點選、約每模擬秒更新、選取圈、世界跟隨。Inspect 不寫回模擬。
+- 下一步：GitHub 上 #12 與 milestone M4 仍是 Open（2026-10-22 再查，完成度 0%）。CI、[QE] PASS、[Artist] PASS 還沒有，所以這版不關 issue。本機 tag 尚未 push，也沒有 GitHub Release。M5 glTF（#13）這次不做。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
 已完成、仍有效的結構：
@@ -106,3 +106,4 @@ M3 已在 origin 的 v0.16.0（642f082）。順序與範圍在 `handoff.md` 第 
 
 - 2026-10-20 Grok Build：建立本檔與 `docs/programming/README.md`，並把產品目標寫進 `AGENTS.md`。程式仍是 `2859ffe` / 0.14.0。Next 空白。
 - 2026-10-22 Grok Build：改單人模式。接手點 `390d4b9`。工作方式寫進 `handoff.md` 與 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
+- 2026-10-22 Grok Build：本機 0.17.0。M4 Inspect 的點選、狀態、選取圈與世界跟隨已落地。GitHub #12 與 milestone M4 仍開。CI、QE、Artist 還沒有。尚未 push。

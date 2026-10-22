@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-10-22
+
+涵蓋 M4 Inspect 的產品行為（Refs #12）。左側世界的螞蟻、食物、昆蟲、石頭（含時鐘石）、模擬草地、裝飾落葉，以及空白地面的室外費洛蒙，都可以點選。HUD 顯示類型與狀態，約每模擬秒更新。巢穴的螞蟻、蟻后、沒被搬走的卵、幼蟲、蛹，以及房室也一樣。世界選取用地面圈，巢穴選取用同色的畫面圈，Classic 2D 不畫圈。有世界座標的選取可從 HUD 跟隨。Inspect 不寫回模擬。HeadlessInvariantsTest 黃金值沒有改。
+
+2026-10-22 再查 GitHub：milestone [M4 Tool - Inspect](https://github.com/neojou/myants/milestone/4) 仍是 Open，完成度 0%，沒有到期日，說明是「點選螞蟻/食物/巢/地形顯示類型與狀態」。裡面只有 [#12](https://github.com/neojou/myants/issues/12)，也仍是 Open。驗收還要求 CI 綠、[QE] PASS、[Artist] PASS。這三項還沒有，所以這版保持 #12 與 milestone 開啟。本機 tag `v0.17.0` 尚未 push，也沒有 GitHub Release。
+
 ### 新增
 - Inspect 點到世界螞蟻、食物、昆蟲、巢內螞蟻或蟻后後，HUD 顯示類型與狀態，約每模擬秒重讀。物件離開原本的清單就清空。不寫回模擬。英文一行仍留給測試（Refs #12）
 - 巢穴裡沒被搬走的卵、幼蟲、蛹可以點選，命中半徑小於螞蟻。沒點到螞蟻、蟻后或幼體時，點在房室半徑內會顯示用途與半徑。幼蟲多一列飢餓，蛹多一列預定階級。圖集補上蛹，以及後面地形與跟隨會用的石、葉、危險、跟隨、追従（Refs #12）
