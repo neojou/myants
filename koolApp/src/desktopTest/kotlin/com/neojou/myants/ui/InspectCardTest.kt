@@ -5,7 +5,6 @@ import com.neojou.myants.render3d.InspectRing
 import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.render3d.selectRingBands
-import com.neojou.myants.session.InspectTarget
 import de.fabmax.kool.math.Vec2f
 import de.fabmax.kool.util.Color
 import kotlin.test.Test
@@ -80,10 +79,18 @@ class InspectCardTest {
         assertEquals("Stein", de.title)
     }
 
+    private fun lum(x: Color): Double {
+        fun f(v: Float) = v.toDouble().let { if (it <= 0.03928) it / 12.92 else Math.pow((it + 0.055) / 1.055, 2.4) }
+        return 0.2126 * f(x.r) + 0.7152 * f(x.g) + 0.0722 * f(x.b)
+    }
+
     @Test
-    fun pheromoneAndColonylessStripesUseOnSurfaceVar() {
-        val sample = InspectTarget.PheromoneSample(0.0, 0.0, emptyList())
-        assertEquals(c.onSurfaceVar, inspectAccent(sample, Color.WHITE))
-        assertTrue(c.onSurfaceVar != c.primary)
+    fun accentStripeIsOnSurfaceVarWithAtLeastTwoToOneContrast() {
+        val a = inspectAccent()
+        assertEquals(c.onSurfaceVar, a)
+        assertTrue(a != c.primary)
+        val bg = c.surfaceRaised.withAlpha(1f)
+        val ratio = (maxOf(lum(a), lum(bg)) + 0.05) / (minOf(lum(a), lum(bg)) + 0.05)
+        assertTrue(ratio >= 2.0, "stripe contrast $ratio < 2:1")
     }
 }

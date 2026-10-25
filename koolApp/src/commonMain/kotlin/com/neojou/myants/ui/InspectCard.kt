@@ -6,13 +6,8 @@ import com.neojou.myants.render3d.InspectRing
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.WorldInput
-import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.render3d.inspectRing
 import com.neojou.myants.render3d.nest.NestFrame
-import com.neojou.myants.render3d.rgbColor
-import com.neojou.myants.session.InspectTarget
-import com.neojou.myants.sim.Ant
-import com.neojou.myants.sim.Colony
 import com.neojou.myants.toggleUserFollow
 import de.fabmax.kool.math.Vec2f
 import de.fabmax.kool.modules.ui2.*
@@ -46,28 +41,11 @@ internal fun followButtonVisual(following: Boolean, hovered: Boolean): FollowBut
     }
 }
 
-/** Accent bar color: the colony tint for colony things, otherwise the species / material color. */
-internal fun inspectAccent(target: InspectTarget, playerColor: Color): Color {
-    fun colony(c: Colony?): Color = when {
-        c == null -> MyantsTheme.colors.onSurfaceVar
-        c.id == 0 -> playerColor
-        else -> rgbColor(c.workerTint)
-    }
-    fun antColony(a: Ant): Colony? = runCatching { a.colony }.getOrNull()
-    return when (target) {
-        is InspectTarget.WorldAnt -> colony(antColony(target.subject))
-        is InspectTarget.NestAnt -> colony(antColony(target.subject))
-        is InspectTarget.QueenTarget -> colony(target.colony)
-        is InspectTarget.BroodItem -> colony(target.colony)
-        is InspectTarget.ChamberItem -> colony(target.colony)
-        is InspectTarget.FoodItem -> WorldPalette.food3d(target.food.type)
-        is InspectTarget.InsectItem -> WorldPalette.insect(target.insect.type)
-        is InspectTarget.StoneItem -> if (target.clock) WorldPalette.clockStone else WorldPalette.stone
-        is InspectTarget.GrassItem -> WorldPalette.grass
-        is InspectTarget.LeafItem -> WorldPalette.leaf
-        is InspectTarget.PheromoneSample -> MyantsTheme.colors.onSurfaceVar
-    }
-}
+/**
+ * Accent bar color. Always onSurfaceVar: data colors (black colony, beetle, leaf…)
+ * fall under 2:1 on surfaceRaised, and primary is reserved for interaction state.
+ */
+internal fun inspectAccent(): Color = MyantsTheme.colors.onSurfaceVar
 
 /** Window pixel of the selection, or null when it is not on screen in the current view. */
 internal fun inspectAnchor(
@@ -114,8 +92,7 @@ internal fun Scene.addInspectCard(session: AppSession, hud: UiSurface): UiSurfac
         modifier.size(Dp(0f), Dp(0f))
         return@addPanelSurface
     }
-    val target = session.tools.inspectTarget()
-    val accent = target?.let { inspectAccent(it, session.antColor) } ?: T.primary
+    val accent = inspectAccent()
     modifier
         .align(AlignmentX.Start, AlignmentY.Top)
         .margin(start = Dp.fromPx(at.x), top = Dp.fromPx(at.y))
