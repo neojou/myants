@@ -6,7 +6,6 @@ import com.neojou.myants.render3d.InspectRing
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.WorldInput
-import com.neojou.myants.render3d.inspectRing
 import com.neojou.myants.render3d.nest.NestFrame
 import com.neojou.myants.toggleUserFollow
 import de.fabmax.kool.math.Vec2f
@@ -134,7 +133,7 @@ internal fun Scene.addInspectCard(session: AppSession, hud: UiSurface): UiSurfac
 }.also { card ->
     card.applyControlRadius()
     card.onUpdate += {
-        val ring = session.tools.inspectTarget()?.let(::inspectRing)
+        val ring = session.inspectRingNow
         if (ring != null) {
             val d3 = session.renderer == RenderMode.D3
             val anchor = inspectAnchor(

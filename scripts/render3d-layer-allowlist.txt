@@ -3,7 +3,6 @@
 camera/CameraController.kt
 camera/CameraDirector.kt
 camera/TopDownCamera.kt
-InspectRing.kt
 nest/NestCutaway.kt
 RenderFlags.kt
 WorldRenderer.kt
