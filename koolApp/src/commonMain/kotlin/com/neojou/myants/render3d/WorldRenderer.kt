@@ -17,7 +17,6 @@ import de.fabmax.kool.pipeline.DepthCompareOp
 import de.fabmax.kool.pipeline.deferred.DeferredPipeline
 import de.fabmax.kool.pipeline.deferred.DeferredPipelineConfig
 import de.fabmax.kool.pipeline.ibl.EnvironmentMap
-import de.fabmax.kool.pipeline.ibl.SkyCubeIblSystem
 import de.fabmax.kool.scene.Light
 import de.fabmax.kool.scene.Node
 import de.fabmax.kool.scene.OrthographicCamera
@@ -123,18 +122,14 @@ class WorldRenderer(
         }
         shadow = map
 
-        terrain.sky = try {
-            SkyCubeIblSystem.simpleSkyCubeIblSystem(scene).apply { isAutoUpdateIblMaps = false }
-        } catch (err: Throwable) {
-            MyLog.add(TAG, "Sky cube unavailable: ${err.message}", LogLevel.DEBUG)
-            null
-        }
-        val env = terrain.sky?.environmentMap ?: try {
+        // The physical sky's irradiance is blue and washed out warm albedo (#68), so
+        // ambient and reflections come from a near-neutral gradient instead.
+        val env = try {
             EnvironmentMap.fromGradientColor(
                 ColorGradient(
-                    WorldPalette.skyZenith,
-                    WorldPalette.skyHorizon,
-                    WorldPalette.skyGround,
+                    OutdoorLighting.ambientZenith,
+                    OutdoorLighting.ambientHorizon,
+                    OutdoorLighting.ambientGround,
                 ),
             )
         } catch (err: Throwable) {
@@ -162,10 +157,11 @@ class WorldRenderer(
             pass.materialPass.camera = scene.camera
             pass.lightingPass.camera = scene.camera
         }
-        pipe.bloomStrength = 0.65f
-        pipe.bloomThreshold = 1f
-        pipe.bloomRadius = 2f
+        pipe.bloomStrength = OutdoorLighting.BLOOM_STRENGTH
+        pipe.bloomThreshold = OutdoorLighting.BLOOM_THRESHOLD
+        pipe.bloomRadius = OutdoorLighting.BLOOM_RADIUS
         if (env != null) pipe.lightingPassShader.ambientMap = env.irradianceMap
+        terrain.lighting = pipe.lightingPassShader
         deferred = pipe
         pipe.sceneContent += content
         val quad = pipe.createDefaultOutputQuad()

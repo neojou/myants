@@ -11,14 +11,12 @@ import de.fabmax.kool.math.Vec3f
 import de.fabmax.kool.modules.ksl.blocks.ColorBlockConfig
 import de.fabmax.kool.pipeline.BlendMode
 import de.fabmax.kool.pipeline.deferred.deferredKslPbrShader
-import de.fabmax.kool.pipeline.ibl.SkyCubeIblSystem
 import de.fabmax.kool.scene.Light
 import de.fabmax.kool.scene.Mesh
 import de.fabmax.kool.scene.Node
 import de.fabmax.kool.scene.VertexLayouts
 import de.fabmax.kool.scene.addMesh
 import de.fabmax.kool.util.Color
-import de.fabmax.kool.util.Time
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -29,11 +27,11 @@ internal class TerrainRenderer : SubRenderer {
     private var groundShader: de.fabmax.kool.pipeline.deferred.DeferredKslPbrShader? = null
     private lateinit var ground: Mesh<*>
     private var serial = -1
-    private var iblStamp = -1.0
 
     /** Set by [WorldRenderer] when the deferred pipeline mounts. */
     var sun: Light.Directional? = null
-    var sky: SkyCubeIblSystem? = null
+    /** Deferred lighting shader; its ambient factor follows the day (#68). */
+    var lighting: de.fabmax.kool.pipeline.deferred.PbrSceneShader? = null
 
     override fun build(opaque: Node, forward: Node) {
         val gshader = deferredKslPbrShader {
@@ -99,7 +97,7 @@ internal class TerrainRenderer : SubRenderer {
         val light = sun ?: return
         val world = state.world
         val bright = if (state.view.dayNight) world.dayBrightness().toFloat() else 1f
-        val elev = if (state.view.dayNight) 6f + bright * 64f else 70f
+        val elev = OutdoorLighting.sunElevation(bright)
         val az = (world.timeOfDay * 160.0 - 80.0).toFloat()
         val elevRad = elev * (PI.toFloat() / 180f)
         val azRad = az * (PI.toFloat() / 180f)
@@ -108,19 +106,10 @@ internal class TerrainRenderer : SubRenderer {
             -sin(elevRad),
             cos(azRad) * cos(elevRad),
         )
-        val night = bright < 0.2f
-        val color = if (night) WorldPalette.moonLight else WorldPalette.sunLight
-        val intensity = if (night) 0.35f else 0.4f + bright * 3.2f
-        light.setup(dir).setColor(color, intensity)
-        val cube = sky
-        if (cube != null) {
-            cube.skyPass.elevation = elev
-            cube.skyPass.azimuth = az + 180f
-            val now = Time.gameTime
-            if (iblStamp < 0.0 || now - iblStamp > 2.0) {
-                iblStamp = now
-                cube.updateIblMaps()
-            }
+        light.setup(dir).setColor(OutdoorLighting.lightColor(bright), OutdoorLighting.lightIntensity(bright))
+        lighting?.let {
+            val k = OutdoorLighting.ambientStrength(bright)
+            it.ambientFactor = Color(k, k, k, 1f)
         }
     }
 

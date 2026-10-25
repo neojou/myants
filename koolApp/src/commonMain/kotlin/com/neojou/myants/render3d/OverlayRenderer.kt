@@ -5,6 +5,8 @@ import com.neojou.myants.render3d.terrain.GroundHeight
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.wallClockHms
 import de.fabmax.kool.modules.ksl.KslUnlitShader
+import de.fabmax.kool.modules.ksl.blocks.ColorBlockConfig
+import de.fabmax.kool.pipeline.deferred.deferredKslPbrShader
 import de.fabmax.kool.pipeline.CullMethod
 import de.fabmax.kool.pipeline.DepthCompareOp
 import de.fabmax.kool.scene.Mesh
@@ -21,7 +23,24 @@ internal class OverlayRenderer : SubRenderer {
 
     override fun build(opaque: Node, forward: Node) {
         digits = inst.batch(128)
-        inst.instanced(opaque, digits, "digit") { cube { size.set(1f, 1f, 1f) } }
+        // Digits keep their albedo under any sky light: a weak self-glow (below the
+        // bloom threshold) on top of a rough, non-metal base (#68).
+        val digitShader = deferredKslPbrShader {
+            vertices { instancedModelMatrix(inst.layout.modelMat) }
+            color { instanceColor(inst.layout.color) }
+            emission {
+                instanceColor(inst.layout.color)
+                constColor(OutdoorLighting.digitEmissionScale, blendMode = ColorBlockConfig.BlendMode.Multiply)
+            }
+            roughness(0.9f)
+            metallic(0f)
+        }
+        opaque.addMesh(VertexLayouts.PositionNormal, instances = digits) {
+            isFrustumChecked = false
+            name = "digit"
+            generate { cube { size.set(1f, 1f, 1f) } }
+            shader = digitShader
+        }
         val ringShader = KslUnlitShader {
             color { vertexColor() }
             pipeline {

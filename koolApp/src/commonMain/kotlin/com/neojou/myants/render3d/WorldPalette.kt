@@ -40,11 +40,6 @@ object WorldPalette {
     val pupa2d = Color(0.72f, 0.55f, 0.32f, 1f)
 
     val sky = Color(0.45f, 0.62f, 0.82f, 1f)
-    val skyZenith = Color(0.03f, 0.04f, 0.08f)
-    val skyHorizon = Color(0.45f, 0.62f, 0.85f)
-    val skyGround = Color(0.95f, 0.86f, 0.7f)
-    val moonLight = Color(0.55f, 0.62f, 0.8f, 1f)
-    val sunLight = Color(1f, 0.95f, 0.85f, 1f)
     val foodGlow = Color(4f, 4f, 4f)
     /** Warm grey; red leads blue so the sky light does not turn it blue-grey. */
     val clockStone = Color(0.50f, 0.45f, 0.38f, 1f)
