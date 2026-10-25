@@ -5,7 +5,7 @@
 ## [Unreleased]
 
 ### 新增
-- 新增 `docs/ART_DIRECTION.md`：Artist 美學原則、已定案 Theme token、無障礙與圖示規則、審查清單；AGENTS.md 與設計文件索引加上連結（PR #TBD）
+- 新增 `docs/ART_DIRECTION.md`：Artist 美學原則、已定案 Theme token、無障礙與圖示規則、審查清單；AGENTS.md 與設計文件索引加上連結（PR #42）
 - 室外工蟻 glTF 重製剪影：腹節更大、腰更細、中胸更高。兵蟻改為獨立的 `soldier.glb`，頭用紅色，身體仍跟群色。缺檔退回方塊蟻。右側巢穴與 Classic 2D 不變（Refs #13）
 - 室外獵物、捕食者、蜘蛛、甲蟲與瓢蟲改為自製 glTF。蜘蛛八隻腳，瓢蟲另有深色斑。缺檔仍畫原本的方塊。蚜蟲模型不變（Refs #13）
 - 室外甲蟲的 glTF 改為鍬形蟲剪影：頭與大顎近黑，鞘翅栗色。模擬、檢視名稱與 Classic 2D 的單色不變（Refs #13）
