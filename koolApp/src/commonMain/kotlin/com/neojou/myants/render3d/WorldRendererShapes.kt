@@ -1,6 +1,5 @@
 package com.neojou.myants.render3d
 
-import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.actors.GltfAnt
 import com.neojou.myants.render3d.actors.GltfAphid
 import com.neojou.myants.render3d.actors.GltfCritter
