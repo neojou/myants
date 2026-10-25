@@ -426,7 +426,8 @@ def fit_root(builder):
     builder.nodes[0]["scale"] = (scale, scale, scale)
 
 
-def pack_glb(builder, generator="myants make_black_ant_glb.py"):
+def pack_glb(builder, generator="myants make_black_ant_glb.py", materials=None):
+    """materials: glTF material list indexed by node material id; default is the ant set."""
     blob = bytearray()
     buffer_views = []
     accessors = []
@@ -514,32 +515,7 @@ def pack_glb(builder, generator="myants make_black_ant_glb.py"):
         "scenes": [{"name": "Ant", "nodes": [0]}],
         "nodes": nodes,
         "meshes": gltf_meshes,
-        "materials": [
-            {
-                "name": "chitin",
-                "pbrMetallicRoughness": {
-                    "baseColorFactor": [0.07, 0.07, 0.075, 1.0],
-                    "metallicFactor": 0.08,
-                    "roughnessFactor": 0.42,
-                },
-            },
-            {
-                "name": "eye",
-                "pbrMetallicRoughness": {
-                    "baseColorFactor": [0.015, 0.015, 0.02, 1.0],
-                    "metallicFactor": 0.02,
-                    "roughnessFactor": 0.12,
-                },
-            },
-            {
-                "name": "mandible",
-                "pbrMetallicRoughness": {
-                    "baseColorFactor": [0.16, 0.12, 0.09, 1.0],
-                    "metallicFactor": 0.12,
-                    "roughnessFactor": 0.38,
-                },
-            },
-        ],
+        "materials": materials if materials is not None else ANT_MATERIALS,
         "accessors": accessors,
         "bufferViews": buffer_views,
         "buffers": [{"byteLength": len(blob)}],
@@ -557,6 +533,34 @@ def pack_glb(builder, generator="myants make_black_ant_glb.py"):
     ))
     header = struct.pack("<III", 0x46546C67, 2, 12 + len(chunks))
     return header + chunks, gltf
+
+
+ANT_MATERIALS = [
+    {
+        "name": "chitin",
+        "pbrMetallicRoughness": {
+            "baseColorFactor": [0.07, 0.07, 0.075, 1.0],
+            "metallicFactor": 0.08,
+            "roughnessFactor": 0.42,
+        },
+    },
+    {
+        "name": "eye",
+        "pbrMetallicRoughness": {
+            "baseColorFactor": [0.015, 0.015, 0.02, 1.0],
+            "metallicFactor": 0.02,
+            "roughnessFactor": 0.12,
+        },
+    },
+    {
+        "name": "mandible",
+        "pbrMetallicRoughness": {
+            "baseColorFactor": [0.16, 0.12, 0.09, 1.0],
+            "metallicFactor": 0.12,
+            "roughnessFactor": 0.38,
+        },
+    },
+]
 
 
 def check(builder):

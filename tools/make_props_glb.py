@@ -13,6 +13,9 @@ _ant_path = Path(__file__).with_name("make_black_ant_glb.py")
 _spec = importlib.util.spec_from_file_location("make_black_ant_glb", _ant_path)
 ant = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(ant)
+_palette_spec = importlib.util.spec_from_file_location("glb_palette", Path(__file__).resolve().parent / "glb_palette.py")
+palette = importlib.util.module_from_spec(_palette_spec)
+_palette_spec.loader.exec_module(palette)
 
 
 def unit(i, salt):
@@ -66,7 +69,7 @@ def pack(mesh, node_name, file_name):
     b = ant.Builder()
     root = b.add_node(node_name, None)
     b.add_node(node_name + "Mesh", root, mesh=mesh, material=ant.CHITIN)
-    data, _ = ant.pack_glb(b, generator="myants make_props_glb.py")
+    data, _ = ant.pack_glb(b, generator="myants make_props_glb.py", materials=palette.MATERIALS["nature/" + file_name])
     out = Path(__file__).resolve().parents[1] / "koolApp" / "assets" / "models" / "nature" / file_name
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(data)

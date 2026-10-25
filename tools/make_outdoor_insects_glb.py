@@ -16,6 +16,9 @@ _ant_path = Path(__file__).with_name("make_black_ant_glb.py")
 _spec = importlib.util.spec_from_file_location("make_black_ant_glb", _ant_path)
 ant = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(ant)
+_palette_spec = importlib.util.spec_from_file_location("glb_palette", Path(__file__).resolve().parent / "glb_palette.py")
+palette = importlib.util.module_from_spec(_palette_spec)
+_palette_spec.loader.exec_module(palette)
 
 CHITIN = ant.CHITIN
 EYE = ant.EYE
@@ -219,7 +222,7 @@ def main():
         builder = builder_fn()
         ant.fit_root(builder)
         world = check(builder, legs)
-        data, _ = ant.pack_glb(builder, generator="myants make_outdoor_insects_glb.py")
+        data, _ = ant.pack_glb(builder, generator="myants make_outdoor_insects_glb.py", materials=palette.MATERIALS["insects/" + name])
         out = out_dir / name
         out.write_bytes(data)
         preview = Path("/tmp") / name.replace(".glb", ".png")
