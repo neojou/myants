@@ -48,7 +48,8 @@ object WorldPalette {
     val foodGlow = Color(4f, 4f, 4f)
     val clockStone = Color(0.42f, 0.4f, 0.36f, 1f)
     /** Same hex as MyantsTheme.colors.primary. Kept here so render does not depend on UI. */
-    val selectRing = Color("#6750A4")
+    val selectRingInner = Color("#6750A4")
+    val selectRingOuter = Color("#EADDFF")
     val pebble = Color(0.35f, 0.33f, 0.3f, 1f)
     val leaf = Color(0.45f, 0.32f, 0.12f, 1f)
     val petalRose = Color(0.85f, 0.35f, 0.45f, 1f)

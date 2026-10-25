@@ -1,21 +1,18 @@
 package com.neojou.myants.ui
 
-import com.neojou.myants.toggleUserFollow
 import com.neojou.myants.AppSession
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.scene.Scene
 
 private val T = MyantsTheme.colors
 
-/** Top-left status HUD (fps, population, food, queen) plus the inspect rows. The version stays in About. */
+/** Top-left status HUD (fps, population, food, queen) The inspect card floats separately ([addInspectCard]). The version stays in About. */
 internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
     backgroundColor = { T.surface },
     width = FitContent,
     height = FitContent,
 ) {
     installLanguageFont()
-    val inspect = session.tools.inspectPanel.use()
-    val following = session.following.use()
     modifier
         .align(AlignmentX.Start, AlignmentY.Top)
         .margin(MyantsTheme.space.screenEdge)
@@ -65,17 +62,6 @@ internal fun Scene.addHudPanel(session: AppSession) = addPanelSurface(
         Text("${tr(UiText.UNIT_MIN)} ") { }
         hudDigits(hud.queenSec.use(), HudSlots.QUEEN_SEC)
         Text(tr(UiText.UNIT_SEC)) { }
-    }
-    if (inspect != null) {
-        Text(inspect.title) { modifier.margin(top = MyantsTheme.space.s2) }
-        for (row in inspect.rows) {
-            Text(row) { modifier.font(sizes.smallText) }
-        }
-        if (session.followAnchor() != null) {
-            Button(tr(if (following) UiText.INSPECT_FOLLOWING else UiText.INSPECT_FOLLOW)) {
-                modifier.margin(top = MyantsTheme.space.s2).onClick { session.toggleUserFollow() }
-            }
-        }
     }
 }.also { it.applyControlRadius() }
 

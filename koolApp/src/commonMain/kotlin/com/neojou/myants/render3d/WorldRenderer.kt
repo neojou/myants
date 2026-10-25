@@ -174,6 +174,7 @@ class WorldRenderer(
         val director = CameraDirector(top)
         director.request(com.neojou.myants.render3d.camera.CameraMode.ANT_POV)
         WorldInput.screenToGround = { x, y -> top.screenToGround(x, y) }
+        WorldInput.groundToScreen = { x, y -> top.groundToScreen(x, y) }
 
         val content = Node("world-opaque").apply { isFrustumChecked = false }
         val forward = Node("world-forward").apply { isFrustumChecked = false }
