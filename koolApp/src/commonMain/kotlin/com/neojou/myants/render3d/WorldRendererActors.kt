@@ -97,7 +97,7 @@ internal fun WorldRenderer.pushActors(preset: QualityPreset) {
     pushInsects()
     pushAnts(preset, time)
     pushBits()
-    val mark = session.tools.inspectTarget()?.let(::inspectRing)?.takeIf { it.space == RingSpace.WORLD }
+    val mark = session.inspectRingNow?.takeIf { it.space == RingSpace.WORLD }
     if (mark != null) {
         ring.isVisible = true
         val y = GroundHeight.at(mark.x.toFloat(), mark.y.toFloat()) + 0.4f

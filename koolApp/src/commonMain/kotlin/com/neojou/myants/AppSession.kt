@@ -3,7 +3,8 @@ package com.neojou.myants
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.ScatterLayout
-import com.neojou.myants.render3d.inspectRing
+import com.neojou.myants.render3d.InspectRing
+import com.neojou.myants.session.toRing
 import com.neojou.myants.render3d.quality.QualityPreset
 import com.neojou.myants.session.CameraState
 import com.neojou.myants.session.CinemaDirector
@@ -247,9 +248,12 @@ class AppSession(launch: LaunchConfig) {
      * World point the camera may follow. Nest picks have no anchor.
      * A world ant that left the map or ran out of energy has none either.
      */
+    /** Ring for the current Inspect hit, or null with nothing picked. Read by render3d (#47). */
+    internal val inspectRingNow: InspectRing? get() = tools.inspectTarget()?.toRing()
+
     internal fun followAnchor(): Pair<Double, Double>? {
         val current = tools.inspectTarget() ?: return null
-        val ring = inspectRing(current)
+        val ring = current.toRing()
         if (ring.space != RingSpace.WORLD) return null
         val ant = current.ant
         if (ant != null && (ant.location != AntPlace.WORLD || ant.energy <= 0.0)) return null

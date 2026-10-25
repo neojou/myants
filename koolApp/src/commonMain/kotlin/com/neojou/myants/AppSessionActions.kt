@@ -3,7 +3,6 @@ package com.neojou.myants
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.ScatterLayout
-import com.neojou.myants.render3d.inspectRing
 import com.neojou.myants.render3d.quality.QualityPreset
 import com.neojou.myants.session.CameraState
 import com.neojou.myants.session.CinemaDirector

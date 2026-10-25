@@ -3,7 +3,6 @@ package com.neojou.myants.render3d.nest
 import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.WorldPalette
-import com.neojou.myants.render3d.inspectRing
 import com.neojou.myants.render3d.phero.PheromoneField
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
@@ -162,7 +161,7 @@ object NestCutaway {
         } else {
             mesh?.isVisible = false
         }
-        val mark = session.tools.inspectTarget()?.let(::inspectRing)?.takeIf { it.space == RingSpace.NEST }
+        val mark = session.inspectRingNow?.takeIf { it.space == RingSpace.NEST }
         val ringMesh = ring
         if (mark != null && ringMesh != null) {
             ringMesh.isVisible = true

@@ -1,6 +1,5 @@
 package com.neojou.myants.render3d
 
-import com.neojou.myants.session.InspectTarget
 import com.neojou.myants.sim.BroodStage
 import com.neojou.myants.sim.InsectKind
 import kotlin.math.max
@@ -18,38 +17,6 @@ internal data class InspectRing(
     val scale: Float,
     val space: RingSpace = RingSpace.WORLD,
 )
-
-internal fun inspectRing(target: InspectTarget): InspectRing = when (target) {
-    is InspectTarget.WorldAnt -> InspectRing(target.subject.x, target.subject.y, worldAntRingScale(target.subject.sizeVar))
-    is InspectTarget.FoodItem -> InspectRing(target.food.x, target.food.y, foodRingScale(target.food.amount))
-    is InspectTarget.InsectItem -> InspectRing(target.insect.x, target.insect.y, insectRingScale(target.insect.type))
-    is InspectTarget.NestAnt -> InspectRing(
-        target.subject.x,
-        target.subject.y,
-        nestAntRingScale(target.subject.sizeVar),
-        RingSpace.NEST,
-    )
-    is InspectTarget.QueenTarget -> {
-        val queen = target.colony.queen
-        InspectRing(queen.x, queen.y, QUEEN_RING, RingSpace.NEST)
-    }
-    is InspectTarget.BroodItem -> InspectRing(
-        target.brood.x,
-        target.brood.y,
-        broodRingScale(target.brood.stage),
-        RingSpace.NEST,
-    )
-    is InspectTarget.ChamberItem -> InspectRing(
-        target.chamber.x,
-        target.chamber.y,
-        chamberRingScale(target.chamber.radius),
-        RingSpace.NEST,
-    )
-    is InspectTarget.StoneItem -> InspectRing(target.stone.x, target.stone.y, stoneRingScale(target.stone.radius))
-    is InspectTarget.GrassItem -> InspectRing(target.tuft.x, target.tuft.y, grassRingScale(target.tuft.size))
-    is InspectTarget.LeafItem -> InspectRing(target.x.toDouble(), target.y.toDouble(), LEAF_RING)
-    is InspectTarget.PheromoneSample -> InspectRing(target.x, target.y, PHEROMONE_RING)
-}
 
 /** Same scale the world ant ring has always used. */
 internal fun worldAntRingScale(sizeVar: Double): Float = 10f * sizeVar.toFloat()
