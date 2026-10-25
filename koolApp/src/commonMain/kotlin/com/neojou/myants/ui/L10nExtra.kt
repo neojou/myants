@@ -99,6 +99,11 @@ private val EXTRA: Map<UiText, Map<UiLanguage, String>> = mapOf(
     UiText.INSPECT_DANGER to p("danger", "危險", "危険", "Gefahr"),
     UiText.INSPECT_FOLLOW to p("Follow", "跟隨", "追従", "Folgen"),
     UiText.INSPECT_FOLLOWING to p("Following", "跟隨中", "追従中", "Folgt"),
+    UiText.INSPECT_STATE to p("State", "狀態", "状態", "Zustand"),
+    UiText.INSPECT_CARRY to p("Carrying", "搬運", "運搬物", "Trägt"),
+    UiText.INSPECT_AMOUNT to p("Amount", "數量", "量", "Menge"),
+    UiText.INSPECT_CASTE to p("Caste", "分工", "分工", "Kaste"),
+    UiText.INSPECT_ROLE to p("Role", "角色", "役割", "Rolle"),
     UiText.AN_WAIT_M to p("Sample size", "樣本數", "サンプル数", "Datenmenge"),
     UiText.AN_WAIT_S to p(
         "Wait a little longer (about 20 seconds)",
