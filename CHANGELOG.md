@@ -9,6 +9,8 @@
 - `AntStates.kt`（991 行）依狀態拆成巢內（`AntStates`）、防禦（`AntStatesDefense`）、覓食（`AntStatesFood`）三檔，只搬移不改邏輯（Refs #46）
 - `AppSession.kt`（428 行）降到 269 行：使用者動作移到 `AppSessionActions.kt`（`AppSession` 的擴充函式，呼叫端只多 import），`SimTool`／`AnalyseLine`／`GraphSample` 移到 `SessionTypes.kt`，行為不變（Closes #46）
 
+## [0.18.0] - 2026-10-26
+
 ### 文件
 - AGENTS.md 新增「pstack 流程」：規定各角色必跑的 skill，PR 說明須列出已跑的 skill。
 
@@ -36,7 +38,7 @@
 
 涵蓋 M4 Inspect 的產品行為（Refs #12）。左側世界的螞蟻、食物、昆蟲、石頭（含時鐘石）、模擬草地、裝飾落葉，以及空白地面的室外費洛蒙，都可以點選。HUD 顯示類型與狀態，約每模擬秒更新。巢穴的螞蟻、蟻后、沒被搬走的卵、幼蟲、蛹，以及房室也一樣。世界選取用地面圈，巢穴選取用同色的畫面圈，Classic 2D 不畫圈。有世界座標的選取可從 HUD 跟隨。Inspect 不寫回模擬。HeadlessInvariantsTest 黃金值沒有改。
 
-2026-10-22 再查 GitHub：milestone [M4 Tool - Inspect](https://github.com/neojou/myants/milestone/4) 仍是 Open，完成度 0%，沒有到期日，說明是「點選螞蟻/食物/巢/地形顯示類型與狀態」。裡面只有 [#12](https://github.com/neojou/myants/issues/12)，也仍是 Open。驗收還要求 CI 綠、[QE] PASS、[Artist] PASS。這三項還沒有，所以這版保持 #12 與 milestone 開啟。本機 tag `v0.17.0` 尚未 push，也沒有 GitHub Release。
+2026-10-22 再查 GitHub：milestone [M4 Tool - Inspect](https://github.com/neojou/myants/milestone/4) 仍是 Open，完成度 0%，沒有到期日，說明是「點選螞蟻/食物/巢/地形顯示類型與狀態」。裡面只有 [#12](https://github.com/neojou/myants/issues/12)，也仍是 Open。驗收還要求 CI 綠、[QE] PASS、[Artist] PASS。這三項還沒有，所以這版保持 #12 與 milestone 開啟。tag `v0.17.0` 與 GitHub Release 已在 GitHub（2026-10-26 以 `git ls-remote --tags` 與 `gh release list` 確認）。
 
 ### 新增
 - Inspect 點到世界螞蟻、食物、昆蟲、巢內螞蟻或蟻后後，HUD 顯示類型與狀態，約每模擬秒重讀。物件離開原本的清單就清空。不寫回模擬。英文一行仍留給測試（Refs #12）

@@ -1,5 +1,8 @@
 # myants — Agent Guide
 
+
+> **Grok Build 單人模式注意**：Grok Build 實作時依 [docs/AI/How-To-Grok-build-one-AI-developing-approach.md](docs/AI/How-To-Grok-build-one-AI-developing-approach.md) 進行。那套流程和小隊流程（看板、角色分工、pstack）不同，兩者不要混用。
+
 ## 目標
 用 Kotlin Multiplatform（desktop JVM + js）與 kool 0.19.0 復刻 [AntSim_V2](https://github.com/nilsgollub/AntSim_V2)。
 左側世界視窗要做成高品質 3D 環境；角色與物品用 glTF 2.0，畫面力求最好。
