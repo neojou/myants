@@ -61,14 +61,10 @@ class OutdoorLightingTest {
     }
 
     @Test
-    fun bloomAndDigitsStayInBounds() {
+    fun bloomStaysInBounds() {
         assertTrue(OutdoorLighting.BLOOM_STRENGTH <= 0.35f)
         assertTrue(OutdoorLighting.BLOOM_THRESHOLD >= 1.2f)
         assertTrue(OutdoorLighting.BLOOM_RADIUS <= 2f)
         assertEquals(1f, OutdoorLighting.EXPOSURE)
-        assertTrue(OutdoorLighting.DIGIT_EMISSION <= 0.3f)
-        // Brightest digit channel times the glow stays below the bloom threshold.
-        val d = WorldPalette.digit3d
-        assertTrue(maxOf(d.r, d.g, d.b) * OutdoorLighting.DIGIT_EMISSION < OutdoorLighting.BLOOM_THRESHOLD)
     }
 }

@@ -5,7 +5,7 @@
 ## [Unreleased]
 
 ### 修正
-- 戶外光照照 #68 美術目標值修正：太陽色 (1, 0.93, 0.82)、強度隨高度 1.0–3.2、仰角 10°–58°；月光 (0.62, 0.66, 0.78)×0.7；拿掉 SkyCube 動態 IBL（藍天把石頭與數字洗成藍白），改成去藍的固定漸層環境光，ambient 日 0.40／夜 0.22；bloom 0.35／門檻 1.2／半徑 2；時鐘石數字改用自有 PBR shader，帶 0.3 的自發光。參數集中在 `render3d/OutdoorLighting.kt`，有單元測試（Closes #68）
+- 戶外光照照 #68 美術目標值修正：太陽色 (1, 0.93, 0.82)、強度隨高度 1.0–3.2、仰角 10°–58°；月光 (0.62, 0.66, 0.78)×0.7；拿掉 SkyCube 動態 IBL（藍天把石頭與數字洗成藍白），改成去藍的固定漸層環境光，ambient 日 0.40／夜 0.22；bloom 0.35／門檻 1.2／半徑 2；時鐘石數字改成 unlit（forward pass，不受日月與天光影響，畫面上就是 #E9C46A）。參數集中在 `render3d/OutdoorLighting.kt`，有單元測試（Closes #68）
 - 室外 glb 的材質不再沿用螞蟻的 chitin／eye／mandible：sugar、protein、pebble、leaf、clock_stone、clover_tuft、clover_flower、prey、predator、spider、ladybug 改成跟 runtime 顏色一致的 PBR baseColor 和 roughness，鍬形蟲（beetle.glb）補上材質。只改 JSON，幾何不變。對照表在 `tools/glb_palette.py`，用 `tools/glb_materials.py --check` 驗證（Refs #62）
 - 三葉草 glb 重做：小葉改成有深缺口的心形，三片以 120° 排列；花從平滑球改成低多邊面的小花冠（46 面），草叢 144 面。材質沿用 `tools/glb_palette.py`（Refs #69、#68）
 - 3D 時鐘石改成暖灰（0.50, 0.45, 0.38），數字改用 `#E9C46A`；三葉草的花不再是一律白色，每個位置固定取 petalRose、petalGold、petalLilac 其中一色（Refs #62）

@@ -32,9 +32,6 @@ internal object OutdoorLighting {
     const val BLOOM_THRESHOLD = 1.2f
     const val BLOOM_RADIUS = 2f
 
-    /** Clock digits glow at this fraction of their albedo: below bloom threshold, independent of sky light. */
-    const val DIGIT_EMISSION = 0.3f
-    val digitEmissionScale = Color(DIGIT_EMISSION, DIGIT_EMISSION, DIGIT_EMISSION, 1f)
 
     fun isNight(bright: Float): Boolean = bright < NIGHT_BELOW
 
