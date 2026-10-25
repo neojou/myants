@@ -321,23 +321,7 @@ internal fun WorldRenderer.loadMerged(
     label: String,
     fallback: String = "sphere",
     onReady: () -> Unit,
-) {
-    scene.coroutineScope.launch {
-        val loaded = Assets.defaultLoader.loadBlob(path)
-        loaded.onSuccess { buf ->
-            try {
-                val parsed = parseGltfMerged(buf.toArray())
-                for (mesh in meshes) mesh.uploadMerged(parsed)
-                onReady()
-                MyLog.add(TAG, "$label gltf tris=${mergedTriangles(parsed)}", LogLevel.DEBUG)
-            } catch (err: Throwable) {
-                MyLog.add(TAG, "$label glTF failed: ${err.message}. Using the $fallback.", LogLevel.DEBUG)
-            }
-        }.onFailure { err ->
-            MyLog.add(TAG, "$label glTF missing: ${err.message}. Using the $fallback.", LogLevel.DEBUG)
-        }
-    }
-}
+) = loadMergedGlb(scene.coroutineScope, path, meshes, label, fallback, onReady)
 
 internal fun WorldRenderer.carryBatch(kind: CarryKind): MeshInstanceList<InstanceLayouts.ModelMatColor> = when {
     kind == CarryKind.SUGAR && sugarReady -> carrySugar

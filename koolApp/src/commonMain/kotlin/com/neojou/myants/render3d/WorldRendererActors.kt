@@ -297,60 +297,21 @@ internal fun WorldRenderer.pushBits() {
 }
 
 internal fun WorldRenderer.pose(
-    batch: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    batch: Batch,
     x: Float, y: Float, z: Float, yaw: Float,
     lx: Float, ly: Float, lz: Float,
     sx: Float, sy: Float, sz: Float,
     color: Color,
-) {
-    mat.setIdentity().translate(x, y, z).rotate(yaw.rad, Vec3f.Y_AXIS).translate(lx, ly, lz).scale(scale.set(sx, sy, sz))
-    batch.addInstance {
-        set(layout.modelMat, mat)
-        set(layout.color, color)
-    }
-}
+) = instancer.pose(batch, x, y, z, yaw, lx, ly, lz, sx, sy, sz, color)
 
-internal fun WorldRenderer.shadedInstances(
-    parent: Node,
-    instances: MeshInstanceList<InstanceLayouts.ModelMatColor>,
-    name: String,
-    roughness: Float,
-    metallic: Float,
-): Mesh<*> {
-    val shader = deferredKslPbrShader {
-        vertices { instancedModelMatrix(layout.modelMat) }
-        color { instanceColor(layout.color) }
-        roughness(roughness)
-        metallic(metallic)
-    }
-    return parent.addMesh(VertexLayouts.PositionNormal, instances = instances) {
-        isFrustumChecked = false
-        this.name = name
-        generate { }
-        this.shader = shader
-    }
-}
+internal fun WorldRenderer.shadedInstances(parent: Node, instances: Batch, name: String, roughness: Float, metallic: Float): Mesh<*> =
+    instancer.shaded(parent, instances, name, roughness, metallic)
 
 internal fun WorldRenderer.instanced(
     parent: Node,
-    instances: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    instances: Batch,
     name: String,
     roughness: Float = 0.8f,
     doubleSided: Boolean = false,
     build: de.fabmax.kool.scene.geometry.MeshBuilder<*>.() -> Unit,
-): Mesh<*> {
-    val shader = deferredKslPbrShader {
-        vertices { instancedModelMatrix(layout.modelMat) }
-        color { instanceColor(layout.color) }
-        roughness(roughness)
-        if (doubleSided) {
-            pipeline { cullMethod = CullMethod.NO_CULLING }
-        }
-    }
-    return parent.addMesh(VertexLayouts.PositionNormal, instances = instances) {
-        isFrustumChecked = false
-        this.name = name
-        generate { build() }
-        this.shader = shader
-    }
-}
+): Mesh<*> = instancer.instanced(parent, instances, name, roughness, doubleSided, build)

@@ -91,9 +91,10 @@ class WorldRenderer(
     internal val state: RenderState,
     internal val host: RenderHost,
 ) {
-    internal val layout = InstanceLayouts.ModelMatColor
-    internal val mat = MutableMat4f()
-    internal val scale = MutableVec3f()
+    internal val instancer = Instancer()
+    internal val layout get() = instancer.layout
+    internal val mat get() = instancer.mat
+    internal val scale get() = instancer.scale
     internal val phero = PheromoneField("phero3d")
     internal var groundShader: de.fabmax.kool.pipeline.deferred.DeferredKslPbrShader? = null
     internal var deferred: DeferredPipeline? = null
