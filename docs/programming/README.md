@@ -16,6 +16,7 @@
 | `world_scene_composition.md` | sim 座標對到 3D 場景。 |
 | `assets_gltf_pipeline.md` | glTF 素材、授權與程序幾何退路。 |
 | `ui_hud_aesthetics.md` | HUD 版面與色票。 |
+| [`../ART_DIRECTION.md`](../ART_DIRECTION.md) | Artist 美學原則、已定案 token、審查清單。審查前必讀。 |
 | `perf_and_quality_presets.md` | 品質檔位與效能預算。預算數字尚未在這台 Mac 上量過。 |
 | `3d_refs/shots/REVIEW.md` | 現有截圖對 HUD 清單的自評。 |
 | `THIRD_PARTY_NOTICES.md` | 第三方授權。 |
