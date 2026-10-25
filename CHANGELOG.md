@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### 重構
+- `WorldRenderer.kt`（1216 行）依職責拆成 `WorldRendererBuild`／`WorldRendererProps`／`WorldRendererActors`／`WorldRendererShapes`，純搬移不改行為（Refs #46）
+
 ### 文件
 - AGENTS.md 新增「pstack 流程」：規定各角色必跑的 skill，PR 說明須列出已跑的 skill。
 
