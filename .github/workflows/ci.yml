@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   build:
@@ -19,28 +20,50 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Detect docs-only changes
+        id: changes
+        uses: dorny/paths-filter@v4
+        with:
+          predicate-quantifier: every
+          filters: |
+            code:
+              - '**'
+              - '!**/*.md'
+              - '!docs/**'
+
+      - name: Docs-only summary
+        if: steps.changes.outputs.code == 'false'
+        run: echo "只改文件，略過建置" >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/setup-java@v6
+        if: steps.changes.outputs.code == 'true'
         with:
           distribution: temurin
           java-version: '25'
 
       - uses: gradle/actions/setup-gradle@v6
+        if: steps.changes.outputs.code == 'true'
 
       - name: Make gradlew executable
+        if: steps.changes.outputs.code == 'true'
         run: chmod +x gradlew
 
       - name: Compile and test
+        if: steps.changes.outputs.code == 'true'
         run: ./gradlew compileKotlinDesktop compileKotlinJs desktopTest --stacktrace --warning-mode all
 
       - name: Build JS distribution
+        if: steps.changes.outputs.code == 'true'
         run: ./gradlew jsBrowserDistribution --stacktrace --warning-mode all
 
       - name: Check HUD icons are packaged in JS distribution
+        if: steps.changes.outputs.code == 'true'
         run: |
           diff <(cd koolApp/assets/icons && ls *.svg | sort) \
                <(cd koolApp/build/dist/js/productionExecutable/assets/icons && ls *.svg | sort)
 
       - name: Upload JS distribution
+        if: steps.changes.outputs.code == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: js-distribution
@@ -48,7 +71,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload test reports
-        if: failure()
+        if: failure() && steps.changes.outputs.code == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: test-reports
