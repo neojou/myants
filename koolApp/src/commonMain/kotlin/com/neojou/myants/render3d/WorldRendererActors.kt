@@ -1,6 +1,5 @@
 package com.neojou.myants.render3d
 
-import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.actors.GltfAnt
 import com.neojou.myants.render3d.actors.GltfAphid
 import com.neojou.myants.render3d.actors.GltfCritter
@@ -97,7 +96,7 @@ internal fun WorldRenderer.pushActors(preset: QualityPreset) {
     pushInsects()
     pushAnts(preset, time)
     pushBits()
-    val mark = session.inspectRingNow?.takeIf { it.space == RingSpace.WORLD }
+    val mark = state.inspectRing?.takeIf { it.space == RingSpace.WORLD }
     if (mark != null) {
         ring.isVisible = true
         val y = GroundHeight.at(mark.x.toFloat(), mark.y.toFloat()) + 0.4f
@@ -109,7 +108,7 @@ internal fun WorldRenderer.pushActors(preset: QualityPreset) {
     } else {
         ring.isVisible = false
     }
-    val stone = session.world.terrain.clockStone
+    val stone = state.world.terrain.clockStone
     val sm = stoneMesh
     if (sm != null) {
         val y = GroundHeight.at(stone.x.toFloat(), stone.y.toFloat())
@@ -127,7 +126,7 @@ internal fun WorldRenderer.pushFood(preset: QualityPreset) {
         }
     }
     var n = 0
-    for (item in session.world.foods) {
+    for (item in state.world.foods) {
         val x = item.x.toFloat()
         val z = item.y.toFloat()
         val r = foodPileRadius(item.amount)
@@ -156,7 +155,7 @@ internal fun WorldRenderer.pushFood(preset: QualityPreset) {
 
 internal fun WorldRenderer.pushInsects() {
     val seen = HashSet<Int>()
-    for (insect in session.world.insects) {
+    for (insect in state.world.insects) {
         val x = insect.x.toFloat()
         val z = insect.y.toFloat()
         val yaw = WorldFrames.yawRad(insect.angle.toFloat())
@@ -231,8 +230,8 @@ internal fun WorldRenderer.pushAphidTraces(seq: Int, x: Float, ground: Float, z:
 
 internal fun WorldRenderer.pushAnts(preset: QualityPreset, time: Float) {
     val buckets = preset.poseBuckets.coerceAtLeast(1)
-    for (colony in session.world.colonies) {
-        val tint = if (colony.id == 0) session.antColor else rgbColor(colony.workerTint)
+    for (colony in state.world.colonies) {
+        val tint = if (colony.id == 0) state.view.antColor else rgbColor(colony.workerTint)
         for (ant in colony.ants) {
             if (ant.location != AntPlace.WORLD) continue
             val x = ant.x.toFloat()
@@ -288,7 +287,7 @@ internal fun WorldRenderer.pushAnts(preset: QualityPreset, time: Float) {
 }
 
 internal fun WorldRenderer.pushBits() {
-    for (p in session.world.particles) {
+    for (p in state.world.particles) {
         if (p.life <= 0.0) continue
         val x = p.x.toFloat()
         val z = p.y.toFloat()

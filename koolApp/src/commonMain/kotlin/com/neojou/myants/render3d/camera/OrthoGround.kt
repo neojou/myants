@@ -11,7 +11,7 @@ import kotlin.math.sqrt
  * kool 0.19 [de.fabmax.kool.scene.Camera.unProjectScreen] treats reversed depth as an
  * infinite perspective projection. On the Vulkan ortho camera that makes screen depth 0
  * a zero homogeneous w, and [de.fabmax.kool.scene.Camera.computePickRay] returns a NaN ray.
- * Writing that hit into the session camera leaves the deferred g-buffer empty, so the
+ * Writing that hit into the app camera leaves the deferred g-buffer empty, so the
  * lighting pass stays black.
  */
 internal object OrthoGround {

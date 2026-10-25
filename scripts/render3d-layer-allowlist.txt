@@ -1,10 +1,2 @@
 # render3d 仍依賴 AppSession/session/ui/input 的檔案（#47 過渡期）。
 # 只能刪減，不能新增；清空後 check-layers.sh 會對任何依賴直接失敗。
-camera/CameraController.kt
-camera/CameraDirector.kt
-camera/TopDownCamera.kt
-nest/NestCutaway.kt
-RenderFlags.kt
-WorldRenderer.kt
-WorldRendererActors.kt
-WorldRendererProps.kt

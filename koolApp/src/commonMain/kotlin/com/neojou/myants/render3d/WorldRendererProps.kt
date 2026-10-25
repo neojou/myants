@@ -1,6 +1,5 @@
 package com.neojou.myants.render3d
 
-import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.actors.GltfAnt
 import com.neojou.myants.render3d.actors.GltfAphid
 import com.neojou.myants.render3d.actors.GltfCritter
@@ -109,10 +108,10 @@ internal fun WorldRenderer.rebuildGround() {
 }
 
 internal fun WorldRenderer.rebuildScatter(preset: QualityPreset) {
-    val key = "$serial|${preset.fineGrass}|${preset.pebbles}|${preset.leaves}|${preset.flowers}|${session.grassDensity}"
+    val key = "$serial|${preset.fineGrass}|${preset.pebbles}|${preset.leaves}|${preset.flowers}|${state.view.grassDensity}"
     if (key == scatterKey) return
     scatterKey = key
-    val fields = ScatterLayout.build(session.seed, serial, preset, session.grassDensity)
+    val fields = ScatterLayout.build(state.seed, serial, preset, state.view.grassDensity)
     extraGrass = fields.extraGrass
     pebbles = fields.pebbles
     leafPos = fields.leaves
@@ -178,7 +177,7 @@ internal fun WorldRenderer.placeClover(x: Float, z: Float, yaw: Float, scale: Fl
 internal fun WorldRenderer.pushSimGrass(preset: QualityPreset, time: Float) {
     if (PerformanceManager.settings.simpleAnts) return
     val sway = preset.grassSway
-    for (tuft in session.world.grass) {
+    for (tuft in state.world.grass) {
         val x = tuft.x.toFloat()
         val z = tuft.y.toFloat()
         val yaw = WorldFrames.yawRad(tuft.angle.toFloat()) + if (sway) sin(time * 1.5f + x) * 0.2f else 0f
@@ -193,7 +192,7 @@ internal fun WorldRenderer.pushSimGrass(preset: QualityPreset, time: Float) {
 }
 
 internal fun WorldRenderer.pushObstacles() {
-    for (obs in session.world.terrain.obstacles) {
+    for (obs in state.world.terrain.obstacles) {
         val x = obs.x.toFloat()
         val z = obs.y.toFloat()
         val r = obs.radius.toFloat()
@@ -205,7 +204,7 @@ internal fun WorldRenderer.pushObstacles() {
 internal fun WorldRenderer.pushClock() {
     val (hh, mm, ss) = wallClockHms()
     val text = "${hh.toString().padStart(2, '0')}${mm.toString().padStart(2, '0')}"
-    val stone = session.world.terrain.clockStone
+    val stone = state.world.terrain.clockStone
     val metrics = clockMetrics(SimConfig.clock.fontSize.toFloat())
     val slots = clockSlots(stone.x.toFloat(), metrics)
     val z = stone.y.toFloat() + stone.radius.toFloat() * 0.15f
@@ -230,10 +229,10 @@ internal fun WorldRenderer.pushClock() {
 
 internal fun WorldRenderer.pushRain(preset: QualityPreset) {
     rain.clear()
-    val world = session.world
-    if (!world.raining || !session.weatherUser || preset.rainStreaks <= 0) return
+    val world = state.world
+    if (!world.raining || !state.view.weatherUser || preset.rainStreaks <= 0) return
     if (rainX.size != preset.rainStreaks) {
-        val rnd = Random(session.seed.toLong() xor 0xA41L)
+        val rnd = Random(state.seed.toLong() xor 0xA41L)
         rainX = FloatArray(preset.rainStreaks) { rnd.nextFloat() * SimConfig.width }
         rainZ = FloatArray(preset.rainStreaks) { rnd.nextFloat() * SimConfig.height }
         rainPhase = FloatArray(preset.rainStreaks) { rnd.nextFloat() }

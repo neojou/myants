@@ -20,6 +20,7 @@
 - `AppSession.kt`（428 行）降到 269 行：使用者動作移到 `AppSessionActions.kt`（`AppSession` 的擴充函式，呼叫端只多 import），`SimTool`／`AnalyseLine`／`GraphSample` 移到 `SessionTypes.kt`，行為不變（Closes #46）
 - 新增 `scripts/check-layers.sh` 與 `RenderLayerGuardTest`：render3d 依賴 session／ui／input 的檔案只能在允許清單內，清單只能縮小；移除兩處沒用到的 `AppSession` import（PR #60，Refs #47）
 - `InspectTarget` 轉選取圈的分派從 render3d 移到 `session/InspectRingMapping.kt`（`toRing()`），render3d 只留圈的型別與尺寸規則，行為不變（PR #63，Refs #47）
+- render3d 改透過 `RenderState`／`ViewFlags`／`CameraView` 讀狀態、透過 `RenderHost` 寫回，`session/SessionRenderBridge` 委派給 `AppSession`；render3d 不再引用 session，check-layers 允許清單清空，行為不變（Refs #47）
 
 ## [0.18.0] - 2026-10-26
 

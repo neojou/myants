@@ -20,7 +20,7 @@
 - #62：12 個室外 glb 的材質改成跟 runtime 顏色一致（只改 tools 和資產），在分支 `feat/62-glb-materials`，未合併。時鐘石暖灰、數字 #E9C46A、三葉草花三色已由 #66 完成。
 - #62 上色：時鐘石暖灰、數字 #E9C46A、三葉草花三色，在分支 `feat/62-clock-clover-colors`，未合併；glb 材質在 #65。
 - #61（M4 Inspect 美術必改 4 項）：浮動卡、雙環選取圈、Follow 狀態色、文字層級；色條一律用 onSurfaceVar，在分支 `feat/61-inspect-art`，未合併。實機截圖還沒拍。
-- 下一步：#47 依序合併：守門（#60）→ InspectRing 分派移到 session（#63）→ RenderState／RenderHost 介面 → 子渲染器物件，皆不改行為；#13 與 milestone M5 仍開。巢穴 glTF 沒做。不 push main、不關 issue、不改版號。
+- 下一步：#47 依序合併：守門（#60）→ InspectRing 分派移到 session（#63）→ RenderState／RenderHost 介面（PR 已開，疊在 #63 上，允許清單已清空）→ 子渲染器物件，皆不改行為；#13 與 milestone M5 仍開。巢穴 glTF 沒做。不 push main、不關 issue、不改版號。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
 已完成、仍有效的結構：
