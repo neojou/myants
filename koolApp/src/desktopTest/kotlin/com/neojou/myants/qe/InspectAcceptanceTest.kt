@@ -19,6 +19,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import com.neojou.myants.inspectNest
+import com.neojou.myants.toggleUserFollow
 
 /**
  * QE acceptance for M4 Inspect (#12 / #49). Black-box: only the public session/tool
