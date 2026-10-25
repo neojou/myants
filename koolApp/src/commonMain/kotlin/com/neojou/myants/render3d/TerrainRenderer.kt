@@ -59,6 +59,7 @@ internal class TerrainRenderer : SubRenderer {
         if (serial != state.worldSerial) {
             serial = state.worldSerial
             GroundHeight.rebuild(state.seed, serial)
+            // PropsRenderer 的 scatterKey 含 worldSerial，換世界時自動失效，故不需手動清除。
             rebuildGround()
         }
         updateSun(state)
