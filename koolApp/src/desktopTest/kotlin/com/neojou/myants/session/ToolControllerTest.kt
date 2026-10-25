@@ -17,6 +17,7 @@ import com.neojou.myants.sim.Pheromone
 import com.neojou.myants.sim.Rng
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
+import com.neojou.myants.ui.InspectRow
 import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.UiLanguage
 import kotlin.test.BeforeTest
@@ -143,12 +144,12 @@ class ToolControllerTest {
         val t = ToolController()
         t.inspectNest(world, egg.x, egg.y)
         assertEquals("EGG age=3", t.inspect.value)
-        assertEquals("EGG", t.inspectPanel.value?.title)
-        assertEquals(listOf("age=3"), t.inspectPanel.value?.rows)
+        assertEquals("Egg", t.inspectPanel.value?.title)
+        assertEquals(listOf(InspectRow("Age", "3")), t.inspectPanel.value?.rows)
 
         t.inspectNest(world, larva.x, larva.y)
         assertEquals("LARVA age=4 hunger=6", t.inspect.value)
-        assertTrue(t.inspectPanel.value!!.rows.contains("hunger=6"))
+        assertTrue(t.inspectPanel.value!!.rows.contains(InspectRow("Hunger", "6")))
 
         t.inspectNest(world, pupa.x, pupa.y)
         assertEquals("PUPA age=1 SOLDIER", t.inspect.value)
@@ -163,7 +164,7 @@ class ToolControllerTest {
         t.inspectNest(world, carried.x, carried.y)
         assertTrue(t.inspectTarget() is InspectTarget.ChamberItem)
         assertEquals("CHAMBER STORAGE r=30", t.inspect.value)
-        assertEquals(listOf("STORAGE", "r=30"), t.inspectPanel.value?.rows)
+        assertEquals(listOf(InspectRow("Role", "Storage"), InspectRow("Radius", "30")), t.inspectPanel.value?.rows)
         assertEquals(room.x, 24.0)
 
         L10n.language.value = UiLanguage.ZH_TW
@@ -172,7 +173,7 @@ class ToolControllerTest {
         assertEquals("卵 年齡=3", t.inspect.value)
         t.inspectNest(world, room.x, room.y)
         assertEquals("巢間", t.inspectPanel.value?.title)
-        assertEquals(listOf("存放", "半徑=30"), t.inspectPanel.value?.rows)
+        assertEquals(listOf(InspectRow("角色", "存放"), InspectRow("半徑", "30")), t.inspectPanel.value?.rows)
     }
 
     @Test
@@ -188,11 +189,11 @@ class ToolControllerTest {
         val t = ToolController()
         t.inspectNearest(world, px, py)
         assertTrue(t.inspect.value.contains("e=11"), t.inspect.value)
-        assertEquals("Ant WORKER", t.inspectPanel.value?.title)
+        assertEquals("Ant Worker", t.inspectPanel.value?.title)
         ant.energy = 4.0
         assertTrue(t.refresh(world))
         assertTrue(t.inspect.value.contains("e=4"), t.inspect.value)
-        assertTrue(t.inspectPanel.value!!.rows.any { it.contains("e=4") })
+        assertTrue(t.inspectPanel.value!!.rows.contains(InspectRow("Energy", "4")))
         assertFalse(t.refresh(world))
         L10n.language.value = UiLanguage.ZH_TW
         assertTrue(t.refresh(world))
@@ -223,7 +224,7 @@ class ToolControllerTest {
         val clock = world.terrain.clockStone
         t.inspectNearest(world, clock.x, clock.y)
         assertEquals("CLOCK r=${clock.radius.toInt()}", t.inspect.value)
-        assertEquals("CLOCK", t.inspectPanel.value?.title)
+        assertEquals("Clock", t.inspectPanel.value?.title)
 
         val stone = world.terrain.obstacles.first()
         t.inspectNearest(world, stone.x, stone.y)
@@ -242,16 +243,17 @@ class ToolControllerTest {
         world.grass.clear()
         t.inspectNearest(world, gx, gy, leaves)
         assertEquals("LEAF", t.inspect.value)
-        assertEquals("LEAF", t.inspectPanel.value?.title)
+        assertEquals("Leaf", t.inspectPanel.value?.title)
         assertFalse(t.refresh(world, leaves))
         assertTrue(t.refresh(world, emptyList()))
         assertNull(t.inspectTarget())
 
         val (ex, ey) = emptyGround()
         t.inspectNearest(world, ex, ey)
-        assertEquals(4, t.inspectPanel.value?.rows?.size)
+        assertEquals(emptyList(), t.inspectPanel.value?.rows, "zero channels are hidden")
         world.colonies[0].outdoorField.deposit(ex, ey, Pheromone.HOME, 0.5)
         assertTrue(t.refresh(world))
+        assertEquals(listOf(InspectRow("Home", "0.50")), t.inspectPanel.value?.rows)
         assertTrue(t.inspect.value.contains("home=0.50"), t.inspect.value)
         t.inspectNearest(world, -1.0, ey)
         assertNull(t.inspectTarget())
@@ -278,7 +280,10 @@ class ToolControllerTest {
             t.inspectNearest(both, x, y)
             assertTrue(t.inspect.value.contains("c0 "), t.inspect.value)
             assertTrue(t.inspect.value.contains("c1 "), t.inspect.value)
-            assertEquals(8, t.inspectPanel.value?.rows?.size)
+            assertEquals(0, t.inspectPanel.value?.rows?.size)
+            both.colonies[1].outdoorField.deposit(x, y, Pheromone.DANGER, 0.25)
+            t.refresh(both)
+            assertEquals(listOf(InspectRow("B Danger", "0.25")), t.inspectPanel.value?.rows)
         } finally {
             SimConfig.colonyCount = previous
         }

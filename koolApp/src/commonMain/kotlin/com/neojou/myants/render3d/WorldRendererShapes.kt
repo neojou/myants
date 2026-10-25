@@ -160,23 +160,33 @@ internal fun de.fabmax.kool.scene.geometry.MeshBuilder<*>.moltFlake() {
     }
 }
 
-internal fun de.fabmax.kool.scene.geometry.MeshBuilder<*>.ringXZ() {
+/** One colored band of the selection ring, in ring-scale units (outer edge = 1). */
+internal data class RingBand(val inner: Float, val outer: Float, val color: Color)
+
+/** Two-tone selection ring (#61): a light outer band so it reads on dark soil, the brand inner band. */
+internal fun selectRingBands(): List<RingBand> = listOf(
+    RingBand(0.62f, 0.80f, WorldPalette.selectRingInner),
+    RingBand(0.80f, 1f, WorldPalette.selectRingOuter),
+)
+
+/** Selection ring on the ground (XZ) or the nest plane (XY). Needs a layout with a color attribute. */
+internal fun de.fabmax.kool.scene.geometry.MeshBuilder<*>.selectRing(xz: Boolean) {
     val n = 28
-    val inner = 0.65f
-    val outer = 1f
-    for (i in 0 until n) {
-        val a0 = (i.toFloat() / n) * (PI.toFloat() * 2f)
-        val a1 = ((i + 1).toFloat() / n) * (PI.toFloat() * 2f)
-        val x0 = cos(a0)
-        val z0 = sin(a0)
-        val x1 = cos(a1)
-        val z1 = sin(a1)
-        val up = Vec3f.Y_AXIS
-        val i0 = vertex(Vec3f(x0 * inner, 0f, z0 * inner), up)
-        val i1 = vertex(Vec3f(x0 * outer, 0f, z0 * outer), up)
-        val i2 = vertex(Vec3f(x1 * outer, 0f, z1 * outer), up)
-        val i3 = vertex(Vec3f(x1 * inner, 0f, z1 * inner), up)
-        addTriIndices(i0, i1, i2)
-        addTriIndices(i0, i2, i3)
+    val nrm = if (xz) Vec3f.Y_AXIS else Vec3f.Z_AXIS
+    fun p(r: Float, a: Float): Vec3f =
+        if (xz) Vec3f(cos(a) * r, 0f, sin(a) * r) else Vec3f(cos(a) * r, sin(a) * r, 0f)
+    for (band in selectRingBands()) {
+        withColor(band.color) {
+            for (i in 0 until n) {
+                val a0 = (i.toFloat() / n) * (PI.toFloat() * 2f)
+                val a1 = ((i + 1).toFloat() / n) * (PI.toFloat() * 2f)
+                val i0 = vertex(p(band.inner, a0), nrm)
+                val i1 = vertex(p(band.outer, a0), nrm)
+                val i2 = vertex(p(band.outer, a1), nrm)
+                val i3 = vertex(p(band.inner, a1), nrm)
+                addTriIndices(i0, i1, i2)
+                addTriIndices(i0, i2, i3)
+            }
+        }
     }
 }

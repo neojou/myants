@@ -15,11 +15,19 @@ import kotlin.math.abs
 import kotlin.math.round
 
 /**
- * Inspect lines. English keeps the historical enum wording so existing tests stay valid.
- * Other languages use this table, including kind and state names.
+ * Inspect lines. English one-line text keeps the historical enum wording so existing tests stay valid.
+ * The card ([InspectPanel]) uses translated labels and sentence-case names in every language.
  */
-/** Structured inspect rows. The one-line [InspectCopy] text stays for tests. */
-internal data class InspectPanel(val title: String, val rows: List<String>)
+/** One label/value line of the floating inspector card (#61). */
+internal data class InspectRow(val label: String, val value: String)
+
+/** Structured inspect card: a title plus at most [MAX_ROWS] label/value rows. The one-line [InspectCopy] text stays for tests. */
+internal data class InspectPanel(val title: String, val rows: List<InspectRow>) {
+    companion object {
+        const val MAX_ROWS = 6
+        fun of(title: String, rows: List<InspectRow>) = InspectPanel(title, rows.take(MAX_ROWS))
+    }
+}
 
 internal object InspectCopy {
     fun antLine(ant: Ant, lang: UiLanguage = L10n.language.value): String {
@@ -50,35 +58,32 @@ internal object InspectCopy {
         return "${insect(type, lang)} ${word(UiText.INSPECT_HP, lang)} $health"
     }
 
-    fun antPanel(ant: Ant, lang: UiLanguage = L10n.language.value): InspectPanel {
-        val title = if (lang == UiLanguage.EN) "Ant ${ant.type}" else "${word(UiText.INSPECT_ANT, lang)} ${kind(ant.type, lang)}"
-        return InspectPanel(
-            title,
-            listOf(
-                state(ant.state, lang),
-                "${word(UiText.INSPECT_ENERGY, lang)}=${ant.energy.toInt()}",
-                "${word(UiText.INSPECT_HEALTH, lang)}=${ant.health.toInt()}",
-                carry(ant.carrying, lang),
-            ),
-        )
-    }
-
-    fun queenPanel(energy: Int, age: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
-        word(UiText.INSPECT_QUEEN, lang),
+    fun antPanel(ant: Ant, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
+        "${label(UiText.INSPECT_ANT, lang)} ${kind(ant.type, lang)}",
         listOf(
-            "${word(UiText.INSPECT_ENERGY, lang)}=$energy",
-            "${word(UiText.INSPECT_AGE, lang)}=$age",
+            InspectRow(label(UiText.INSPECT_STATE, lang), state(ant.state, lang)),
+            InspectRow(label(UiText.INSPECT_ENERGY, lang), ant.energy.toInt().toString()),
+            InspectRow(label(UiText.INSPECT_HEALTH, lang), ant.health.toInt().toString()),
+            InspectRow(label(UiText.INSPECT_CARRY, lang), carry(ant.carrying, lang)),
         ),
     )
 
-    fun foodPanel(type: FoodKind, amount: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
-        if (lang == UiLanguage.EN) type.name else food(type, lang),
-        listOf(amount.toString()),
+    fun queenPanel(energy: Int, age: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
+        label(UiText.INSPECT_QUEEN, lang),
+        listOf(
+            InspectRow(label(UiText.INSPECT_ENERGY, lang), energy.toString()),
+            InspectRow(label(UiText.INSPECT_AGE, lang), age.toString()),
+        ),
     )
 
-    fun insectPanel(type: InsectKind, health: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
-        if (lang == UiLanguage.EN) type.name else insect(type, lang),
-        listOf("${word(UiText.INSPECT_HP, lang)} $health"),
+    fun foodPanel(type: FoodKind, amount: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
+        food(type, lang),
+        listOf(InspectRow(label(UiText.INSPECT_AMOUNT, lang), amount.toString())),
+    )
+
+    fun insectPanel(type: InsectKind, health: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
+        insect(type, lang),
+        listOf(InspectRow(label(UiText.INSPECT_HP, lang), health.toString())),
     )
 
     fun broodLine(brood: Brood, lang: UiLanguage = L10n.language.value): String {
@@ -91,66 +96,78 @@ internal object InspectCopy {
             base
         }
         val caste = brood.destinedCaste
-        return if (brood.stage == BroodStage.PUPA && caste != null) "$withHunger ${kind(caste, lang)}" else withHunger
+        val casteText = caste?.let { if (lang == UiLanguage.EN) it.name else kind(it, lang) }
+        return if (brood.stage == BroodStage.PUPA && casteText != null) "$withHunger $casteText" else withHunger
     }
 
     fun broodPanel(brood: Brood, lang: UiLanguage = L10n.language.value): InspectPanel {
-        val rows = ArrayList<String>()
-        rows += "${word(UiText.INSPECT_AGE, lang)}=${brood.age.toInt()}"
+        val rows = ArrayList<InspectRow>()
+        rows += InspectRow(label(UiText.INSPECT_AGE, lang), brood.age.toInt().toString())
         if (brood.stage == BroodStage.LARVA) {
-            rows += "${word(UiText.INSPECT_HUNGER, lang)}=${brood.hunger.toInt()}"
+            rows += InspectRow(label(UiText.INSPECT_HUNGER, lang), brood.hunger.toInt().toString())
         }
         val caste = brood.destinedCaste
-        if (brood.stage == BroodStage.PUPA && caste != null) rows += kind(caste, lang)
-        return InspectPanel(word(stageKey(brood.stage), lang), rows)
+        if (brood.stage == BroodStage.PUPA && caste != null) rows += InspectRow(label(UiText.INSPECT_CASTE, lang), kind(caste, lang))
+        return InspectPanel.of(label(stageKey(brood.stage), lang), rows)
     }
 
     fun chamberLine(role: ChamberRole, radius: Int, lang: UiLanguage = L10n.language.value): String =
         "${word(UiText.INSPECT_CHAMBER, lang)} ${word(roleKey(role), lang)} ${word(UiText.INSPECT_RADIUS, lang)}=$radius"
 
-    fun chamberPanel(role: ChamberRole, radius: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
-        word(UiText.INSPECT_CHAMBER, lang),
+    fun chamberPanel(role: ChamberRole, radius: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
+        label(UiText.INSPECT_CHAMBER, lang),
         listOf(
-            word(roleKey(role), lang),
-            "${word(UiText.INSPECT_RADIUS, lang)}=$radius",
+            InspectRow(label(UiText.INSPECT_ROLE, lang), label(roleKey(role), lang)),
+            InspectRow(label(UiText.INSPECT_RADIUS, lang), radius.toString()),
         ),
     )
 
     fun stoneLine(radius: Int, clock: Boolean, lang: UiLanguage = L10n.language.value): String =
         "${word(if (clock) UiText.INSPECT_CLOCK else UiText.INSPECT_STONE, lang)} ${word(UiText.INSPECT_RADIUS, lang)}=$radius"
 
-    fun stonePanel(radius: Int, clock: Boolean, lang: UiLanguage = L10n.language.value): InspectPanel {
-        val name = word(if (clock) UiText.INSPECT_CLOCK else UiText.INSPECT_STONE, lang)
-        return InspectPanel(name, listOf("${word(UiText.INSPECT_RADIUS, lang)}=$radius"))
-    }
+    fun stonePanel(radius: Int, clock: Boolean, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
+        label(if (clock) UiText.INSPECT_CLOCK else UiText.INSPECT_STONE, lang),
+        listOf(InspectRow(label(UiText.INSPECT_RADIUS, lang), radius.toString())),
+    )
 
     fun grassLine(size: Int, lang: UiLanguage = L10n.language.value): String =
         "${word(UiText.INSPECT_GRASS, lang)} ${word(UiText.INSPECT_SIZE, lang)}=$size"
 
-    fun grassPanel(size: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel(
-        word(UiText.INSPECT_GRASS, lang),
-        listOf("${word(UiText.INSPECT_SIZE, lang)}=$size"),
+    fun grassPanel(size: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
+        label(UiText.INSPECT_GRASS, lang),
+        listOf(InspectRow(label(UiText.INSPECT_SIZE, lang), size.toString())),
     )
 
     fun leafLine(lang: UiLanguage = L10n.language.value): String = word(UiText.INSPECT_LEAF, lang)
 
     fun leafPanel(lang: UiLanguage = L10n.language.value): InspectPanel =
-        InspectPanel(word(UiText.INSPECT_LEAF, lang), emptyList())
+        InspectPanel.of(label(UiText.INSPECT_LEAF, lang), emptyList())
 
     fun pheromoneLine(colonies: List<Colony>, x: Double, y: Double, lang: UiLanguage = L10n.language.value): String =
         "${word(UiText.INSPECT_PHEROMONE, lang)} " + colonies.joinToString(" ") { colonyChannels(it, x, y, lang) }
 
+    /** Only non-zero channels (at two decimals); colonies are tagged A, B, ... when more than one is listed. */
     fun pheromonePanel(colonies: List<Colony>, x: Double, y: Double, lang: UiLanguage = L10n.language.value): InspectPanel {
-        val rows = ArrayList<String>()
+        val rows = ArrayList<InspectRow>()
+        val channels = listOf(
+            UiText.INSPECT_HOME to Pheromone.HOME,
+            UiText.INSPECT_TRAIL_SUGAR to Pheromone.SUGAR,
+            UiText.INSPECT_TRAIL_PROTEIN to Pheromone.PROTEIN,
+            UiText.INSPECT_DANGER to Pheromone.DANGER,
+        )
         for (colony in colonies) {
             val field = colony.outdoorField
-            rows += channelRow(colony.id, UiText.INSPECT_HOME, field.get(x, y, Pheromone.HOME), lang)
-            rows += channelRow(colony.id, UiText.INSPECT_TRAIL_SUGAR, field.get(x, y, Pheromone.SUGAR), lang)
-            rows += channelRow(colony.id, UiText.INSPECT_TRAIL_PROTEIN, field.get(x, y, Pheromone.PROTEIN), lang)
-            rows += channelRow(colony.id, UiText.INSPECT_DANGER, field.get(x, y, Pheromone.DANGER), lang)
+            val prefix = if (colonies.size > 1) "${colonyTag(colony.id)} " else ""
+            for ((key, channel) in channels) {
+                val text = fixed2(field.get(x, y, channel))
+                if (text == "0.00") continue
+                rows += InspectRow(prefix + label(key, lang), text)
+            }
         }
-        return InspectPanel(word(UiText.INSPECT_PHEROMONE, lang), rows)
+        return InspectPanel.of(label(UiText.INSPECT_PHEROMONE, lang), rows)
     }
+
+    private fun colonyTag(id: Int): String = ('A' + (id % 26)).toString()
 
     private fun colonyChannels(colony: Colony, x: Double, y: Double, lang: UiLanguage): String {
         val field = colony.outdoorField
@@ -161,9 +178,6 @@ internal object InspectCopy {
             channelPair(UiText.INSPECT_DANGER, field.get(x, y, Pheromone.DANGER), lang),
         ).joinToString(" ")
     }
-
-    private fun channelRow(id: Int, key: UiText, value: Double, lang: UiLanguage): String =
-        "c$id ${channelPair(key, value, lang)}"
 
     private fun channelPair(key: UiText, value: Double, lang: UiLanguage): String =
         "${word(key, lang)}=${fixed2(value)}"
@@ -194,10 +208,53 @@ internal object InspectCopy {
 
     private fun word(key: UiText, lang: UiLanguage) = L10n.string(key, lang)
 
+    /** Card labels: readable words instead of the debug keys (e, h, r, s) and upper-case enum names. */
+    private fun label(key: UiText, lang: UiLanguage): String = when (lang) {
+        UiLanguage.EN -> EN_LABEL[key]
+        UiLanguage.DE -> DE_LABEL[key]
+        else -> null
+    } ?: word(key, lang)
+
+    private val EN_LABEL = mapOf(
+        UiText.INSPECT_ENERGY to "Energy",
+        UiText.INSPECT_HEALTH to "Health",
+        UiText.INSPECT_AGE to "Age",
+        UiText.INSPECT_HP to "Health",
+        UiText.INSPECT_EGG to "Egg",
+        UiText.INSPECT_LARVA to "Larva",
+        UiText.INSPECT_PUPA to "Pupa",
+        UiText.INSPECT_HUNGER to "Hunger",
+        UiText.INSPECT_CHAMBER to "Chamber",
+        UiText.INSPECT_ROLE_QUEEN to "Queen",
+        UiText.INSPECT_ROLE_BROOD to "Brood",
+        UiText.INSPECT_ROLE_STORAGE to "Storage",
+        UiText.INSPECT_ROLE_CEMETERY to "Cemetery",
+        UiText.INSPECT_RADIUS to "Radius",
+        UiText.INSPECT_STONE to "Stone",
+        UiText.INSPECT_CLOCK to "Clock",
+        UiText.INSPECT_GRASS to "Grass",
+        UiText.INSPECT_LEAF to "Leaf",
+        UiText.INSPECT_SIZE to "Size",
+        UiText.INSPECT_PHEROMONE to "Pheromone",
+        UiText.INSPECT_HOME to "Home",
+        UiText.INSPECT_TRAIL_SUGAR to "Sugar trail",
+        UiText.INSPECT_TRAIL_PROTEIN to "Protein trail",
+        UiText.INSPECT_DANGER to "Danger",
+    )
+    private val DE_LABEL = mapOf(
+        UiText.INSPECT_ENERGY to "Energie",
+        UiText.INSPECT_HEALTH to "Gesundheit",
+        UiText.INSPECT_RADIUS to "Radius",
+        UiText.INSPECT_SIZE to "Größe",
+    )
+
+    /** English enum names in sentence case, e.g. WORKER -> Worker. */
+    private fun enName(key: String): String = key.lowercase().replaceFirstChar { it.uppercase() }
+
     private fun name(table: Map<String, Triple<String, String, String>>, key: String, lang: UiLanguage): String {
         val row = table[key] ?: return key
         return when (lang) {
-            UiLanguage.EN -> key
+            UiLanguage.EN -> enName(key)
             UiLanguage.ZH_TW -> row.first
             UiLanguage.JA -> row.second
             UiLanguage.DE -> row.third
