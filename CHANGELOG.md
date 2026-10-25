@@ -15,6 +15,7 @@
 - Follow 按鈕改用 IconButton 的狀態色：平常 `surfaceVariant`，滑過 `primaryHover`，跟隨中 `primary` 加 1dp 外框（Refs #61）
 
 ### 重構
+- `WorldRenderer` 拆成 `SubRenderer` 子渲染器：`TerrainRenderer`（地面、費洛蒙、太陽／IBL）、`PropsRenderer`（草、石、葉、花、雨）、`ActorsRenderer`（螞蟻、蚜蟲、昆蟲、食物、粒子、時鐘石）、`OverlayRenderer`（選取圈、時鐘數字）；`WorldRenderer` 只留管線、陰影、bloom、fps 降階與調度（213 行）。只搬欄位不改邏輯（Refs #47）
 - `WorldRenderer.kt`（1216 行）依職責拆成 `WorldRendererBuild`／`WorldRendererProps`／`WorldRendererActors`／`WorldRendererShapes`，純搬移不改行為（Refs #46）
 - `AntStates.kt`（991 行）依狀態拆成巢內（`AntStates`）、防禦（`AntStatesDefense`）、覓食（`AntStatesFood`）三檔，只搬移不改邏輯（Refs #46）
 - `AppSession.kt`（428 行）降到 269 行：使用者動作移到 `AppSessionActions.kt`（`AppSession` 的擴充函式，呼叫端只多 import），`SimTool`／`AnalyseLine`／`GraphSample` 移到 `SessionTypes.kt`，行為不變（Closes #46）
