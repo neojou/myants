@@ -2,6 +2,9 @@
 
 > 2026-10-22 更新。團隊（PM／Coder／QE／CI／Artist bot）暫停，改由一個 Grok Build session 接手。做法見 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。將來切回團隊時，從本文件與 `docs/PLAN.md` 繼續。
 
+
+> **Grok Build 單人模式注意**：Grok Build 實作時依 [docs/AI/How-To-Grok-build-one-AI-developing-approach.md](docs/AI/How-To-Grok-build-one-AI-developing-approach.md) 進行。那套流程和小隊流程（看板、角色分工、pstack）不同，兩者不要混用。
+
 ## 0. Grok Build 單人模式（暫停期間的流程）
 
 團隊暫停期間，由一個 Grok Build session 在本機 `main` 上 commit。不開分支，不開 PR。`AGENTS.md` 的團隊規則保留不改，切回團隊後恢復。
