@@ -1,7 +1,5 @@
 package com.neojou.myants.render3d
 
-import com.neojou.myants.chooseRenderer
-import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.actors.GltfAnt
 import com.neojou.myants.render3d.actors.GltfAphid
 import com.neojou.myants.render3d.actors.GltfCritter
@@ -78,9 +76,9 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "RENDER"
 
-fun KoolApplication.addWorldScene(session: AppSession) = addScene {
+fun KoolApplication.addWorldScene(state: RenderState, host: RenderHost) = addScene {
     clearColor = ClearColorFill(WorldPalette.sky)
-    WorldRenderer(this, session).install()
+    WorldRenderer(this, state, host).install()
 }
 
 /**
@@ -90,7 +88,8 @@ fun KoolApplication.addWorldScene(session: AppSession) = addScene {
  */
 class WorldRenderer(
     internal val scene: de.fabmax.kool.scene.Scene,
-    internal val session: AppSession,
+    internal val state: RenderState,
+    internal val host: RenderHost,
 ) {
     internal val layout = InstanceLayouts.ModelMatColor
     internal val mat = MutableMat4f()
@@ -166,7 +165,7 @@ class WorldRenderer(
     internal var rainPhase = FloatArray(0)
 
     fun install() {
-        session.worldScene = scene
+        host.onWorldSceneReady(scene)
         val cam = OrthographicCamera()
         scene.camera = cam
         val top = TopDownCamera(cam)
@@ -194,15 +193,15 @@ class WorldRenderer(
         if (clock != null) loadMerged("models/nature/clock_stone.glb", listOf(clock), "clock stone") { }
 
         scene.onUpdate {
-            if (session.renderer != RenderMode.D3) return@onUpdate
-            session.tick(Time.deltaT)
+            if (state.renderer != RenderMode.D3) return@onUpdate
+            host.onFrame(Time.deltaT)
             if (!loggedBackend) {
                 loggedBackend = true
                 MyLog.add(TAG, "backend ${backendLabel()} compute=${de.fabmax.kool.KoolSystem.features.computeShaders}", LogLevel.DEBUG)
             }
             ensurePipeline(content, forward)
-            top.update(Time.deltaT, session.renderBridge, session.renderBridge)
-            val preset = QualityPreset.from(PerformanceManager.level, session.renderTierBias)
+            top.update(Time.deltaT, state.camera, host)
+            val preset = QualityPreset.from(PerformanceManager.level, state.renderTierBias)
             applyPreset(preset)
             val winW = it.ctx.window.size.x.toFloat().coerceAtLeast(1f)
             val winH = it.ctx.window.size.y.toFloat().coerceAtLeast(1f)
@@ -218,7 +217,7 @@ class WorldRenderer(
             mountDeferred(content, forward)
         } catch (err: Throwable) {
             MyLog.add(TAG, "Deferred pipeline failed: ${err.message}. Falling back to the classic renderer.", LogLevel.DEBUG)
-            session.chooseRenderer(RenderMode.CLASSIC)
+            host.requestRenderer(RenderMode.CLASSIC)
         }
     }
 
@@ -264,14 +263,14 @@ class WorldRenderer(
         val cfg = DeferredPipelineConfig().apply {
             isWithAmbientOcclusion = true
             isWithScreenSpaceReflections = false
-            isWithBloom = bloomAllowed(session.renderBridge)
+            isWithBloom = bloomAllowed(state.view)
             isWithVignette = false
             // Reversed-Z turns LESS into GREATER. The output quad sits at clip z = 0,
             // which does not pass that test against a cleared depth buffer.
             outputDepthTest = DepthCompareOp.ALWAYS
             maxGlobalLights = 2
             if (env != null) useImageBasedLighting(env)
-            if (map != null && session.shadowsUser) useShadowMaps(listOf(map))
+            if (map != null && state.view.shadowsUser) useShadowMaps(listOf(map))
         }
         val pipe = DeferredPipeline(scene, cfg)
         // MaterialPass only installs a proxy when the scene camera is perspective.
@@ -290,24 +289,24 @@ class WorldRenderer(
         val quad = pipe.createDefaultOutputQuad()
         scene += quad
         scene += forward
-        session.applyRendererVisibility()
+        host.applyRendererVisibility()
     }
 
     internal fun applyPreset(preset: QualityPreset) {
         val pipe = deferred ?: return
         pipe.renderResolution = preset.renderResolution
-        pipe.isAoEnabled = session.ssaoUser && preset.ssaoScale != null
+        pipe.isAoEnabled = state.view.ssaoUser && preset.ssaoScale != null
         preset.ssaoScale?.let { pipe.aoMapSize = it }
-        val bloom = bloomAllowed(session.renderBridge) && preset.bloomRequested
+        val bloom = bloomAllowed(state.view) && preset.bloomRequested
         pipe.isBloomEnabled = bloom
-        shadow?.isShadowMapEnabled = session.shadowsUser && preset.shadow != com.neojou.myants.render3d.quality.ShadowKind.OFF
+        shadow?.isShadowMapEnabled = state.view.shadowsUser && preset.shadow != com.neojou.myants.render3d.quality.ShadowKind.OFF
         grassMesh.isCastingShadow = preset.grassCastsShadow
     }
 
     internal fun fill(preset: QualityPreset, winW: Float, winH: Float) {
-        if (serial != session.worldSerial) {
-            serial = session.worldSerial
-            GroundHeight.rebuild(session.seed, serial)
+        if (serial != state.worldSerial) {
+            serial = state.worldSerial
+            GroundHeight.rebuild(state.seed, serial)
             rebuildGround()
             scatterKey = ""
         }
@@ -316,14 +315,14 @@ class WorldRenderer(
         updatePheromone()
         pushActors(preset)
         pushRain(preset)
-        NestCutaway.update(session.renderBridge, winW, winH)
+        NestCutaway.update(state, winW, winH)
     }
 
     internal fun updateSun() {
         val light = sun ?: return
-        val world = session.world
-        val bright = if (session.dayNight) world.dayBrightness().toFloat() else 1f
-        val elev = if (session.dayNight) 6f + bright * 64f else 70f
+        val world = state.world
+        val bright = if (state.view.dayNight) world.dayBrightness().toFloat() else 1f
+        val elev = if (state.view.dayNight) 6f + bright * 64f else 70f
         val az = (world.timeOfDay * 160.0 - 80.0).toFloat()
         val elevRad = elev * (PI.toFloat() / 180f)
         val azRad = az * (PI.toFloat() / 180f)
@@ -350,20 +349,20 @@ class WorldRenderer(
 
     internal fun updatePheromone() {
         val shader = groundShader ?: return
-        val show = session.showPheromones && session.pheromoneStrength > 0.0
-        val tex = phero.update(session.world.colonies[0].outdoorField, session.pheromoneStrength, show)
+        val show = state.view.showPheromones && state.view.pheromoneStrength > 0.0
+        val tex = phero.update(state.world.colonies[0].outdoorField, state.view.pheromoneStrength, show)
         if (tex != null) shader.emissionMap = tex
-        val bright = if (session.dayNight) session.world.dayBrightness().toFloat() else 1f
+        val bright = if (state.view.dayNight) state.world.dayBrightness().toFloat() else 1f
         val boost = if (!show) 0f else 1.6f + (1f - bright) * 2.4f
         shader.emission = WorldPalette.emission(boost)
-        val wet = session.world.raining && session.weatherUser
+        val wet = state.world.raining && state.view.weatherUser
         val k = 0.28f + 0.72f * bright
         shader.color = WorldPalette.groundTint(k, wet)
         shader.roughness = if (wet) 0.28f else 0.92f
     }
 
     internal fun watchFps() {
-        val fps = session.fpsShownPublic
+        val fps = state.fpsShown
         if (fps <= 0 || fps == lastFps) return
         lastFps = fps
         fpsSum += fps
@@ -372,9 +371,9 @@ class WorldRenderer(
             val avg = fpsSum / fpsSamples
             fpsSum = 0
             fpsSamples = 0
-            if (avg < 40 && session.renderTierBias < 3) {
-                session.renderTierBias++
-                MyLog.add(TAG, "Visual tier bias ${session.renderTierBias} after ${avg} fps", LogLevel.DEBUG)
+            if (avg < 40 && state.renderTierBias < 3) {
+                host.bumpRenderTierBias()
+                MyLog.add(TAG, "Visual tier bias ${state.renderTierBias} after ${avg} fps", LogLevel.DEBUG)
             }
         }
     }

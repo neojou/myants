@@ -4,7 +4,7 @@ import com.neojou.tools.LogLevel
 import com.neojou.tools.MyLog
 
 /**
- * Normal play uses [CameraMode.TOP_DOWN]. Cinema and follow write the session
+ * Normal play uses [CameraMode.TOP_DOWN]. Cinema and follow write the app
  * camera numbers; the top-down controller only applies them.
  * [CameraMode.ANT_POV] is reserved and is never attached.
  */

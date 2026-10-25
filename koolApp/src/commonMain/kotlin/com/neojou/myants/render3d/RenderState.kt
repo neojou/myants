@@ -5,7 +5,7 @@ import de.fabmax.kool.util.Color
 
 /**
  * What render3d reads each frame (#47). Getters are live, not a snapshot.
- * render3d must not import session, ui or input; it only sees this and [RenderHost].
+ * render3d must not import the app layers (ui, input, state owner); it only sees this and [RenderHost].
  */
 interface RenderState {
     /** Treat as read-only. */

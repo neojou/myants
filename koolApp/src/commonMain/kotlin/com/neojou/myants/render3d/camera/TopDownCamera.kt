@@ -86,7 +86,7 @@ class TopDownCamera(
     }
 
     override fun focusOn(worldX: Float, worldZ: Float, zoom: Float?) {
-        // The session owns the numbers. Callers write them before update().
+        // The app owns the numbers. Callers write them before update().
     }
 
     override fun screenToGround(px: Float, py: Float): Vec2f? {

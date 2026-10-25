@@ -10,7 +10,7 @@ interface RenderHost {
     fun onWorldSceneReady(scene: Scene)
     fun onNestPresentReady(scene: Scene)
     fun onNestCutawayMounted()
-    /** Advances the session (old `session.tick`). */
+    /** Advances the simulation one frame. */
     fun onFrame(dt: Float)
     fun requestRenderer(mode: RenderMode)
     fun applyRendererVisibility()

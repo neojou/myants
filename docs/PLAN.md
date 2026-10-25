@@ -19,7 +19,7 @@
 - 內容：M1、M2 在 v0.15.0。M3 在 v0.16.0（642f082）。0.17.0 涵蓋其後的介面語言，以及 M4 Inspect。M5 的左側室外這段在 0.18.0：工蟻與兵蟻（頭和胸分開、腰收細、肚子是一顆橢圓；兵蟻頭仍較大）、獵物、捕食者、蜘蛛、甲蟲（鍬形蟲剪影，頭近黑，鞘翅是深栗褐的整片盾）、瓢蟲（圓背法線朝外，俯視的背被正午打成飽和紅，黑點，頭和前胸是黑的）、糖、蛋白、小石、落葉、時鐘石。時鐘石的數字平貼在石面，顯示本地時與分。冒號在時與分正中，每秒明暗。直畫是上下兩格，1 與 7 連成兩格。右側巢穴仍是程序繪製：深暖褐土壤、房間有切邊、巢內蟻分得開頭與身體。巢穴 glTF 沒做。左側 3D 的草和花是三葉草 glTF，有的叢開白花。Classic 2D 的草仍是程序繪製。左上角 HUD 不印版號，版號在 About。圖形面板的草密度和相機傾角滑桿在拖動時重畫黃點和數字。Inspect 不寫回模擬。模擬沒有為這隻鍬形蟲改數值。
 - #62 上色：時鐘石暖灰、數字 #E9C46A、三葉草花三色，在分支 `feat/62-clock-clover-colors`，未合併；glb 材質在 #65。
 - #61（M4 Inspect 美術必改 4 項）：浮動卡、雙環選取圈、Follow 狀態色、文字層級；色條一律用 onSurfaceVar，在分支 `feat/61-inspect-art`，未合併。實機截圖還沒拍。
-- 下一步：#47 依序合併：守門（#60）→ InspectRing 分派移到 session（#63）→ RenderState／RenderHost 介面 → 子渲染器物件，皆不改行為；#13 與 milestone M5 仍開。巢穴 glTF 沒做。不 push main、不關 issue、不改版號。
+- 下一步：#47 依序合併：守門（#60）→ InspectRing 分派移到 session（#63）→ RenderState／RenderHost 介面（PR 已開，疊在 #63 上，允許清單已清空）→ 子渲染器物件，皆不改行為；#13 與 milestone M5 仍開。巢穴 glTF 沒做。不 push main、不關 issue、不改版號。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
 已完成、仍有效的結構：

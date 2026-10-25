@@ -39,7 +39,7 @@ fun KoolApplication.myantsApp(launch: LaunchConfig = LaunchConfig()) {
     val session = AppSession(launch)
     installShortcuts(session)
     addAntSimScene(session)
-    addWorldScene(session)
+    addWorldScene(session.renderBridge, session.renderBridge)
     addNestPresent(session.renderBridge, session.renderBridge)
     addLegacyNestOverlay(session)
     addAntSimUi(session)
