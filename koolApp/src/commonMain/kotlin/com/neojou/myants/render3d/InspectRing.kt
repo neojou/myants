@@ -9,9 +9,9 @@ import kotlin.math.sqrt
  * Selection ring for the current Inspect hit.
  * [RingSpace.WORLD] is the left ground ring. [RingSpace.NEST] is drawn by the nest cutaway.
  */
-internal enum class RingSpace { WORLD, NEST }
+enum class RingSpace { WORLD, NEST }
 
-internal data class InspectRing(
+data class InspectRing(
     val x: Double,
     val y: Double,
     val scale: Float,

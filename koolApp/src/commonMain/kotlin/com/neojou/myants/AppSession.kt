@@ -248,8 +248,11 @@ class AppSession(launch: LaunchConfig) {
      * World point the camera may follow. Nest picks have no anchor.
      * A world ant that left the map or ran out of energy has none either.
      */
+    /** The only view render3d gets of this session (#47). */
+    val renderBridge: com.neojou.myants.session.SessionRenderBridge by lazy { com.neojou.myants.session.SessionRenderBridge(this) }
+
     /** Ring for the current Inspect hit, or null with nothing picked. Read by render3d (#47). */
-    internal val inspectRingNow: InspectRing? get() = tools.inspectTarget()?.toRing()
+    val inspectRingNow: InspectRing? get() = tools.inspectTarget()?.toRing()
 
     internal fun followAnchor(): Pair<Double, Double>? {
         val current = tools.inspectTarget() ?: return null
