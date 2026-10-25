@@ -21,6 +21,7 @@
 1. `docs/PLAN.md`：目標、Status、Now、Next、不要動的東西。
 2. `docs/programming/README.md`：哪份設計文件還算數。
 3. PLAN 點名的 programming 文件。不要一次讀完整個 `docs/programming/`。
+4. 改 UI／HUD／3D 視覺，或做 Artist 審查前：`docs/ART_DIRECTION.md`。
 
 本機 `~/.grok/memory` 與舊對話不是來源。與 repo 衝突時以 repo 為準；與 kool 行為衝突時以 kool 0.19.0 原始碼為準。
 
