@@ -189,17 +189,17 @@ internal fun WorldRenderer.buildForward(forward: Node) {
         shader = rainShader
     }
     val ringShader = KslUnlitShader {
-        color { uniformColor(WorldPalette.selectRing) }
+        color { vertexColor() }
         pipeline {
             cullMethod = CullMethod.NO_CULLING
             depthTest = DepthCompareOp.LESS
             isWriteDepth = false
         }
     }
-    ring = forward.addMesh(VertexLayouts.Position) {
+    ring = forward.addMesh(VertexLayouts.PositionColor) {
         isFrustumChecked = false
         isVisible = false
-        generate { ringXZ() }
+        generate { selectRing(xz = true) }
         shader = ringShader
     }
 }

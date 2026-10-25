@@ -5,6 +5,7 @@ import com.neojou.myants.ui.UiFonts
 import com.neojou.myants.ui.UiText
 import com.neojou.myants.ui.addAboutDialog
 import com.neojou.myants.ui.addHudPanel
+import com.neojou.myants.ui.addInspectCard
 import com.neojou.myants.ui.addLanguageMenu
 import com.neojou.myants.ui.addLanguageScrim
 import com.neojou.myants.ui.addRestartDialog
@@ -23,6 +24,7 @@ fun KoolApplication.addAntSimUi(session: AppSession) = addUiScene {
     HudIcons.loadAll(coroutineScope)
     UiFonts.load(coroutineScope)
     val hud = addHudPanel(session)
+    addInspectCard(session, hud)
     addToolbar(session)
     val grafikPanel = sidePanel(session, UiText.GRAFIK) { grafik(session) }
     val paramsPanel = sidePanel(session, UiText.PARAMS) { params(session) }

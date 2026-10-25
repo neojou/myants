@@ -3,7 +3,9 @@ package com.neojou.myants.render3d.camera
 import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.WorldFrames
 import com.neojou.myants.render3d.terrain.GroundHeight
+import de.fabmax.kool.math.MutableVec3f
 import de.fabmax.kool.math.Vec2f
+import de.fabmax.kool.math.Vec3f
 import de.fabmax.kool.scene.OrthographicCamera
 import de.fabmax.kool.scene.Scene
 
@@ -108,5 +110,14 @@ class TopDownCamera(
             camera.up,
             ground,
         )
+    }
+
+    /** Window pixel (top-left origin) of a ground point, for the floating Inspect card. Null before attach. */
+    fun groundToScreen(wx: Float, wz: Float): Vec2f? {
+        val host = scene ?: return null
+        val out = MutableVec3f()
+        camera.projectScreen(Vec3f(wx, GroundHeight.at(wx, wz), wz), host.mainRenderPass.viewport, out)
+        if (!out.x.isFinite() || !out.y.isFinite()) return null
+        return Vec2f(out.x, out.y)
     }
 }

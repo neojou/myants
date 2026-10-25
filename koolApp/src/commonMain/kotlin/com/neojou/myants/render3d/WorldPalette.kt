@@ -26,7 +26,7 @@ object WorldPalette {
     val grass = Color(0.22f, 0.45f, 0.18f, 1f)
     val queen = Color(0.72f, 0.45f, 0.18f, 1f)
     val digit2d = Color(0.92f, 0.76f, 0.43f, 1f)
-    val digit3d = Color(0.95f, 0.78f, 0.42f, 1f)
+    val digit3d = Color("#E9C46A")
     val pane = Color(0.102f, 0.102f, 0.102f, 1f)
     val divider = Color(0.20f, 0.20f, 0.20f, 1f)
     val rain2d = Color(0.45f, 0.6f, 0.85f, 0.18f)
@@ -46,9 +46,11 @@ object WorldPalette {
     val moonLight = Color(0.55f, 0.62f, 0.8f, 1f)
     val sunLight = Color(1f, 0.95f, 0.85f, 1f)
     val foodGlow = Color(4f, 4f, 4f)
-    val clockStone = Color(0.42f, 0.4f, 0.36f, 1f)
+    /** Warm grey; red leads blue so the sky light does not turn it blue-grey. */
+    val clockStone = Color(0.50f, 0.45f, 0.38f, 1f)
     /** Same hex as MyantsTheme.colors.primary. Kept here so render does not depend on UI. */
-    val selectRing = Color("#6750A4")
+    val selectRingInner = Color("#6750A4")
+    val selectRingOuter = Color("#EADDFF")
     val pebble = Color(0.35f, 0.33f, 0.3f, 1f)
     val leaf = Color(0.45f, 0.32f, 0.12f, 1f)
     val petalRose = Color(0.85f, 0.35f, 0.45f, 1f)
@@ -85,6 +87,7 @@ object WorldPalette {
     val rivalEye = Color(0.08f, 0.04f, 0.03f, 1f)
     val rivalJaw = Color(0.32f, 0.16f, 0.10f, 1f)
 
+    val cloverPetals = arrayOf(petalRose, petalGold, petalLilac)
     val petals = arrayOf(petalRose, petalGold, petalLilac, petalWhite)
 
     fun insect(type: InsectKind): Color = when (type) {
