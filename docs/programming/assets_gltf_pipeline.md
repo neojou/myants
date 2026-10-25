@@ -96,6 +96,6 @@ tint：glTF 材質固定色，要每隻蟻群色時用 `pbrBlock = { prim -> col
 
 - 遊戲**只讀幾何**：`loadMerged` 和 `loadCritter` 不讀 glb 材質，顏色由 runtime 的 `WorldPalette` 和 `critterTint` 用 instance color 決定。
 - glb 內仍然帶 PBR 材質，baseColor 和 roughness 跟 runtime 顏色一致，讓 glTF viewer 開起來是對的。對照表在 `tools/glb_palette.py`，改 `WorldPalette` 時要一起改。
-- `tools/make_*_glb.py` 輸出時套用這張表。`beetle.glb` 是 Blender 匯出，靠 `tools/glb_materials.py` 補材質。
+- `tools/make_*_glb.py` 輸出時套用這張表。鍬形蟲 `beetle.glb` 是 Blender 匯出，靠 `tools/glb_materials.py` 補材質。
 - `python3 tools/glb_materials.py` 只改 JSON chunk，BIN chunk 一個 byte 都不動；`--check` 會逐檔列出材質名稱、baseColor、roughness，有不符就失敗。
 - 已知：在目前的 main 上重跑 `make_food_glb.py`、`make_outdoor_insects_glb.py` 會把 protein、prey、predator、spider 的法線翻成朝外（2e8c201 改了共用的球體，但當時只重生了瓢蟲）。所以這次只用 `glb_materials.py` 改材質，不重生幾何。
