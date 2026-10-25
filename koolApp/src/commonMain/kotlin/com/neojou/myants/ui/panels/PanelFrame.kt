@@ -1,5 +1,6 @@
 package com.neojou.myants.ui.panels
 
+import com.neojou.myants.closeSidePanels
 import com.neojou.myants.AppSession
 import com.neojou.myants.ui.MyantsTheme
 import com.neojou.myants.ui.UiText

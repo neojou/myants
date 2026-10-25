@@ -1,5 +1,6 @@
 package com.neojou.myants.input
 
+import com.neojou.myants.speedLabel
 import com.neojou.myants.AppSession
 import com.neojou.myants.LaunchConfig
 import com.neojou.myants.SimTool
