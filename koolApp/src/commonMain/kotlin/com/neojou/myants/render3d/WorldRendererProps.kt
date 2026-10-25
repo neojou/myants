@@ -78,40 +78,11 @@ private const val TAG = "RENDER"
 
 // Ground, scatter, clock, obstacles and rain for [WorldRenderer].
 
-internal fun WorldRenderer.rebuildGround() {
-    val cols = 71
-    val rows = 43
-    val dx = SimConfig.width.toFloat() / (cols - 1)
-    val dz = SimConfig.height.toFloat() / (rows - 1)
-    ground.generate {
-        for (iz in 0 until rows) {
-            for (ix in 0 until cols) {
-                val x = ix * dx
-                val z = iz * dz
-                val y = GroundHeight.at(x, z)
-                val hL = GroundHeight.at(x - dx, z)
-                val hR = GroundHeight.at(x + dx, z)
-                val hD = GroundHeight.at(x, z - dz)
-                val hU = GroundHeight.at(x, z + dz)
-                val n = MutableVec3f(hL - hR, dx * 2f, hD - hU)
-                if (n.length() < 1e-4f) n.set(Vec3f.Y_AXIS) else n.norm()
-                color = soilColor(ix, iz)
-                vertex(Vec3f(x, y, z), n, Vec2f(x / SimConfig.width, z / SimConfig.height))
-            }
-        }
-        for (iz in 0 until rows - 1) {
-            for (ix in 0 until cols - 1) {
-                GroundMesh.emitCell(ix, iz, cols) { a, b, c -> addTriIndices(a, b, c) }
-            }
-        }
-    }
-}
-
 internal fun WorldRenderer.rebuildScatter(preset: QualityPreset) {
-    val key = "$serial|${preset.fineGrass}|${preset.pebbles}|${preset.leaves}|${preset.flowers}|${state.view.grassDensity}"
+    val key = "${state.worldSerial}|${preset.fineGrass}|${preset.pebbles}|${preset.leaves}|${preset.flowers}|${state.view.grassDensity}"
     if (key == scatterKey) return
     scatterKey = key
-    val fields = ScatterLayout.build(state.seed, serial, preset, state.view.grassDensity)
+    val fields = ScatterLayout.build(state.seed, state.worldSerial, preset, state.view.grassDensity)
     extraGrass = fields.extraGrass
     pebbles = fields.pebbles
     leafPos = fields.leaves

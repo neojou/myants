@@ -79,23 +79,6 @@ private const val TAG = "RENDER"
 // Scene graph construction and model loading for [WorldRenderer].
 
 internal fun WorldRenderer.buildContent(content: Node) {
-    val gshader = deferredKslPbrShader {
-        color {
-            vertexColor()
-            uniformColor(Color.WHITE, blendMode = ColorBlockConfig.BlendMode.Multiply)
-        }
-        emission {
-            textureColor(gamma = 1f, blendMode = ColorBlockConfig.BlendMode.Set)
-            constColor(Color.WHITE, blendMode = ColorBlockConfig.BlendMode.Multiply)
-        }
-        roughness(0.92f)
-        metallic(0f)
-    }
-    groundShader = gshader
-    ground = content.addMesh(VertexLayouts.PositionNormalTexCoordColor) {
-        isFrustumChecked = false
-        shader = gshader
-    }
     grass = MeshInstanceList(layout, 8192)
     grassMesh = instanced(content, grass, "grass", doubleSided = true) {
         cube { size.set(0.2f, 1f, 0.45f) }

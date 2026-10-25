@@ -92,25 +92,19 @@ class WorldRenderer(
     internal val host: RenderHost,
 ) {
     internal val instancer = Instancer()
+    internal val terrain = TerrainRenderer()
     internal val layout get() = instancer.layout
     internal val mat get() = instancer.mat
     internal val scale get() = instancer.scale
-    internal val phero = PheromoneField("phero3d")
-    internal var groundShader: de.fabmax.kool.pipeline.deferred.DeferredKslPbrShader? = null
     internal var deferred: DeferredPipeline? = null
-    internal var sky: SkyCubeIblSystem? = null
     internal var shadow: SimpleShadowMap? = null
-    internal var sun: Light.Directional? = null
     internal var built = false
     internal var loggedBackend = false
-    internal var serial = -1
-    internal var iblStamp = -1.0
     internal var fpsSamples = 0
     internal var fpsSum = 0
     internal var lastFps = -1
     internal val lights = ArrayList<de.fabmax.kool.pipeline.deferred.DeferredPointLights.PointLight>()
 
-    internal lateinit var ground: Mesh<*>
     internal lateinit var grass: MeshInstanceList<InstanceLayouts.ModelMatColor>
     internal lateinit var grassMesh: Mesh<*>
     internal lateinit var rocks: MeshInstanceList<InstanceLayouts.ModelMatColor>
@@ -178,6 +172,7 @@ class WorldRenderer(
 
         val content = Node("world-opaque").apply { isFrustumChecked = false }
         val forward = Node("world-forward").apply { isFrustumChecked = false }
+        terrain.build(content, forward)
         buildContent(content)
         buildForward(forward)
         loadAnt("models/ants/worker_black.glb", workerAnt, "worker")
@@ -227,7 +222,7 @@ class WorldRenderer(
         val light = Light.Directional()
         light.setup(Vec3f(0.3f, -1f, 0.2f)).setColor(Color.WHITE, 3f)
         scene.lighting.addLight(light)
-        sun = light
+        terrain.sun = light
 
         val map = try {
             SimpleShadowMap(scene, light, drawNode = content, mapSize = 2048).apply {
@@ -242,13 +237,13 @@ class WorldRenderer(
         }
         shadow = map
 
-        sky = try {
+        terrain.sky = try {
             SkyCubeIblSystem.simpleSkyCubeIblSystem(scene).apply { isAutoUpdateIblMaps = false }
         } catch (err: Throwable) {
             MyLog.add(TAG, "Sky cube unavailable: ${err.message}", LogLevel.DEBUG)
             null
         }
-        val env = sky?.environmentMap ?: try {
+        val env = terrain.sky?.environmentMap ?: try {
             EnvironmentMap.fromGradientColor(
                 ColorGradient(
                     WorldPalette.skyZenith,
@@ -305,61 +300,11 @@ class WorldRenderer(
     }
 
     internal fun fill(preset: QualityPreset, winW: Float, winH: Float) {
-        if (serial != state.worldSerial) {
-            serial = state.worldSerial
-            GroundHeight.rebuild(state.seed, serial)
-            rebuildGround()
-            scatterKey = ""
-        }
+        terrain.update(state, preset, Time.deltaT)
         rebuildScatter(preset)
-        updateSun()
-        updatePheromone()
         pushActors(preset)
         pushRain(preset)
         NestCutaway.update(state, winW, winH)
-    }
-
-    internal fun updateSun() {
-        val light = sun ?: return
-        val world = state.world
-        val bright = if (state.view.dayNight) world.dayBrightness().toFloat() else 1f
-        val elev = if (state.view.dayNight) 6f + bright * 64f else 70f
-        val az = (world.timeOfDay * 160.0 - 80.0).toFloat()
-        val elevRad = elev * (PI.toFloat() / 180f)
-        val azRad = az * (PI.toFloat() / 180f)
-        val dir = Vec3f(
-            sin(azRad) * cos(elevRad),
-            -sin(elevRad),
-            cos(azRad) * cos(elevRad),
-        )
-        val night = bright < 0.2f
-        val color = if (night) WorldPalette.moonLight else WorldPalette.sunLight
-        val intensity = if (night) 0.35f else 0.4f + bright * 3.2f
-        light.setup(dir).setColor(color, intensity)
-        val cube = sky
-        if (cube != null) {
-            cube.skyPass.elevation = elev
-            cube.skyPass.azimuth = az + 180f
-            val now = Time.gameTime
-            if (iblStamp < 0.0 || now - iblStamp > 2.0) {
-                iblStamp = now
-                cube.updateIblMaps()
-            }
-        }
-    }
-
-    internal fun updatePheromone() {
-        val shader = groundShader ?: return
-        val show = state.view.showPheromones && state.view.pheromoneStrength > 0.0
-        val tex = phero.update(state.world.colonies[0].outdoorField, state.view.pheromoneStrength, show)
-        if (tex != null) shader.emissionMap = tex
-        val bright = if (state.view.dayNight) state.world.dayBrightness().toFloat() else 1f
-        val boost = if (!show) 0f else 1.6f + (1f - bright) * 2.4f
-        shader.emission = WorldPalette.emission(boost)
-        val wet = state.world.raining && state.view.weatherUser
-        val k = 0.28f + 0.72f * bright
-        shader.color = WorldPalette.groundTint(k, wet)
-        shader.roughness = if (wet) 0.28f else 0.92f
     }
 
     internal fun watchFps() {
