@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Original white-clover tuft and flower. Not a trace of the reference photo.
 
-The photo is a shape reference only: low trifoliate leaves, and a white
-flower head on a short stalk. Local +Y is up. The tuft spans about 1 across
+The photo is a shape reference only: low trifoliate leaves with notched,
+heart-shaped leaflets at 120 degrees, and a floret head on a short stalk. Local +Y is up. The tuft spans about 1 across
 and sits on y = 0. The flower uses the same scale, with its head above the leaves.
 Run from anywhere: the .glb files land in koolApp/assets/models/nature/.
 """
@@ -22,75 +22,142 @@ _palette_spec.loader.exec_module(palette)
 TAU = math.pi * 2.0
 
 
-def add_ellipse(pos, nrm, idx, cx, cy, cz, rx, rz, yaw, lift):
+def heart_outline(length, width, notch):
+    """Obcordate leaflet outline in local (x along the leaflet, z across).
+
+    Point at the petiole (x = 0), widest near the apex, and a notch cut
+    back to `notch` of the length at the apex, like a real clover leaflet.
+    Returns points counter-clockwise when seen from +Y.
+    """
+    half = []
+    steps = 5
+    for i in range(1, steps + 1):
+        t = i / steps  # 0 at the base point, 1 at the lobe tip next to the notch
+        # Width swells fast, then rounds over into the lobe.
+        x = length * (0.08 + 0.92 * math.sin(t * math.pi * 0.5))
+        z = width * 0.5 * math.sin(t * math.pi * 0.86)
+        half.append((x, z))
+    right = [(0.0, 0.0)] + half
+    left = [(x, -z) for x, z in reversed(half)]
+    # Apex notch between the two lobes.
+    return right + [(length * notch, 0.0)] + left
+
+
+def add_leaflet(pos, nrm, idx, yaw, length, width, notch, cup, y0):
     c = math.cos(yaw)
     s = math.sin(yaw)
 
-    def put(x, y, z):
-        pos.append((cx + c * x - s * z, cy + y, cz + s * x + c * z))
-        nrm.append((0.0, 1.0, 0.0))
+    def world(x, z):
+        # Lobes lift a little so the leaflet reads as a shallow cup, not a decal.
+        y = y0 + cup * (x / length) ** 2
+        return (c * x - s * z, y, s * x + c * z)
 
-    base = len(pos)
-    put(0.0, lift * 0.35, 0.0)
-    n = 6
+    outline = heart_outline(length, width, notch)
+    hub = world(length * 0.42, 0.0)
+    ring = [world(x, z) for x, z in outline]
+    n = len(ring)
     for i in range(n):
-        a = TAU * i / n
-        put(rx * math.cos(a), lift * max(0.0, math.cos(a)), rz * math.sin(a))
-        # Clockwise in the loop would face -Y. The camera looks down, so the front is +Y.
-        idx.extend((base, base + 1 + ((i + 1) % n), base + 1 + i))
+        a = ring[i]
+        b = ring[(i + 1) % n]
+        # Flat-shaded triangle, wound so the face points up at the camera.
+        tri = (hub, b, a)
+        normal = ant.norm(ant.cross(ant.sub(tri[1], tri[0]), ant.sub(tri[2], tri[0])))
+        if normal[1] < 0:
+            tri = (hub, a, b)
+            normal = ant.mul(normal, -1.0)
+        base = len(pos)
+        pos.extend(tri)
+        nrm.extend((normal, normal, normal))
+        idx.extend((base, base + 1, base + 2))
 
 
-def add_leaf(pos, nrm, idx, yaw, reach):
-    # One petiole and three oval leaflets, the clover shape seen from above.
-    add_ellipse(pos, nrm, idx, reach * 0.62, 0.02, 0.0, 0.16, 0.09, yaw, 0.05)
-    side = 0.95
-    add_ellipse(pos, nrm, idx, reach * 0.38, 0.015, reach * 0.16, 0.11, 0.07, yaw + side, 0.035)
-    add_ellipse(pos, nrm, idx, reach * 0.38, 0.015, -reach * 0.16, 0.11, 0.07, yaw - side, 0.035)
+def add_leaf(pos, nrm, idx, yaw, reach, y0):
+    # Three heart-shaped leaflets at 120 degrees around the petiole tip.
+    for k in range(3):
+        add_leaflet(pos, nrm, idx, yaw + TAU * k / 3.0, reach, reach * 0.95, 0.66, reach * 0.18, y0)
 
 
 def tuft_mesh():
     pos = []
     nrm = []
     idx = []
-    for i in range(6):
-        yaw = TAU * i / 6.0
-        reach = 0.42 if i % 2 == 0 else 0.34
-        add_leaf(pos, nrm, idx, yaw, reach)
+    # Four trifoliate leaves; offsets keep them overlapping like a real patch.
+    leaves = [
+        (0.00, 0.00, 0.10, 0.30, 0.030),
+        (0.40, 0.16, 1.30, 0.24, 0.015),
+        (-0.34, 0.26, 2.40, 0.23, 0.010),
+        (0.06, -0.40, 0.75, 0.25, 0.020),
+    ]
+    for cx, cz, yaw, reach, y0 in leaves:
+        start = len(pos)
+        add_leaf(pos, nrm, idx, yaw, reach, y0)
+        for i in range(start, len(pos)):
+            p = pos[i]
+            pos[i] = (p[0] + cx, p[1], p[2] + cz)
     return fit_ground(ant.Mesh(pos, nrm, idx))
 
 
+def flat_tri(pos, nrm, idx, a, b, c, up_hint):
+    normal = ant.norm(ant.cross(ant.sub(b, a), ant.sub(c, a)))
+    if ant.dot(normal, up_hint) < 0:
+        b, c = c, b
+        normal = ant.mul(normal, -1.0)
+    base = len(pos)
+    pos.extend((a, b, c))
+    nrm.extend((normal, normal, normal))
+    idx.extend((base, base + 1, base + 2))
+
+
 def flower_mesh():
+    """Low-poly white-clover bloom: a crown of pointed florets, not a smooth ball.
+
+    A square stalk, a lower ring of florets bent outward and down, an upper
+    ring angled up, and a small faceted cap. Colour comes from the runtime
+    (rose / gold / lilac per spot, see cloverPetal in render3d).
+    """
     pos = []
     nrm = []
     idx = []
-    sides = 5
-    stalk_h = 0.22
-    stalk_r = 0.018
+    stalk_h = 0.30
+    stalk_r = 0.02
+    sides = 4
     for i in range(sides):
         a0 = TAU * i / sides
         a1 = TAU * (i + 1) / sides
-        ring = [
-            (math.cos(a0) * stalk_r, 0.0, math.sin(a0) * stalk_r),
-            (math.cos(a1) * stalk_r, 0.0, math.sin(a1) * stalk_r),
-            (math.cos(a1) * stalk_r, stalk_h, math.sin(a1) * stalk_r),
-            (math.cos(a0) * stalk_r, stalk_h, math.sin(a0) * stalk_r),
-        ]
-        base = len(pos)
-        pos.extend(ring)
-        nrm.extend((ant.norm((p[0], 0.0, p[2])) for p in ring))
-        idx.extend((base, base + 2, base + 1, base, base + 3, base + 2))
-    ant.STACKS = 4
-    ant.SLICES = 8
-    head = ant.uv_sphere()
-    base = len(pos)
-    # Wide enough that the white head still reads when the whole tuft is a few pixels across.
-    radius = 0.22
-    center_y = 0.40
-    for p, _stored in zip(head.positions, head.normals):
-        pos.append((p[0] * radius, center_y + p[1] * radius, p[2] * radius))
-        # The shared sphere stores normals that can point inward. Light the outside.
-        nrm.append(ant.norm(p))
-    idx.extend(i + base for i in head.indices)
+        p0 = (math.cos(a0) * stalk_r, 0.0, math.sin(a0) * stalk_r)
+        p1 = (math.cos(a1) * stalk_r, 0.0, math.sin(a1) * stalk_r)
+        p2 = (p1[0], stalk_h, p1[2])
+        p3 = (p0[0], stalk_h, p0[2])
+        out = (math.cos((a0 + a1) / 2), 0.0, math.sin((a0 + a1) / 2))
+        flat_tri(pos, nrm, idx, p0, p1, p2, out)
+        flat_tri(pos, nrm, idx, p0, p2, p3, out)
+
+    cy = 0.40
+    # (count, radius at base, tip reach, tip height, base height, phase)
+    rings = [
+        (8, 0.09, 0.19, cy - 0.05, cy - 0.01, 0.0),
+        (8, 0.07, 0.14, cy + 0.07, cy + 0.03, 0.5),
+    ]
+    for count, r0, reach, tip_y, base_y, phase in rings:
+        half = TAU / count * 0.55
+        for i in range(count):
+            a = TAU * (i + phase) / count
+            left = (math.cos(a - half) * r0, base_y, math.sin(a - half) * r0)
+            right = (math.cos(a + half) * r0, base_y, math.sin(a + half) * r0)
+            tip = (math.cos(a) * reach, tip_y, math.sin(a) * reach)
+            mid = (math.cos(a) * r0 * 0.6, base_y + 0.035, math.sin(a) * r0 * 0.6)
+            # Two faces per floret: a shallow ridge so it catches light from above.
+            flat_tri(pos, nrm, idx, left, tip, mid, (math.cos(a) * 0.3, 1.0, math.sin(a) * 0.3))
+            flat_tri(pos, nrm, idx, mid, tip, right, (math.cos(a) * 0.3, 1.0, math.sin(a) * 0.3))
+
+    cap_n = 6
+    top = (0.0, cy + 0.12, 0.0)
+    for i in range(cap_n):
+        a0 = TAU * i / cap_n
+        a1 = TAU * (i + 1) / cap_n
+        p0 = (math.cos(a0) * 0.07, cy + 0.06, math.sin(a0) * 0.07)
+        p1 = (math.cos(a1) * 0.07, cy + 0.06, math.sin(a1) * 0.07)
+        flat_tri(pos, nrm, idx, top, p0, p1, (0.0, 1.0, 0.0))
     return ant.Mesh(pos, nrm, idx)
 
 
