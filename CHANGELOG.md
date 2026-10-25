@@ -5,7 +5,8 @@
 ## [Unreleased]
 
 ### 修正
-- 三葉草 glb 重做：小葉改成有深缺口的心形，三片以 120° 排列；花從平滑球改成低多邊面的小花冠（46 面），草叢 144 面。兩個檔案各有自己的 `clover`／`clover_flower` 材質，不再沿用蟻的材質（Refs #69、#68）
+- 室外 glb 的材質不再沿用螞蟻的 chitin／eye／mandible：sugar、protein、pebble、leaf、clock_stone、clover_tuft、clover_flower、prey、predator、spider、ladybug 改成跟 runtime 顏色一致的 PBR baseColor 和 roughness，鍬形蟲（beetle.glb）補上材質。只改 JSON，幾何不變。對照表在 `tools/glb_palette.py`，用 `tools/glb_materials.py --check` 驗證（Refs #62）
+- 三葉草 glb 重做：小葉改成有深缺口的心形，三片以 120° 排列；花從平滑球改成低多邊面的小花冠（46 面），草叢 144 面。材質沿用 `tools/glb_palette.py`（Refs #69、#68）
 - 3D 時鐘石改成暖灰（0.50, 0.45, 0.38），數字改用 `#E9C46A`；三葉草的花不再是一律白色，每個位置固定取 petalRose、petalGold、petalLilac 其中一色（Refs #62）
 
 ### 變更

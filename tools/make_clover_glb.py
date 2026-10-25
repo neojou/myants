@@ -8,15 +8,16 @@ Run from anywhere: the .glb files land in koolApp/assets/models/nature/.
 """
 
 import importlib.util
-import json
 import math
-import struct
 from pathlib import Path
 
 _ant_path = Path(__file__).with_name("make_black_ant_glb.py")
 _spec = importlib.util.spec_from_file_location("make_black_ant_glb", _ant_path)
 ant = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(ant)
+_palette_spec = importlib.util.spec_from_file_location("glb_palette", Path(__file__).resolve().parent / "glb_palette.py")
+palette = importlib.util.module_from_spec(_palette_spec)
+_palette_spec.loader.exec_module(palette)
 
 TAU = math.pi * 2.0
 
@@ -173,41 +174,11 @@ def fit_ground(mesh):
     return ant.Mesh(pos, mesh.normals, mesh.indices)
 
 
-# Clover's own materials. The game ignores glb materials and tints by
-# WorldPalette (grass, and cloverPetal for blooms); these keep glTF viewers honest.
-CLOVER_LEAF = {
-    "name": "clover",
-    "pbrMetallicRoughness": {"baseColorFactor": [0.22, 0.48, 0.18, 1.0], "metallicFactor": 0.0, "roughnessFactor": 0.65},
-}
-CLOVER_FLOWER = {
-    "name": "clover_flower",
-    "pbrMetallicRoughness": {"baseColorFactor": [0.85, 0.35, 0.45, 1.0], "metallicFactor": 0.0, "roughnessFactor": 0.6},
-}
-
-
-def with_material(data, material):
-    """Swap the ant materials pack_glb writes for one clover material. BIN is untouched."""
-    json_len = struct.unpack_from("<I", data, 12)[0]
-    gltf = json.loads(data[20:20 + json_len])
-    gltf["materials"] = [material]
-    gltf["scenes"][0]["name"] = "Clover"
-    for mesh in gltf["meshes"]:
-        for prim in mesh["primitives"]:
-            prim["material"] = 0
-    bin_chunk = data[20 + json_len:]
-    json_chunk = json.dumps(gltf, separators=(",", ":")).encode("utf-8")
-    while len(json_chunk) % 4:
-        json_chunk += b" "
-    body = struct.pack("<II", len(json_chunk), 0x4E4F534A) + json_chunk + bin_chunk
-    return struct.pack("<III", 0x46546C67, 2, 12 + len(body)) + body
-
-
-def pack(mesh, node_name, file_name, material):
+def pack(mesh, node_name, file_name):
     b = ant.Builder()
     root = b.add_node(node_name, None)
-    b.add_node(node_name + "Mesh", root, mesh=mesh, material=0)
-    data, _ = ant.pack_glb(b, generator="myants make_clover_glb.py")
-    data = with_material(data, material)
+    b.add_node(node_name + "Mesh", root, mesh=mesh, material=ant.CHITIN)
+    data, _ = ant.pack_glb(b, generator="myants make_clover_glb.py", materials=palette.MATERIALS["nature/" + file_name])
     out = Path(__file__).resolve().parents[1] / "koolApp" / "assets" / "models" / "nature" / file_name
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(data)
@@ -229,8 +200,8 @@ def bounds(mesh, label):
 
 
 def main():
-    tuft = pack(tuft_mesh(), "CloverTuft", "clover_tuft.glb", CLOVER_LEAF)
-    flower = pack(flower_mesh(), "CloverFlower", "clover_flower.glb", CLOVER_FLOWER)
+    tuft = pack(tuft_mesh(), "CloverTuft", "clover_tuft.glb")
+    flower = pack(flower_mesh(), "CloverFlower", "clover_flower.glb")
     tuft_top = max(p[1] for p in tuft.positions)
     flower_top = max(p[1] for p in flower.positions)
     if flower_top <= tuft_top:
