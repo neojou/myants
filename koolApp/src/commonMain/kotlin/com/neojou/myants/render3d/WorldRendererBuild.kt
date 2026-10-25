@@ -139,8 +139,6 @@ internal fun WorldRenderer.buildContent(content: Node) {
     critters += critterSlot(content, InsectKind.SPIDER, "models/insects/spider.glb", 8)
     critters += critterSlot(content, InsectKind.BEETLE, "models/insects/beetle.glb", 6)
     critters += critterSlot(content, InsectKind.LADYBUG, "models/insects/ladybug.glb", 6)
-    digits = MeshInstanceList(layout, 128)
-    instanced(content, digits, "digit") { cube { size.set(1f, 1f, 1f) } }
     bits = MeshInstanceList(layout, 2048)
     instanced(content, bits, "bit") { cube { size.set(1f, 1f, 1f) } }
     content.addMesh(VertexLayouts.PositionNormal) {
@@ -170,20 +168,6 @@ internal fun WorldRenderer.buildForward(forward: Node) {
         isFrustumChecked = false
         generate { rect { size.set(1f, 1f) } }
         shader = rainShader
-    }
-    val ringShader = KslUnlitShader {
-        color { vertexColor() }
-        pipeline {
-            cullMethod = CullMethod.NO_CULLING
-            depthTest = DepthCompareOp.LESS
-            isWriteDepth = false
-        }
-    }
-    ring = forward.addMesh(VertexLayouts.PositionColor) {
-        isFrustumChecked = false
-        isVisible = false
-        generate { selectRing(xz = true) }
-        shader = ringShader
     }
 }
 

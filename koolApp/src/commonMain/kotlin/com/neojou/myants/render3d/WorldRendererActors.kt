@@ -80,7 +80,7 @@ private const val TAG = "RENDER"
 
 internal fun WorldRenderer.pushActors(preset: QualityPreset) {
     grass.clear(); rocks.clear(); leaves.clear(); flowers.clear()
-    bodies.clear(); heads.clear(); legs.clear(); food.clear(); insects.clear(); digits.clear(); bits.clear()
+    bodies.clear(); heads.clear(); legs.clear(); food.clear(); insects.clear(); bits.clear()
     sugar.clear(); protein.clear(); carrySugar.clear(); carryProtein.clear()
     workerAnt.clear()
     soldierAnt.clear()
@@ -91,23 +91,10 @@ internal fun WorldRenderer.pushActors(preset: QualityPreset) {
     pushScatter(preset, time)
     pushSimGrass(preset, time)
     pushObstacles()
-    pushClock()
     pushFood(preset)
     pushInsects()
     pushAnts(preset, time)
     pushBits()
-    val mark = state.inspectRing?.takeIf { it.space == RingSpace.WORLD }
-    if (mark != null) {
-        ring.isVisible = true
-        val y = GroundHeight.at(mark.x.toFloat(), mark.y.toFloat()) + 0.4f
-        val t = ring.transform as TrsTransformF
-        t.translation.set(mark.x.toFloat(), y, mark.y.toFloat())
-        val s = mark.scale
-        t.scale.set(s, s, s)
-        t.markDirty()
-    } else {
-        ring.isVisible = false
-    }
     val stone = state.world.terrain.clockStone
     val sm = stoneMesh
     if (sm != null) {

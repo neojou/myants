@@ -172,32 +172,6 @@ internal fun WorldRenderer.pushObstacles() {
     }
 }
 
-internal fun WorldRenderer.pushClock() {
-    val (hh, mm, ss) = wallClockHms()
-    val text = "${hh.toString().padStart(2, '0')}${mm.toString().padStart(2, '0')}"
-    val stone = state.world.terrain.clockStone
-    val metrics = clockMetrics(SimConfig.clock.fontSize.toFloat())
-    val slots = clockSlots(stone.x.toFloat(), metrics)
-    val z = stone.y.toFloat() + stone.radius.toFloat() * 0.15f
-    val y = GroundHeight.at(stone.x.toFloat(), stone.y.toFloat()) + 52f
-    val color = WorldPalette.digit3d
-    if (clockColonLit(ss)) {
-        val along = clockCellAlong(metrics.digitHeight)
-        val dot = metrics.dotSize
-        val up = flatClockDot(slots.colonX, y, z, along, dot, dot)
-        val down = flatClockDot(slots.colonX, y, z, -along, dot, dot)
-        pose(digits, up.x, up.y, up.z, 0f, 0f, 0f, 0f, up.sx, up.sy, up.sz, color)
-        pose(digits, down.x, down.y, down.z, 0f, 0f, 0f, 0f, down.sx, down.sy, down.sz, color)
-    }
-    val centers = floatArrayOf(slots.hourTens, slots.hourOnes, slots.minuteTens, slots.minuteOnes)
-    for (i in text.indices) {
-        for (stroke in clockStrokes(centers[i], y, metrics, text[i] - '0')) {
-            val box = flatClockSeg(y, z, stroke.x, stroke.y, stroke.sx, stroke.sy, metrics.thickness)
-            pose(digits, box.x, box.y, box.z, 0f, 0f, 0f, 0f, box.sx, box.sy, box.sz, color)
-        }
-    }
-}
-
 internal fun WorldRenderer.pushRain(preset: QualityPreset) {
     rain.clear()
     val world = state.world

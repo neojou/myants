@@ -93,6 +93,7 @@ class WorldRenderer(
 ) {
     internal val instancer = Instancer()
     internal val terrain = TerrainRenderer()
+    internal val overlay = OverlayRenderer()
     internal val layout get() = instancer.layout
     internal val mat get() = instancer.mat
     internal val scale get() = instancer.scale
@@ -146,10 +147,8 @@ class WorldRenderer(
     internal var sugarReady = false
     internal var proteinReady = false
     internal lateinit var insects: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var digits: MeshInstanceList<InstanceLayouts.ModelMatColor>
     internal lateinit var bits: MeshInstanceList<InstanceLayouts.ModelMatColor>
     internal lateinit var rain: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var ring: Mesh<*>
     internal var scatterKey = ""
     internal var extraGrass = FloatArray(0)
     internal var pebbles = FloatArray(0)
@@ -175,6 +174,7 @@ class WorldRenderer(
         terrain.build(content, forward)
         buildContent(content)
         buildForward(forward)
+        overlay.build(content, forward)
         loadAnt("models/ants/worker_black.glb", workerAnt, "worker")
         loadAnt("models/ants/soldier.glb", soldierAnt, "soldier")
         loadGreenAphid()
@@ -303,6 +303,7 @@ class WorldRenderer(
         terrain.update(state, preset, Time.deltaT)
         rebuildScatter(preset)
         pushActors(preset)
+        overlay.update(state, preset, Time.deltaT)
         pushRain(preset)
         NestCutaway.update(state, winW, winH)
     }
