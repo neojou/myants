@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### 修正
+- 3D 時鐘石改成暖灰（0.50, 0.45, 0.38），數字改用 `#E9C46A`；三葉草的花不再是一律白色，每個位置固定取 petalRose、petalGold、petalLilac 其中一色（Refs #62）
+
 ### 重構
 - `WorldRenderer.kt`（1216 行）依職責拆成 `WorldRendererBuild`／`WorldRendererProps`／`WorldRendererActors`／`WorldRendererShapes`，純搬移不改行為（Refs #46）
 - `AntStates.kt`（991 行）依狀態拆成巢內（`AntStates`）、防禦（`AntStatesDefense`）、覓食（`AntStatesFood`）三檔，只搬移不改邏輯（Refs #46）
