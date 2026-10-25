@@ -5,6 +5,7 @@ import com.neojou.myants.render3d.InspectRing
 import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.render3d.selectRingBands
+import com.neojou.myants.sim.Pheromone
 import de.fabmax.kool.math.Vec2f
 import de.fabmax.kool.util.Color
 import kotlin.test.Test
@@ -77,5 +78,26 @@ class InspectCardTest {
         val de = InspectCopy.stonePanel(4, clock = false, lang = UiLanguage.DE)
         assertEquals(InspectRow("Radius", "4"), de.rows.single())
         assertEquals("Stein", de.title)
+    }
+
+    private fun lum(x: Color): Double {
+        fun f(v: Float) = v.toDouble().let { if (it <= 0.03928) it / 12.92 else Math.pow((it + 0.055) / 1.055, 2.4) }
+        return 0.2126 * f(x.r) + 0.7152 * f(x.g) + 0.0722 * f(x.b)
+    }
+
+    @Test
+    fun pheromoneAccentUsesTrailColorNeverPrimary() {
+        val zero = Pheromone.entries.associateWith { 0.0 }
+        assertEquals(c.onSurfaceVar, pheromoneAccent(zero))
+        assertEquals(Color(0f, 0f, 1f, 1f), pheromoneAccent(zero + (Pheromone.HOME to 0.5)))
+        assertEquals(Color(1f, 1f, 0f, 1f), pheromoneAccent(zero + (Pheromone.SUGAR to 0.2) + (Pheromone.HOME to 0.1)))
+        val bg = lum(c.surfaceRaised)
+        for (p in Pheromone.entries) {
+            val a = pheromoneAccent(zero + (p to 0.5))
+            assertTrue(a != c.primary, "$p must not reuse primary")
+            val la = lum(a)
+            val ratio = (maxOf(la, bg) + 0.05) / (minOf(la, bg) + 0.05)
+            assertTrue(ratio >= 2.0, "$p stripe contrast $ratio < 2:1")
+        }
     }
 }
