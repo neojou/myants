@@ -264,7 +264,7 @@ class WorldRenderer(
         val cfg = DeferredPipelineConfig().apply {
             isWithAmbientOcclusion = true
             isWithScreenSpaceReflections = false
-            isWithBloom = bloomAllowed(session)
+            isWithBloom = bloomAllowed(session.renderBridge)
             isWithVignette = false
             // Reversed-Z turns LESS into GREATER. The output quad sits at clip z = 0,
             // which does not pass that test against a cleared depth buffer.
@@ -298,7 +298,7 @@ class WorldRenderer(
         pipe.renderResolution = preset.renderResolution
         pipe.isAoEnabled = session.ssaoUser && preset.ssaoScale != null
         preset.ssaoScale?.let { pipe.aoMapSize = it }
-        val bloom = bloomAllowed(session) && preset.bloomRequested
+        val bloom = bloomAllowed(session.renderBridge) && preset.bloomRequested
         pipe.isBloomEnabled = bloom
         shadow?.isShadowMapEnabled = session.shadowsUser && preset.shadow != com.neojou.myants.render3d.quality.ShadowKind.OFF
         grassMesh.isCastingShadow = preset.grassCastsShadow

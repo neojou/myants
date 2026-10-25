@@ -103,7 +103,7 @@ internal fun UiScope.grafik(session: AppSession) {
         Checkbox(session.cinema) { modifier.onToggle { session.updateCinema(it) } }
         Text(tr(UiText.CINEMA)) { modifier.alignY(AlignmentY.Center).margin(start = MyantsTheme.space.s2) }
     }
-    val bloomOk = bloomAllowed(session)
+    val bloomOk = bloomAllowed(session.renderBridge)
     Row {
         modifier.margin(top = MyantsTheme.space.s2)
         Checkbox(session.bloomUser && bloomOk) {
