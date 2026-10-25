@@ -65,6 +65,11 @@
 - **細節**：一律寫在 GitHub 的 issue、PR 和留言。
 - 新的 issue 和 PR 都要加入看板，並隨進度移欄（Todo → In Progress → In Review → Done）。
 
+## 回報鏈（全隊規則）
+- 小隊成員一律不直接通知 Neo。不私訊 Neo、不在頻道 @ Neo，也不發訊息給 GB。
+- Coder、QE、CI、Artist 完成工作後只回報 PM，不直接找軟體總監。
+- PM 彙整後回報軟體總監，再由軟體總監跟 Neo 討論。
+
 ## Rules
 - 不升級 kool / Kotlin / Gradle / JDK 版本。
 - 改行為必附測試；不得跳過失敗測試。
