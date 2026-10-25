@@ -6,6 +6,7 @@
 
 ### 重構
 - `WorldRenderer.kt`（1216 行）依職責拆成 `WorldRendererBuild`／`WorldRendererProps`／`WorldRendererActors`／`WorldRendererShapes`，純搬移不改行為（Refs #46）
+- `AntStates.kt`（991 行）依狀態拆成巢內（`AntStates`）、防禦（`AntStatesDefense`）、覓食（`AntStatesFood`）三檔，只搬移不改邏輯（Refs #46）
 
 ### 文件
 - AGENTS.md 新增「pstack 流程」：規定各角色必跑的 skill，PR 說明須列出已跑的 skill。
