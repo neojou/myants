@@ -171,7 +171,7 @@ internal fun WorldRenderer.placeClover(x: Float, z: Float, yaw: Float, scale: Fl
     val y = GroundHeight.at(x, z) + 0.2f
     pose(grass, x, y, z, yaw, 0f, 0f, 0f, scale, scale, scale, color)
     if (bloomReady && cloverBlooms(x, z)) {
-        pose(flowers, x, y, z, yaw, 0f, 0f, 0f, scale, scale, scale, WorldPalette.petalWhite)
+        pose(flowers, x, y, z, yaw, 0f, 0f, 0f, scale, scale, scale, cloverPetal(x, z))
     }
 }
 
