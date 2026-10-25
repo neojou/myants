@@ -316,7 +316,7 @@ class WorldRenderer(
         updatePheromone()
         pushActors(preset)
         pushRain(preset)
-        NestCutaway.update(session, winW, winH)
+        NestCutaway.update(session.renderBridge, winW, winH)
     }
 
     internal fun updateSun() {

@@ -40,7 +40,7 @@ fun KoolApplication.myantsApp(launch: LaunchConfig = LaunchConfig()) {
     installShortcuts(session)
     addAntSimScene(session)
     addWorldScene(session)
-    addNestPresent(session)
+    addNestPresent(session.renderBridge, session.renderBridge)
     addLegacyNestOverlay(session)
     addAntSimUi(session)
     addAntSimInput(session)

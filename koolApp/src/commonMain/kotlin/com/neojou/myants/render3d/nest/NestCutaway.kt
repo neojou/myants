@@ -1,6 +1,7 @@
 package com.neojou.myants.render3d.nest
 
-import com.neojou.myants.AppSession
+import com.neojou.myants.render3d.RenderHost
+import com.neojou.myants.render3d.RenderState
 import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.render3d.selectRing
@@ -67,18 +68,18 @@ object NestCutaway {
     private var ready = false
     private var logged = false
 
-    fun mount(scene: Scene, session: AppSession) {
+    fun mount(scene: Scene, host: RenderHost) {
         if (ready) return
         val node = Node("nest-cutaway").apply { isFrustumChecked = false }
         fillRoot(node)
         scene.addNode(node)
-        session.nest3dActive = true
+        host.onNestCutawayMounted()
         ready = true
     }
 
-    fun update(session: AppSession, winW: Float, winH: Float) {
+    fun update(state: RenderState, winW: Float, winH: Float) {
         if (!ready) return
-        val nest = session.world.colonies[0].nest
+        val nest = state.world.colonies[0].nest
         val frame = layout(winW, winH, nest.width.toFloat(), nest.height.toFloat())
         place(dirt, frame.cx, frame.cy, frame.drawW, frame.drawH, 0.2f)
         val bandH = frame.drawH * SOIL_BAND_FRACTION
@@ -103,7 +104,7 @@ object NestCutaway {
             val floor = (node.radius * 2.0 * frame.fit).toFloat()
             put(dug, frame.sx(node.x.toFloat()), frame.sy(node.y.toFloat()), 0.4f, floor, floor, WorldPalette.nestChamber, 0f)
         }
-        val colony = session.world.colonies[0]
+        val colony = state.world.colonies[0]
         for (brood in colony.brood) {
             if (brood.carrier != null) continue
             val jitter = broodJitter(brood.x.toFloat(), brood.y.toFloat())
@@ -139,7 +140,7 @@ object NestCutaway {
             val parts = listOf(shape.gaster to 0.78f, shape.thorax to 0.82f, shape.head to 0.86f)
             for ((part, z) in parts) {
                 val along = part.along * length
-                val color = if (soldier && part === shape.head) WorldPalette.soldierHead3d else session.antColor
+                val color = if (soldier && part === shape.head) WorldPalette.soldierHead3d else state.view.antColor
                 put(ants, sx + c * along, sy + s * along, z, part.length * length, part.width * length, color, ang)
             }
             if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
@@ -154,15 +155,15 @@ object NestCutaway {
             }
         }
         val mesh = pheroMesh
-        if (mesh != null && session.showPheromones) {
-            val tex = field.update(colony.nestGrid, session.pheromoneStrength, true)
+        if (mesh != null && state.view.showPheromones) {
+            val tex = field.update(colony.nestGrid, state.view.pheromoneStrength, true)
             (mesh.shader as? KslUnlitShader)?.colorMap = tex
             mesh.isVisible = tex != null
             place(mesh, frame.cx, frame.cy, frame.drawW, frame.drawH, 0.5f)
         } else {
             mesh?.isVisible = false
         }
-        val mark = session.inspectRingNow?.takeIf { it.space == RingSpace.NEST }
+        val mark = state.inspectRing?.takeIf { it.space == RingSpace.NEST }
         val ringMesh = ring
         if (mark != null && ringMesh != null) {
             ringMesh.isVisible = true
@@ -280,8 +281,8 @@ object NestCutaway {
     }
 }
 
-fun KoolApplication.addNestPresent(session: AppSession) = addScene {
-    session.nestPresent = this
+fun KoolApplication.addNestPresent(state: RenderState, host: RenderHost) = addScene {
+    host.onNestPresentReady(this)
     isVisible = false
     clearColor = ClearColorLoad
     // Same clip as the classic 2D scene. A positive near plane clips these
@@ -299,7 +300,7 @@ fun KoolApplication.addNestPresent(session: AppSession) = addScene {
         generate { rect { size.set(1f, 1f) } }
         shader = flat(WorldPalette.pane)
     }
-    NestCutaway.mount(this, session)
+    NestCutaway.mount(this, host)
     val divider = addMesh(VertexLayouts.Position) {
         isFrustumChecked = false
         generate { rect { size.set(1f, 1f) } }
@@ -312,7 +313,7 @@ fun KoolApplication.addNestPresent(session: AppSession) = addScene {
         cam.right = winW
         cam.top = 0f
         cam.bottom = -winH
-        val nest = session.world.colonies[0].nest
+        val nest = state.world.colonies[0].nest
         NestCutaway.layout(winW, winH, nest.width.toFloat(), nest.height.toFloat())
         val leftW = winW * 0.74f
         val rightW = winW - leftW
