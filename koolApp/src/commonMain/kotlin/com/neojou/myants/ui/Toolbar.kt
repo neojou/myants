@@ -1,5 +1,12 @@
 package com.neojou.myants.ui
 
+import com.neojou.myants.toggleRain
+import com.neojou.myants.toggleLanguageMenu
+import com.neojou.myants.setColonies
+import com.neojou.myants.requestScreenshot
+import com.neojou.myants.refreshAnalyse
+import com.neojou.myants.openPanel
+import com.neojou.myants.askRestart
 import com.neojou.myants.SimTool
 import com.neojou.myants.session.Panel
 import com.neojou.myants.AppSession

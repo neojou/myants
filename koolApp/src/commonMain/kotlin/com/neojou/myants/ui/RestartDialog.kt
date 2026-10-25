@@ -1,5 +1,7 @@
 package com.neojou.myants.ui
 
+import com.neojou.myants.dismissRestart
+import com.neojou.myants.confirmRestart
 import com.neojou.myants.AppSession
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.scene.Scene

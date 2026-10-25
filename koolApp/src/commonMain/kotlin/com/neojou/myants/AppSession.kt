@@ -33,24 +33,6 @@ import de.fabmax.kool.scene.Scene
 import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.Time
 
-enum class SimTool { INSPECT, SUGAR, PROTEIN, ENEMY }
-
-/**
- * One analysis row. [copyId] is resolved from the string table at draw time,
- * so a language change updates an open panel. [literal] is the action label,
- * or the fallback when [copyId] is unknown.
- */
-class AnalyseLine(
-    val copyId: String?,
-    val severity: String?,
-    val effect: Boolean,
-    val literal: String,
-    val path: String?,
-    val to: Double,
-)
-
-class GraphSample(val population: Int, val sugar: Double, val protein: Double, val energyPct: Double)
-
 /**
  * Composition root of the live session (#7): [SimClock], [CameraState], [ToolController],
  * [ViewState] (prefs + panels + settings format), [HudState] and [CinemaDirector].
@@ -144,11 +126,11 @@ class AppSession(launch: LaunchConfig) {
 
     var world: World
     val seed: Int
-    private var deadFrames: Int = 0
-    private val fps = FpsCounter()
-    private val fpsShown: Int get() = fps.shown
-    private val settings = SettingsStore()
-    private val overrides = TunerOverrides()
+    internal var deadFrames: Int = 0
+    internal val fps = FpsCounter()
+    internal val fpsShown: Int get() = fps.shown
+    internal val settings = SettingsStore()
+    internal val overrides = TunerOverrides()
 
     init {
         val saved = settings.read()?.let { ViewState.parse(it) } ?: emptyMap()
@@ -274,155 +256,13 @@ class AppSession(launch: LaunchConfig) {
         return ring.x to ring.y
     }
 
-    private fun leafSpots() = ScatterLayout.leafSpots(
+    internal fun leafSpots() = ScatterLayout.leafSpots(
         seed,
         worldSerial,
         QualityPreset.from(PerformanceManager.level, renderTierBias),
         grassDensity,
     )
-    /** Hit test for the 3D nest cutaway. Classic 2D still uses [clickWorld] only. */
-    fun inspectNest(nx: Double, ny: Double) {
-        notifyInput()
-        tools.inspectNest(world, nx, ny)
-        userFollow = false
-        bump()
-    }
-
-    fun toggleRain() {
-        if (world.raining) {
-            world.raining = false
-            world.rainTimer = 0
-        } else {
-            world.raining = true
-            world.rainTimer = SimConfig.environment.rainMinDuration * 2
-        }
-        notifyInput()
-        publishChrome()
-    }
-
-    fun restart(fromUser: Boolean) {
-        world = World()
-        worldSerial++
-        cine.follow = null
-        userFollow = false
-        tools.clear()
-        cine.nextPick = 0.0
-        deadFrames = 0
-        history.clear()
-        resetCamera(fromUser = false)
-        if (fromUser) notifyInput()
-        bump()
-    }
-
-    /** Opens the restart dialog. The world stays until [confirmRestart]. */
-    fun askRestart() {
-        restartPrompt = true
-        notifyInput()
-        bump()
-    }
-
-    fun dismissRestart() {
-        restartPrompt = false
-        bump()
-    }
-
-    fun confirmRestart() {
-        restartPrompt = false
-        restart(fromUser = true)
-    }
-
-    fun setColonies(count: Int) {
-        SimConfig.colonyCount = count.coerceIn(1, 2)
-        save()
-        restart(fromUser = true)
-    }
-
-    fun setQuality(level: QualityLevel) {
-        PerformanceManager.setQuality(level); renderTierBias = 0; save(); notifyInput(); bump()
-    }
-
-    /** Runs [change], persists settings, then bumps the UI revision when [bump] is true. */
-    private inline fun persist(bump: Boolean = true, change: () -> Unit) {
-        change()
-        save()
-        if (bump) bump()
-    }
-
-    fun setPheromones(on: Boolean) = persist { showPheromones = on }
-    fun updatePheromoneStrength(value: Double) = persist { pheromoneStrength = value.coerceIn(0.0, 1.5) }
-    fun updateDayNight(on: Boolean) = persist { dayNight = on }
-    fun updateDayNightStrength(value: Double) = persist { dayNightStrength = value.coerceIn(0.0, 1.0) }
-    fun updateCinema(on: Boolean) = persist { cinema = on }
-    fun chooseRenderer(mode: RenderMode) = persist { renderer = mode; applyRendererVisibility() }
-    fun choosePitch(deg: Float) = persist { cameraPitchDeg = deg.coerceIn(-90f, -60f) }
-    fun chooseBloom(on: Boolean) = persist { bloomUser = on }
-    fun chooseSsao(on: Boolean) = persist { ssaoUser = on }
-    fun chooseWeather(on: Boolean) = persist { weatherUser = on }
-    fun chooseShadows(on: Boolean) = persist { shadowsUser = on }
-    fun chooseGrassDensity(value: Float) = persist { grassDensity = value.coerceIn(0f, 1.5f) }
-
-    fun setAntColor(hex: String) {
-        try {
-            antColor = Color(hex)
-            save()
-            bump()
-        } catch (_: Throwable) {
-            MyLog.add("APP", "Bad ant color $hex", LogLevel.DEBUG)
-        }
-    }
-
-    fun openPanel(panel: Panel) { view.openPanel(panel); notifyInput(); bump() }
-
-    fun closeSidePanels() { view.closeSidePanels(); bump() }
-
-    fun refreshAnalyse() {
-        analyseLines.clear()
-        analyseLines += buildAnalyseLines(world)
-        view.showOnlyAnalyse()
-        bump()
-    }
-
-    fun applyAnalyse(path: String, to: Double) = setTunable(path, to)
-
-    fun setTunable(path: String, value: Double) {
-        if (overrides.set(path, value)) save() else MyLog.add("APP", "Tuner path skipped: $path", LogLevel.DEBUG)
-        bump()
-    }
-
-    fun toggleLanguageMenu() {
-        languageMenu.value = !languageMenu.value
-    }
-
-    fun closeLanguageMenu() {
-        languageMenu.value = false
-    }
-
-    fun setLanguage(lang: UiLanguage) {
-        languageMenu.value = false
-        view.language = lang
-        L10n.language.value = lang
-        tools.refresh(world, leafSpots())
-        hud.sync(world, fpsShown, Time.gameTime, force = true)
-        save()
-        bump()
-    }
-
-    fun resetTunables() = persist { overrides.reset() }
-
-    fun requestScreenshot() { screenshotRequested = true }
-
-    fun toggleUserFollow() {
-        userFollow = !userFollow
-        if (!userFollow) cine.follow = null
-        notifyInput()
-        bump()
-    }
-
-    fun noteDrag() { userFollow = false; notifyInput() }
-
-    fun speedLabel(): String = HudState.speedLabel(speeds[speedIndex])
-
-    private fun save() {
+    internal fun save() {
         settings.write(view.encode(speeds[speedIndex], SimConfig.colonyCount, PerformanceManager.level.name, overrides.values))
     }
 }
