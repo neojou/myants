@@ -1,6 +1,7 @@
 package com.neojou.myants.render3d.camera
 
-import com.neojou.myants.AppSession
+import com.neojou.myants.render3d.CameraView
+import com.neojou.myants.render3d.RenderHost
 import com.neojou.myants.render3d.WorldFrames
 import com.neojou.myants.render3d.terrain.GroundHeight
 import de.fabmax.kool.math.MutableVec3f
@@ -36,15 +37,15 @@ class TopDownCamera(
         if (this.scene === scene) this.scene = null
     }
 
-    override fun update(dt: Float, session: AppSession) {
-        val host = scene ?: return
-        winW = host.mainRenderPass.viewport.width.toFloat().coerceAtLeast(1f)
-        winH = host.mainRenderPass.viewport.height.toFloat().coerceAtLeast(1f)
+    override fun update(dt: Float, cam: CameraView, host: RenderHost) {
+        val sc = scene ?: return
+        winW = sc.mainRenderPass.viewport.width.toFloat().coerceAtLeast(1f)
+        winH = sc.mainRenderPass.viewport.height.toFloat().coerceAtLeast(1f)
         if (winW < 2f) {
             // Viewport is empty until the first collect. Fall back to the window.
-            winW = host.mainRenderPass.viewport.width.toFloat()
+            winW = sc.mainRenderPass.viewport.width.toFloat()
         }
-        val window = host.mainRenderPass.viewport
+        val window = sc.mainRenderPass.viewport
         if (window.width < 2 || window.height < 2) {
             val ctx = de.fabmax.kool.KoolSystem.getContextOrNull() ?: return
             winW = ctx.window.size.x.toFloat().coerceAtLeast(1f)
@@ -55,22 +56,22 @@ class TopDownCamera(
         }
 
         val leftW = winW * 0.74f
-        session.clampCamera(leftW, winH)
-        val zoom = session.zoom.toFloat().coerceIn(1f, 6f)
-        val fit = session.fitScale(leftW, winH).toFloat()
+        host.clampCamera(leftW, winH)
+        val zoom = cam.zoom.toFloat().coerceIn(1f, 6f)
+        val fit = cam.fitScale(leftW, winH).toFloat()
         val pxPerUnit = (fit * zoom).coerceAtLeast(0.0001f)
         val unitPerPx = 1f / pxPerUnit
         val viewH = winH * unitPerPx
         val viewW = winW * unitPerPx
-        val focusX = session.camX.toFloat()
-        val focusZ = session.camY.toFloat()
+        val focusX = cam.x.toFloat()
+        val focusZ = cam.y.toFloat()
         val fx = (leftW * 0.5f) / winW
         camera.left = -viewW * fx
         camera.right = viewW * (1f - fx)
         camera.bottom = -viewH * 0.5f
         camera.top = viewH * 0.5f
 
-        val pitch = session.cameraPitchDeg.coerceIn(-90f, -60f)
+        val pitch = cam.pitchDeg.coerceIn(-90f, -60f)
         val look = WorldFrames.lookDir(pitch)
         val up = WorldFrames.screenUp(pitch)
         val ground = GroundHeight.at(focusX, focusZ)

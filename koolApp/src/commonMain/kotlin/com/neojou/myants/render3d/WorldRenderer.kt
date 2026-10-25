@@ -201,7 +201,7 @@ class WorldRenderer(
                 MyLog.add(TAG, "backend ${backendLabel()} compute=${de.fabmax.kool.KoolSystem.features.computeShaders}", LogLevel.DEBUG)
             }
             ensurePipeline(content, forward)
-            top.update(Time.deltaT, session)
+            top.update(Time.deltaT, session.renderBridge, session.renderBridge)
             val preset = QualityPreset.from(PerformanceManager.level, session.renderTierBias)
             applyPreset(preset)
             val winW = it.ctx.window.size.x.toFloat().coerceAtLeast(1f)

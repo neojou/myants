@@ -30,7 +30,7 @@ class AntPovCamera : CameraController {
     override val allowsRotation: Boolean = true
     override fun attach(scene: de.fabmax.kool.scene.Scene) = Unit
     override fun detach(scene: de.fabmax.kool.scene.Scene) = Unit
-    override fun update(dt: Float, session: com.neojou.myants.AppSession) = Unit
+    override fun update(dt: Float, cam: com.neojou.myants.render3d.CameraView, host: com.neojou.myants.render3d.RenderHost) = Unit
     override fun focusOn(worldX: Float, worldZ: Float, zoom: Float?) = Unit
     override fun screenToGround(px: Float, py: Float): de.fabmax.kool.math.Vec2f? = null
 }
