@@ -7,6 +7,11 @@
 ### 修正
 - 3D 時鐘石改成暖灰（0.50, 0.45, 0.38），數字改用 `#E9C46A`；三葉草的花不再是一律白色，每個位置固定取 petalRose、petalGold、petalLilac 其中一色（Refs #62）
 
+### 變更
+- Inspect 改成浮動卡：跟著被選物的螢幕位置移動，靠右放，碰到視窗邊緣就翻到左側。底色 `surfaceRaised`，左側 3px 色條一律用 `onSurfaceVar`（資料色在深色卡上對比不到 2:1）。標題 14、標籤 12 `onSurfaceVar`、數值 12 靠右。標籤改成翻譯後的文字（英文不再出現 `e=`、`r=`、`EGG` 這類鍵名）。最多 6 列，費洛蒙只列非 0 的通道（Refs #61）
+- 選取圈改成雙環：外環 #EADDFF、內環 #6750A4。左側世界和右側巢穴剖面都改（Refs #61）
+- Follow 按鈕改用 IconButton 的狀態色：平常 `surfaceVariant`，滑過 `primaryHover`，跟隨中 `primary` 加 1dp 外框（Refs #61）
+
 ### 重構
 - `WorldRenderer.kt`（1216 行）依職責拆成 `WorldRendererBuild`／`WorldRendererProps`／`WorldRendererActors`／`WorldRendererShapes`，純搬移不改行為（Refs #46）
 - `AntStates.kt`（991 行）依狀態拆成巢內（`AntStates`）、防禦（`AntStatesDefense`）、覓食（`AntStatesFood`）三檔，只搬移不改邏輯（Refs #46）

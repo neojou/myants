@@ -4,6 +4,7 @@ import com.neojou.myants.AppSession
 import com.neojou.myants.render3d.RingSpace
 import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.render3d.inspectRing
+import com.neojou.myants.render3d.selectRing
 import com.neojou.myants.render3d.phero.PheromoneField
 import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
@@ -235,12 +236,12 @@ object NestCutaway {
         }
         quad.isVisible = false
         pheroMesh = quad
-        ring = node.addMesh(VertexLayouts.Position) {
+        ring = node.addMesh(VertexLayouts.PositionColor) {
             isFrustumChecked = false
             isVisible = false
-            generate { ringXY() }
+            generate { selectRing(xz = false) }
             shader = KslUnlitShader {
-                color { uniformColor(WorldPalette.selectRing) }
+                color { vertexColor() }
                 colorSpaceConversion = ColorSpaceConversion.LinearToSrgb()
                 alphaMode = AlphaMode.Opaque
                 pipeline {
@@ -345,27 +346,6 @@ private fun instances() = KslUnlitShader {
         cullMethod = CullMethod.NO_CULLING
         depthTest = DepthCompareOp.ALWAYS
         isWriteDepth = false
-    }
-}
-
-private fun de.fabmax.kool.scene.geometry.MeshBuilder<*>.ringXY() {
-    val n = 28
-    val inner = 0.65f
-    val outer = 1f
-    val nrm = Vec3f.Z_AXIS
-    for (i in 0 until n) {
-        val a0 = (i.toFloat() / n) * (PI.toFloat() * 2f)
-        val a1 = ((i + 1).toFloat() / n) * (PI.toFloat() * 2f)
-        val x0 = cos(a0)
-        val y0 = sin(a0)
-        val x1 = cos(a1)
-        val y1 = sin(a1)
-        val i0 = vertex(Vec3f(x0 * inner, y0 * inner, 0f), nrm)
-        val i1 = vertex(Vec3f(x0 * outer, y0 * outer, 0f), nrm)
-        val i2 = vertex(Vec3f(x1 * outer, y1 * outer, 0f), nrm)
-        val i3 = vertex(Vec3f(x1 * inner, y1 * inner, 0f), nrm)
-        addTriIndices(i0, i1, i2)
-        addTriIndices(i0, i2, i3)
     }
 }
 

@@ -49,7 +49,8 @@ object WorldPalette {
     /** Warm grey; red leads blue so the sky light does not turn it blue-grey. */
     val clockStone = Color(0.50f, 0.45f, 0.38f, 1f)
     /** Same hex as MyantsTheme.colors.primary. Kept here so render does not depend on UI. */
-    val selectRing = Color("#6750A4")
+    val selectRingInner = Color("#6750A4")
+    val selectRingOuter = Color("#EADDFF")
     val pebble = Color(0.35f, 0.33f, 0.3f, 1f)
     val leaf = Color(0.45f, 0.32f, 0.12f, 1f)
     val petalRose = Color(0.85f, 0.35f, 0.45f, 1f)
