@@ -1,78 +1,30 @@
 package com.neojou.myants.render3d
 
-import com.neojou.myants.render3d.actors.GltfAnt
-import com.neojou.myants.render3d.actors.GltfAphid
-import com.neojou.myants.render3d.actors.GltfCritter
-import com.neojou.myants.render3d.actors.PoseBuckets
-import com.neojou.myants.render3d.actors.draw
-import com.neojou.myants.render3d.actors.drawAphid
-import com.neojou.myants.render3d.actors.drawCritter
-import com.neojou.myants.render3d.actors.outdoorAntTint
-import com.neojou.myants.render3d.actors.parseGltfAnt
-import com.neojou.myants.render3d.actors.parseGltfAphid
-import com.neojou.myants.render3d.actors.mergedTriangles
-import com.neojou.myants.render3d.actors.parseGltfCritter
-import com.neojou.myants.render3d.actors.parseGltfMerged
-import com.neojou.myants.render3d.actors.uploadAntMeshes
-import com.neojou.myants.render3d.actors.uploadAphidMeshes
-import com.neojou.myants.render3d.actors.uploadCritterMeshes
-import com.neojou.myants.render3d.actors.uploadMerged
 import com.neojou.myants.render3d.camera.CameraDirector
 import com.neojou.myants.render3d.camera.TopDownCamera
 import com.neojou.myants.render3d.nest.NestCutaway
-import com.neojou.myants.render3d.phero.PheromoneField
 import com.neojou.myants.render3d.quality.QualityPreset
-import com.neojou.myants.render3d.terrain.GroundHeight
-import com.neojou.myants.render3d.terrain.GroundMesh
-import com.neojou.myants.sim.AntKind
-import com.neojou.myants.sim.AntPlace
-import com.neojou.myants.sim.CarryKind
-import com.neojou.myants.sim.FoodKind
-import com.neojou.myants.sim.InsectKind
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.SimConfig
-import com.neojou.myants.wallClockHms
 import com.neojou.tools.LogLevel
 import com.neojou.tools.MyLog
-import de.fabmax.kool.Assets
 import de.fabmax.kool.KoolApplication
 import de.fabmax.kool.addScene
-import de.fabmax.kool.math.MutableMat4f
-import de.fabmax.kool.math.MutableVec3f
-import de.fabmax.kool.math.Vec2f
 import de.fabmax.kool.math.Vec3f
-import de.fabmax.kool.math.rad
 import de.fabmax.kool.math.spatial.BoundingBoxF
-import de.fabmax.kool.modules.ksl.KslUnlitShader
-import de.fabmax.kool.modules.ksl.blocks.ColorBlockConfig
-import de.fabmax.kool.pipeline.BlendMode
 import de.fabmax.kool.pipeline.ClearColorFill
-import de.fabmax.kool.pipeline.CullMethod
 import de.fabmax.kool.pipeline.DepthCompareOp
 import de.fabmax.kool.pipeline.deferred.DeferredPipeline
 import de.fabmax.kool.pipeline.deferred.DeferredPipelineConfig
-import de.fabmax.kool.pipeline.deferred.deferredKslPbrShader
 import de.fabmax.kool.pipeline.ibl.EnvironmentMap
 import de.fabmax.kool.pipeline.ibl.SkyCubeIblSystem
-import de.fabmax.kool.scene.InstanceLayouts
 import de.fabmax.kool.scene.Light
-import de.fabmax.kool.scene.Mesh
-import de.fabmax.kool.scene.MeshInstanceList
 import de.fabmax.kool.scene.Node
 import de.fabmax.kool.scene.OrthographicCamera
-import de.fabmax.kool.scene.TrsTransformF
-import de.fabmax.kool.scene.VertexLayouts
-import de.fabmax.kool.scene.addMesh
 import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.ColorGradient
 import de.fabmax.kool.util.SimpleShadowMap
 import de.fabmax.kool.util.Time
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.hypot
-import kotlin.math.sin
-import kotlin.random.Random
-import kotlinx.coroutines.launch
 
 private const val TAG = "RENDER"
 
@@ -91,13 +43,10 @@ class WorldRenderer(
     internal val state: RenderState,
     internal val host: RenderHost,
 ) {
-    internal val instancer = Instancer()
     internal val terrain = TerrainRenderer()
     internal val overlay = OverlayRenderer()
-    internal val props = PropsRenderer(scene.coroutineScope) { bits }
-    internal val layout get() = instancer.layout
-    internal val mat get() = instancer.mat
-    internal val scale get() = instancer.scale
+    internal val actors = ActorsRenderer(scene.coroutineScope) { deferred }
+    internal val props = PropsRenderer(scene.coroutineScope) { actors.bits }
     internal var deferred: DeferredPipeline? = null
     internal var shadow: SimpleShadowMap? = null
     internal var built = false
@@ -105,40 +54,7 @@ class WorldRenderer(
     internal var fpsSamples = 0
     internal var fpsSum = 0
     internal var lastFps = -1
-    internal val lights = ArrayList<de.fabmax.kool.pipeline.deferred.DeferredPointLights.PointLight>()
 
-    internal lateinit var bodies: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var heads: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var legs: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var workerAnt: AntSlot
-    internal lateinit var soldierAnt: AntSlot
-    internal var greenAphid: GltfAphid? = null
-    internal lateinit var aphidBody: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var aphidEyes: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var aphidLegs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>
-    internal lateinit var aphidBodyMesh: Mesh<*>
-    internal lateinit var aphidEyeMesh: Mesh<*>
-    internal lateinit var aphidLegMeshes: List<Mesh<*>>
-    internal lateinit var molts: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var honey: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal val aphidPrevX = HashMap<Int, Float>()
-    internal val aphidPrevZ = HashMap<Int, Float>()
-    internal val critters = ArrayList<CritterSlot>()
-    internal val critterPrevX = HashMap<Int, Float>()
-    internal val critterPrevZ = HashMap<Int, Float>()
-    internal lateinit var food: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var sugar: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var protein: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var carrySugar: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var carryProtein: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var sugarMesh: Mesh<*>
-    internal lateinit var proteinMesh: Mesh<*>
-    internal lateinit var carrySugarMesh: Mesh<*>
-    internal lateinit var carryProteinMesh: Mesh<*>
-    internal var sugarReady = false
-    internal var proteinReady = false
-    internal lateinit var insects: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var bits: MeshInstanceList<InstanceLayouts.ModelMatColor>
 
     fun install() {
         host.onWorldSceneReady(scene)
@@ -155,16 +71,8 @@ class WorldRenderer(
         val forward = Node("world-forward").apply { isFrustumChecked = false }
         terrain.build(content, forward)
         props.build(content, forward)
-        buildContent(content)
+        actors.build(content, forward)
         overlay.build(content, forward)
-        loadAnt("models/ants/worker_black.glb", workerAnt, "worker")
-        loadAnt("models/ants/soldier.glb", soldierAnt, "soldier")
-        loadGreenAphid()
-        for (slot in critters) loadCritter(slot)
-        loadMerged("models/food/sugar.glb", listOf(sugarMesh, carrySugarMesh), "sugar") { sugarReady = true }
-        loadMerged("models/food/protein.glb", listOf(proteinMesh, carryProteinMesh), "protein") { proteinReady = true }
-        val clock = stoneMesh
-        if (clock != null) loadMerged("models/nature/clock_stone.glb", listOf(clock), "clock stone") { }
 
         scene.onUpdate {
             if (state.renderer != RenderMode.D3) return@onUpdate
@@ -279,7 +187,7 @@ class WorldRenderer(
 
     internal fun fill(preset: QualityPreset, winW: Float, winH: Float) {
         terrain.update(state, preset, Time.deltaT)
-        pushActors(preset)
+        actors.update(state, preset, Time.deltaT)
         props.update(state, preset, Time.deltaT)
         overlay.update(state, preset, Time.deltaT)
         NestCutaway.update(state, winW, winH)
@@ -302,5 +210,4 @@ class WorldRenderer(
         }
     }
 
-    internal var stoneMesh: Mesh<*>? = null
 }
