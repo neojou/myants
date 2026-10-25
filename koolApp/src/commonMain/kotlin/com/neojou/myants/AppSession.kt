@@ -252,7 +252,7 @@ class AppSession(launch: LaunchConfig) {
     val renderBridge: com.neojou.myants.session.SessionRenderBridge by lazy { com.neojou.myants.session.SessionRenderBridge(this) }
 
     /** Ring for the current Inspect hit, or null with nothing picked. Read by render3d (#47). */
-    val inspectRingNow: InspectRing? get() = tools.inspectTarget()?.toRing()
+    internal val inspectRingNow: InspectRing? get() = tools.inspectTarget()?.toRing()
 
     internal fun followAnchor(): Pair<Double, Double>? {
         val current = tools.inspectTarget() ?: return null
