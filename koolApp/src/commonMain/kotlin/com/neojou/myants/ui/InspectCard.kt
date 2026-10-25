@@ -9,12 +9,10 @@ import com.neojou.myants.render3d.WorldInput
 import com.neojou.myants.render3d.WorldPalette
 import com.neojou.myants.render3d.inspectRing
 import com.neojou.myants.render3d.nest.NestFrame
-import com.neojou.myants.render3d.phero.PheromoneColor
 import com.neojou.myants.render3d.rgbColor
 import com.neojou.myants.session.InspectTarget
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.Colony
-import com.neojou.myants.sim.Pheromone
 import com.neojou.myants.toggleUserFollow
 import de.fabmax.kool.math.Vec2f
 import de.fabmax.kool.modules.ui2.*
@@ -67,22 +65,8 @@ internal fun inspectAccent(target: InspectTarget, playerColor: Color): Color {
         is InspectTarget.StoneItem -> if (target.clock) WorldPalette.clockStone else WorldPalette.stone
         is InspectTarget.GrassItem -> WorldPalette.grass
         is InspectTarget.LeafItem -> WorldPalette.leaf
-        is InspectTarget.PheromoneSample -> pheromoneAccent(
-            Pheromone.entries.associateWith { ch -> target.colonies.sumOf { it.outdoorField.get(target.x, target.y, ch) } },
-        )
+        is InspectTarget.PheromoneSample -> MyantsTheme.colors.onSurfaceVar
     }
-}
-
-/**
- * Trail color of the strongest channel, as drawn in the world (PheromoneColor at full strength).
- * Falls back to onSurfaceVar when every channel is below the overlay threshold.
- */
-internal fun pheromoneAccent(levels: Map<Pheromone, Double>): Color {
-    val (channel, level) = levels.maxByOrNull { it.value } ?: return MyantsTheme.colors.onSurfaceVar
-    if (level <= 0.01) return MyantsTheme.colors.onSurfaceVar
-    fun one(p: Pheromone) = if (p == channel) 1.0 else 0.0
-    val rgb = PheromoneColor.rgba(one(Pheromone.HOME), one(Pheromone.SUGAR), one(Pheromone.PROTEIN), one(Pheromone.DANGER), 1.0 / 0.85)
-    return Color(rgb[0] / 255f, rgb[1] / 255f, rgb[2] / 255f, 1f)
 }
 
 /** Window pixel of the selection, or null when it is not on screen in the current view. */
