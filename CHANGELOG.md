@@ -6,6 +6,7 @@
 
 ### 修正
 - 室外 glb 的材質不再沿用螞蟻的 chitin／eye／mandible：sugar、protein、pebble、leaf、clock_stone、clover_tuft、clover_flower、prey、predator、spider、ladybug 改成跟 runtime 顏色一致的 PBR baseColor 和 roughness，鍬形蟲（beetle.glb）補上材質。只改 JSON，幾何不變。對照表在 `tools/glb_palette.py`，用 `tools/glb_materials.py --check` 驗證（Refs #62）
+- 3D 時鐘石改成暖灰（0.50, 0.45, 0.38），數字改用 `#E9C46A`；三葉草的花不再是一律白色，每個位置固定取 petalRose、petalGold、petalLilac 其中一色（Refs #62）
 
 ### 變更
 - Inspect 改成浮動卡：跟著被選物的螢幕位置移動，靠右放，碰到視窗邊緣就翻到左側。底色 `surfaceRaised`，左側 3px 色條一律用 `onSurfaceVar`（資料色在深色卡上對比不到 2:1）。標題 14、標籤 12 `onSurfaceVar`、數值 12 靠右。標籤改成翻譯後的文字（英文不再出現 `e=`、`r=`、`EGG` 這類鍵名）。最多 6 列，費洛蒙只列非 0 的通道（Refs #61）
