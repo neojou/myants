@@ -108,8 +108,7 @@ internal class TerrainRenderer : SubRenderer {
         )
         light.setup(dir).setColor(OutdoorLighting.lightColor(bright), OutdoorLighting.lightIntensity(bright))
         lighting?.let {
-            val k = OutdoorLighting.ambientStrength(bright)
-            it.ambientFactor = Color(k, k, k, 1f)
+            it.ambientFactor = OutdoorLighting.ambientColor(bright)
         }
     }
 

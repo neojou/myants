@@ -67,4 +67,27 @@ class OutdoorLightingTest {
         assertTrue(OutdoorLighting.BLOOM_RADIUS <= 2f)
         assertEquals(1f, OutdoorLighting.EXPOSURE)
     }
+
+    private fun luma(c: de.fabmax.kool.util.Color) = 0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b
+
+    @Test
+    fun nightAmbientIsCoolButNotSaturated() {
+        val n = OutdoorLighting.ambientColor(0f)
+        assertTrue(n.b > n.r, "night ambient must be cool: $n")
+        assertTrue(n.b / n.r <= 1.6f, "night ambient must not be saturated blue: $n")
+        assertTrue(luma(n) in 0.20f..0.25f, "night ambient strength ${luma(n)}")
+    }
+
+    @Test
+    fun dayAmbientIsNeutralAndBlendIsSmooth() {
+        val d = OutdoorLighting.ambientColor(1f)
+        assertTrue(d.r == d.g && d.g == d.b, "day keeps the warm gradient untinted: $d")
+        assertTrue(luma(d) in 0.35f..0.45f)
+        var last = -1f
+        for (i in 0..100) {
+            val c = OutdoorLighting.ambientColor(i / 100f)
+            assertTrue(c.b / c.r >= 1f - 1e-4f, "never warmer than the gradient")
+            assertTrue(luma(c) >= last - 1e-4f); last = luma(c)
+        }
+    }
 }

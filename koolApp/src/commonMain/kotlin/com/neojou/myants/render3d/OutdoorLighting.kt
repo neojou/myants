@@ -22,6 +22,23 @@ internal object OutdoorLighting {
     val ambientHorizon = Color(0.80f, 0.78f, 0.74f)
     val ambientGround = Color(0.55f, 0.45f, 0.35f)
 
+    /** Night sky gradient suggested by the Artist on #74: cool moonlit, not saturated blue. */
+    val nightZenith = Color(0.30f, 0.36f, 0.50f)
+    val nightHorizon = Color(0.34f, 0.38f, 0.48f)
+
+    /**
+     * The irradiance map is baked once from the day gradient, so night is a per-channel
+     * tint on the ambient factor: night horizon / day horizon, normalised to luma 1.
+     * Day gradient x tint is roughly the night gradient.
+     */
+    val nightTint: Color = run {
+        val r = nightHorizon.r / ambientHorizon.r
+        val g = nightHorizon.g / ambientHorizon.g
+        val b = nightHorizon.b / ambientHorizon.b
+        val l = 0.2126f * r + 0.7152f * g + 0.0722f * b
+        Color(r / l, g / l, b / l, 1f)
+    }
+
     const val AMBIENT_DAY = 0.40f
     const val AMBIENT_NIGHT = 0.22f
 
@@ -50,5 +67,13 @@ internal object OutdoorLighting {
         if (isNight(bright)) return AMBIENT_NIGHT
         val t = ((bright - NIGHT_BELOW) / (1f - NIGHT_BELOW)).coerceIn(0f, 1f)
         return AMBIENT_NIGHT + (AMBIENT_DAY - AMBIENT_NIGHT) * t
+    }
+
+    /** Ambient factor: cool tinted night, blending to the neutral day factor as the sun rises. */
+    fun ambientColor(bright: Float): Color {
+        val k = ambientStrength(bright)
+        val t = if (isNight(bright)) 0f else ((bright - NIGHT_BELOW) / (1f - NIGHT_BELOW)).coerceIn(0f, 1f)
+        fun ch(n: Float) = k * (n + (1f - n) * t)
+        return Color(ch(nightTint.r), ch(nightTint.g), ch(nightTint.b), 1f)
     }
 }
