@@ -1,5 +1,7 @@
 package com.neojou.myants.ui.panels
 
+import com.neojou.myants.setTunable
+import com.neojou.myants.resetTunables
 import com.neojou.myants.sim.SimConfig
 import kotlin.math.roundToInt
 import com.neojou.myants.AppSession

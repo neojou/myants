@@ -1,5 +1,6 @@
 package com.neojou.myants.ui.panels
 
+import com.neojou.myants.applyAnalyse
 import com.neojou.myants.AnalyseLine
 import com.neojou.myants.AppSession
 import com.neojou.myants.ui.L10n

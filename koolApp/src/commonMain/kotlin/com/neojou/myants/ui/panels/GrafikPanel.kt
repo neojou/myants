@@ -1,5 +1,19 @@
 package com.neojou.myants.ui.panels
 
+import com.neojou.myants.updatePheromoneStrength
+import com.neojou.myants.updateDayNightStrength
+import com.neojou.myants.updateDayNight
+import com.neojou.myants.updateCinema
+import com.neojou.myants.setQuality
+import com.neojou.myants.setPheromones
+import com.neojou.myants.setAntColor
+import com.neojou.myants.chooseWeather
+import com.neojou.myants.chooseSsao
+import com.neojou.myants.chooseShadows
+import com.neojou.myants.chooseRenderer
+import com.neojou.myants.choosePitch
+import com.neojou.myants.chooseGrassDensity
+import com.neojou.myants.chooseBloom
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.bloomAllowed
 import com.neojou.myants.sim.PerformanceManager
