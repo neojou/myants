@@ -37,6 +37,23 @@
 - 絕不在別人的目錄或共用的 `/workspace/myants` 裡 checkout、commit 或 push。
 - 原因：多個 bot 共用同一台機器，在同一個 checkout 裡切分支，會讓 commit 落到別人的分支上（見 #27）。
 
+## pstack 流程（全隊必做，不是選用）
+
+每個角色在下列時點一定要跑對應的 pstack skill：
+
+| 角色 | 時點 | 必跑 skill |
+|---|---|---|
+| PM | 拆工、開 issue 前 | `/sharpen`、`/architect` |
+| Coder | 動手前 | `/how` |
+| Coder | 改動時 | `/tdd`，先寫會失敗的測試，再改到通過 |
+| Coder | 開 PR 前 | `/blast-radius`、`principle-prove-it-works` |
+| QE | 驗 PR 時 | `/interrogate`、`principle-test-behavior-not-implementation` |
+| CI | 改 workflow 或建置時 | `principle-prove-it-works` |
+| Artist | 審查或出規格時 | `principle-experience-first` |
+
+- **PR 說明必須有「已跑的 pstack skill」一節**，列出跑過的 skill 和重點結論。少了這一節，或少了該角色必跑的 skill，QE 一律判 FAIL。
+- **注意用量**：`/arena`、`/swarm`、`poteto-mode` 全套不是預設流程，只在大改動時使用，例如跨模組重構或新子系統；使用時要在 PR 說明寫明原因。
+
 ## Rules
 - 不升級 kool / Kotlin / Gradle / JDK 版本。
 - 改行為必附測試；不得跳過失敗測試。
