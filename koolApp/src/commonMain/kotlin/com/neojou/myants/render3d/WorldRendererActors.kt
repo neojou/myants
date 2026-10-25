@@ -79,7 +79,6 @@ private const val TAG = "RENDER"
 // Per-frame actor instancing (ants, aphids, critters, food) for [WorldRenderer].
 
 internal fun WorldRenderer.pushActors(preset: QualityPreset) {
-    grass.clear(); rocks.clear(); leaves.clear(); flowers.clear()
     bodies.clear(); heads.clear(); legs.clear(); food.clear(); insects.clear(); bits.clear()
     sugar.clear(); protein.clear(); carrySugar.clear(); carryProtein.clear()
     workerAnt.clear()
@@ -88,9 +87,6 @@ internal fun WorldRenderer.pushActors(preset: QualityPreset) {
     aphidBody.clear(); aphidEyes.clear(); honey.clear(); molts.clear()
     for (batch in aphidLegs) batch.clear()
     val time = Time.gameTime.toFloat()
-    pushScatter(preset, time)
-    pushSimGrass(preset, time)
-    pushObstacles()
     pushFood(preset)
     pushInsects()
     pushAnts(preset, time)

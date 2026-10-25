@@ -94,6 +94,7 @@ class WorldRenderer(
     internal val instancer = Instancer()
     internal val terrain = TerrainRenderer()
     internal val overlay = OverlayRenderer()
+    internal val props = PropsRenderer(scene.coroutineScope) { bits }
     internal val layout get() = instancer.layout
     internal val mat get() = instancer.mat
     internal val scale get() = instancer.scale
@@ -106,16 +107,6 @@ class WorldRenderer(
     internal var lastFps = -1
     internal val lights = ArrayList<de.fabmax.kool.pipeline.deferred.DeferredPointLights.PointLight>()
 
-    internal lateinit var grass: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var grassMesh: Mesh<*>
-    internal lateinit var rocks: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var rockMesh: Mesh<*>
-    internal lateinit var leaves: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var leafMesh: Mesh<*>
-    internal lateinit var flowers: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var flowerMesh: Mesh<*>
-    internal var cloverReady = false
-    internal var bloomReady = false
     internal lateinit var bodies: MeshInstanceList<InstanceLayouts.ModelMatColor>
     internal lateinit var heads: MeshInstanceList<InstanceLayouts.ModelMatColor>
     internal lateinit var legs: MeshInstanceList<InstanceLayouts.ModelMatColor>
@@ -148,15 +139,6 @@ class WorldRenderer(
     internal var proteinReady = false
     internal lateinit var insects: MeshInstanceList<InstanceLayouts.ModelMatColor>
     internal lateinit var bits: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal lateinit var rain: MeshInstanceList<InstanceLayouts.ModelMatColor>
-    internal var scatterKey = ""
-    internal var extraGrass = FloatArray(0)
-    internal var pebbles = FloatArray(0)
-    internal var leafPos = FloatArray(0)
-    internal var flowerPos = FloatArray(0)
-    internal var rainX = FloatArray(0)
-    internal var rainZ = FloatArray(0)
-    internal var rainPhase = FloatArray(0)
 
     fun install() {
         host.onWorldSceneReady(scene)
@@ -172,8 +154,8 @@ class WorldRenderer(
         val content = Node("world-opaque").apply { isFrustumChecked = false }
         val forward = Node("world-forward").apply { isFrustumChecked = false }
         terrain.build(content, forward)
+        props.build(content, forward)
         buildContent(content)
-        buildForward(forward)
         overlay.build(content, forward)
         loadAnt("models/ants/worker_black.glb", workerAnt, "worker")
         loadAnt("models/ants/soldier.glb", soldierAnt, "soldier")
@@ -181,10 +163,6 @@ class WorldRenderer(
         for (slot in critters) loadCritter(slot)
         loadMerged("models/food/sugar.glb", listOf(sugarMesh, carrySugarMesh), "sugar") { sugarReady = true }
         loadMerged("models/food/protein.glb", listOf(proteinMesh, carryProteinMesh), "protein") { proteinReady = true }
-        loadMerged("models/nature/pebble.glb", listOf(rockMesh), "pebble", "cube") { }
-        loadMerged("models/nature/leaf.glb", listOf(leafMesh), "leaf", "slab") { }
-        loadMerged("models/nature/clover_tuft.glb", listOf(grassMesh), "clover", "blade") { cloverReady = true }
-        loadMerged("models/nature/clover_flower.glb", listOf(flowerMesh), "clover flower", "sphere") { bloomReady = true }
         val clock = stoneMesh
         if (clock != null) loadMerged("models/nature/clock_stone.glb", listOf(clock), "clock stone") { }
 
@@ -296,15 +274,14 @@ class WorldRenderer(
         val bloom = bloomAllowed(state.view) && preset.bloomRequested
         pipe.isBloomEnabled = bloom
         shadow?.isShadowMapEnabled = state.view.shadowsUser && preset.shadow != com.neojou.myants.render3d.quality.ShadowKind.OFF
-        grassMesh.isCastingShadow = preset.grassCastsShadow
+        props.grassMesh.isCastingShadow = preset.grassCastsShadow
     }
 
     internal fun fill(preset: QualityPreset, winW: Float, winH: Float) {
         terrain.update(state, preset, Time.deltaT)
-        rebuildScatter(preset)
         pushActors(preset)
+        props.update(state, preset, Time.deltaT)
         overlay.update(state, preset, Time.deltaT)
-        pushRain(preset)
         NestCutaway.update(state, winW, winH)
     }
 

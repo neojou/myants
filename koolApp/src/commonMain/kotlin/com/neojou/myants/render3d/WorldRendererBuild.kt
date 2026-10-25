@@ -79,16 +79,6 @@ private const val TAG = "RENDER"
 // Scene graph construction and model loading for [WorldRenderer].
 
 internal fun WorldRenderer.buildContent(content: Node) {
-    grass = MeshInstanceList(layout, 8192)
-    grassMesh = instanced(content, grass, "grass", doubleSided = true) {
-        cube { size.set(0.2f, 1f, 0.45f) }
-    }
-    rocks = MeshInstanceList(layout, 1024)
-    rockMesh = instanced(content, rocks, "rock") { cube { size.set(1f, 1f, 1f) } }
-    leaves = MeshInstanceList(layout, 1024)
-    leafMesh = instanced(content, leaves, "leaf") { cube { size.set(1.2f, 0.08f, 0.45f) } }
-    flowers = MeshInstanceList(layout, 4096)
-    flowerMesh = instanced(content, flowers, "flower") { icoSphere { steps = 1; radius = 0.45f } }
     bodies = MeshInstanceList(layout, 2048)
     instanced(content, bodies, "ant-body") { cube { size.set(1f, 0.32f, 0.38f) } }
     heads = MeshInstanceList(layout, 2048)
@@ -150,25 +140,6 @@ internal fun WorldRenderer.buildContent(content: Node) {
         }
         (transform as TrsTransformF).scale.set(SimConfig.clock.radius.toFloat(), 36f, SimConfig.clock.radius.toFloat() * 0.72f)
     }.also { stoneMesh = it }
-}
-
-internal fun WorldRenderer.buildForward(forward: Node) {
-    rain = MeshInstanceList(layout, 1024)
-    val rainShader = KslUnlitShader {
-        vertices { instancedModelMatrix(layout.modelMat) }
-        color { instanceColor(layout.color) }
-        pipeline {
-            blendMode = BlendMode.BLEND_ADDITIVE
-            depthTest = DepthCompareOp.LESS
-            isWriteDepth = false
-            cullMethod = CullMethod.NO_CULLING
-        }
-    }
-    forward.addMesh(VertexLayouts.Position, instances = rain) {
-        isFrustumChecked = false
-        generate { rect { size.set(1f, 1f) } }
-        shader = rainShader
-    }
 }
 
 internal fun WorldRenderer.antSlot(content: Node, name: String): AntSlot {
