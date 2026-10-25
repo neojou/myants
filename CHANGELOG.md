@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### 文件
+- AGENTS.md 新增「pstack 流程」：規定各角色必跑的 skill，PR 說明須列出已跑的 skill。
+
 ### 新增
 - 新增 `docs/ART_DIRECTION.md`：Artist 美學原則、已定案 Theme token、無障礙與圖示規則、審查清單；AGENTS.md 與設計文件索引加上連結（PR #42）
 - 室外工蟻 glTF 重製剪影：腹節更大、腰更細、中胸更高。兵蟻改為獨立的 `soldier.glb`，頭用紅色，身體仍跟群色。缺檔退回方塊蟻。右側巢穴與 Classic 2D 不變（Refs #13）

@@ -38,6 +38,30 @@
 - 絕不在別人的目錄或共用的 `/workspace/myants` 裡 checkout、commit 或 push。
 - 原因：多個 bot 共用同一台機器，在同一個 checkout 裡切分支，會讓 commit 落到別人的分支上（見 #27）。
 
+## pstack 流程（全隊必做，不是選用）
+
+每個角色在下列時點一定要跑對應的 pstack skill：
+
+| 角色 | 時點 | 必跑 skill |
+|---|---|---|
+| PM | 拆工、開 issue 前 | `/sharpen`、`/architect` |
+| Coder | 動手前 | `/how` |
+| Coder | 改動時 | `/tdd`，先寫會失敗的測試，再改到通過 |
+| Coder | 開 PR 前 | `/blast-radius`、`principle-prove-it-works` |
+| QE | 驗 PR 時 | `/interrogate`、`principle-test-behavior-not-implementation` |
+| CI | 改 workflow 或建置時 | `principle-prove-it-works` |
+| Artist | 審查或出規格時 | `principle-experience-first` |
+
+- **PR 說明必須有「已跑的 pstack skill」一節**，列出跑過的 skill 和重點結論。少了這一節，或少了該角色必跑的 skill，QE 一律判 FAIL。
+- **注意用量**：`/arena`、`/swarm`、`poteto-mode` 全套不是預設流程，只在大改動時使用，例如跨模組重構或新子系統；使用時要在 PR 說明寫明原因。
+
+## 溝通分流（全隊規則）
+
+- **日常派工與交接**：使用 GitHub Projects 看板 https://github.com/users/neojou/projects/3 ，並用 SendToAgent 個別交辦給單一成員，內容是一句話加 issue 或 PR 連結。
+- **「myants 專案」頻道**：只發公告和全隊需要知道的決定，不貼進度或狀態。
+- **細節**：一律寫在 GitHub 的 issue、PR 和留言。
+- 新的 issue 和 PR 都要加入看板，並隨進度移欄（Todo → In Progress → In Review → Done）。
+
 ## Rules
 - 不升級 kool / Kotlin / Gradle / JDK 版本。
 - 改行為必附測試；不得跳過失敗測試。
