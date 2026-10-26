@@ -21,7 +21,20 @@ internal class OverlayRenderer : SubRenderer {
 
     override fun build(opaque: Node, forward: Node) {
         digits = inst.batch(128)
-        inst.instanced(opaque, digits, "digit") { cube { size.set(1f, 1f, 1f) } }
+        // Digits are unlit (#68): drawn after the deferred output, straight to the
+        // screen, so sun, moon and sky light never shift #E9C46A. AsIs color space:
+        // the palette value is already sRGB, like the forward rain and ring.
+        val digitShader = KslUnlitShader {
+            vertices { instancedModelMatrix(inst.layout.modelMat) }
+            color { instanceColor(inst.layout.color) }
+            pipeline { depthTest = DepthCompareOp.LESS }
+        }
+        forward.addMesh(VertexLayouts.Position, instances = digits) {
+            isFrustumChecked = false
+            name = "digit"
+            generate { cube { size.set(1f, 1f, 1f) } }
+            shader = digitShader
+        }
         val ringShader = KslUnlitShader {
             color { vertexColor() }
             pipeline {
