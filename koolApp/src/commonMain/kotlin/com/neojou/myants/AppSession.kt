@@ -152,7 +152,11 @@ class AppSession(launch: LaunchConfig) {
         PerformanceManager.setQuality(quality)
         world = World()
         resetCamera(fromUser = false)
-        ShotPose.apply(shot, world, camera)
+        if (ShotPose.apply(shot, world, camera)) {
+            // #76 specimen: freeze sim and keep the cinematic camera off, in memory only (not saved).
+            clock.paused = true
+            cine.pausedUntil = Double.POSITIVE_INFINITY
+        }
         publishChrome()
     }
 
