@@ -1,0 +1,61 @@
+package com.neojou.myants.session
+
+import com.neojou.myants.sim.AntPlace
+import com.neojou.myants.sim.InsectKind
+import com.neojou.myants.sim.Rng
+import com.neojou.myants.sim.SimConfig
+import com.neojou.myants.sim.World
+import kotlin.math.abs
+import kotlin.test.AfterTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+/** #76: `shot=specimen` gives the same frozen composition every launch with the same seed. */
+class ShotPoseSpecimenTest {
+    private fun world(seed: Int = 12345): World {
+        Rng.seed(seed)
+        SimConfig.colonyCount = 1
+        return World()
+    }
+
+    @AfterTest
+    fun tearDown() = SimConfig.resetTunables()
+
+    @Test
+    fun specimenPutsAntAndLadybugAtCameraCentreAndAsksForPause() {
+        val w = world()
+        val cam = CameraState()
+        assertTrue(ShotPose.apply("specimen", w, cam))
+        assertEquals(6.0, cam.zoom)
+        assertEquals(0.45, w.timeOfDay)
+        val bugs = w.insects.filter { it.type == InsectKind.LADYBUG }
+        assertEquals(1, bugs.size)
+        val bug = bugs[0]
+        assertTrue(abs(bug.x - cam.x) < 20 && abs(bug.y - cam.y) < 20)
+        val ant = w.ants.first { abs(it.x - cam.x) < 20 && abs(it.y - cam.y) < 20 }
+        assertEquals(AntPlace.WORLD, ant.location)
+    }
+
+    @Test
+    fun specimenIsReproducible() {
+        fun snap(): List<Any> {
+            val w = world()
+            ShotPose.apply("specimen", w, CameraState())
+            return w.insects.map { listOf(it.type, it.x, it.y, it.angle) } +
+                w.ants.map { listOf(it.x, it.y, it.angle, it.location) }
+        }
+        assertEquals(snap(), snap())
+    }
+
+    @Test
+    fun otherShotsDoNotPauseOrSpawn() {
+        for (s in listOf(null, "day", "night", "rain", "ant")) {
+            val w = world()
+            val before = w.insects.size
+            assertFalse(ShotPose.apply(s, w, CameraState()))
+            assertEquals(before, w.insects.size)
+        }
+    }
+}
