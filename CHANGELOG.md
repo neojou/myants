@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### 新增
+- headless 固定構圖截圖模式 `shot=specimen`（瀏覽器 `?shot=specimen`、桌面 `--shot=specimen`）：正午光、zoom 6、相機固定在世界 (420, 300)，把一隻工蟻和一隻瓢蟲擺在畫面中央，模擬開場就暫停、自動運鏡關閉（只在記憶體，不寫入設定）。同 seed 連拍兩次瓢蟲像素完全相同，供 #68 D1、D2、E2 量測。只在 `shot=specimen` 時生效，一般執行的模擬行為不變（Closes #76）
+
 ### 修正
 - 戶外光照照 #68 美術目標值修正：太陽色 (1, 0.93, 0.82)、強度隨高度 1.0–3.2、仰角 10°–58°；月光 (0.62, 0.66, 0.78)×0.7；拿掉 SkyCube 動態 IBL（藍天把石頭與數字洗成藍白），改成去藍的固定漸層環境光，ambient 日 0.40／夜 0.22，夜間環境光帶冷色（依夜空漸層 (0.34, 0.38, 0.48) 換算的色調，B/R 約 1.5），天亮時漸變回中性；bloom 0.35／門檻 1.2／半徑 2；時鐘石數字改成 unlit（forward pass，不受日月與天光影響，畫面上就是 #E9C46A）。參數集中在 `render3d/OutdoorLighting.kt`，有單元測試（Closes #68）
 - 室外 glb 的材質不再沿用螞蟻的 chitin／eye／mandible：sugar、protein、pebble、leaf、clock_stone、clover_tuft、clover_flower、prey、predator、spider、ladybug 改成跟 runtime 顏色一致的 PBR baseColor 和 roughness，鍬形蟲（beetle.glb）補上材質。只改 JSON，幾何不變。對照表在 `tools/glb_palette.py`，用 `tools/glb_materials.py --check` 驗證（Refs #62）

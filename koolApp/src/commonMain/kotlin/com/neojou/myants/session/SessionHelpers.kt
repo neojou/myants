@@ -1,12 +1,43 @@
 package com.neojou.myants.session
 
 import com.neojou.myants.AnalyseLine
+import com.neojou.myants.sim.AntPlace
+import com.neojou.myants.sim.Insect
+import com.neojou.myants.sim.InsectKind
 import com.neojou.myants.sim.SimConfig
 import com.neojou.myants.sim.World
 
 /** `--shot` presets: time of day, rain, close-up zoom. Moved verbatim from AppSession (#7 step 3). */
 object ShotPose {
-    fun apply(shot: String?, world: World, camera: CameraState) {
+    /**
+     * `specimen` (#76): fixed composition for headless measurement. Noon light, zoom 6, one ant and one
+     * ladybug at fixed world points around the camera centre. Returns true when the sim must start paused
+     * so the composition stays frozen. Only runs when `shot=specimen`; normal runs never reach it.
+     */
+    const val SPECIMEN_X = 420.0
+    const val SPECIMEN_Y = 300.0
+    const val SPECIMEN_GAP = 9.0
+
+    fun apply(shot: String?, world: World, camera: CameraState): Boolean {
+        if (shot == "specimen") {
+            world.age = (world.dayLength * 0.45).toInt()
+            world.timeOfDay = 0.45
+            world.raining = false
+            camera.x = SPECIMEN_X
+            camera.y = SPECIMEN_Y
+            camera.zoom = 6.0
+            val ant = world.ants.firstOrNull { it.location == AntPlace.WORLD } ?: world.ants.firstOrNull()
+            if (ant != null) {
+                ant.location = AntPlace.WORLD
+                ant.x = SPECIMEN_X - SPECIMEN_GAP
+                ant.y = SPECIMEN_Y
+                ant.angle = 0.0
+            }
+            val bug = Insect(SPECIMEN_X + SPECIMEN_GAP, SPECIMEN_Y, InsectKind.LADYBUG)
+            bug.angle = kotlin.math.PI
+            world.insects.add(bug)
+            return true
+        }
         when (shot) {
             "day" -> {
                 world.age = (world.dayLength * 0.45).toInt()
@@ -29,6 +60,7 @@ object ShotPose {
             }
             else -> Unit
         }
+        return false
     }
 }
 
