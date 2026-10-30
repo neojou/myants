@@ -540,8 +540,8 @@ ANT_MATERIALS = [
         "name": "chitin",
         "pbrMetallicRoughness": {
             "baseColorFactor": [0.07, 0.07, 0.075, 1.0],
-            "metallicFactor": 0.08,
-            "roughnessFactor": 0.42,
+            "metallicFactor": 0.0,
+            "roughnessFactor": 1.0,
         },
     },
     {
@@ -556,8 +556,8 @@ ANT_MATERIALS = [
         "name": "mandible",
         "pbrMetallicRoughness": {
             "baseColorFactor": [0.16, 0.12, 0.09, 1.0],
-            "metallicFactor": 0.12,
-            "roughnessFactor": 0.38,
+            "metallicFactor": 0.0,
+            "roughnessFactor": 1.0,
         },
     },
 ]

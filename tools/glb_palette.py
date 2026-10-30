@@ -23,7 +23,15 @@ def pbr(name, rgb, roughness, metallic=0.0):
 EYE = (0.05, 0.04, 0.04)
 
 # file path under koolApp/assets/models -> material list
+ANT = [  # WorldPalette.antChitin / antEye / antJaw; chitin and jaw use CHITIN_ROUGHNESS (#79)
+    pbr("chitin", (0.07, 0.07, 0.075), 1.0),
+    pbr("eye", (0.015, 0.015, 0.02), 0.12, 0.02),
+    pbr("mandible", (0.16, 0.12, 0.09), 1.0),
+]
+
 MATERIALS = {
+    "ants/worker_black.glb": ANT,
+    "ants/soldier.glb": ANT,
     "food/sugar.glb": [pbr("sugar", (1.0, 0.84, 0.2), 0.35)],           # WorldPalette.sugar3d
     "food/protein.glb": [pbr("protein", (0.8, 0.25, 0.22), 0.7)],       # WorldPalette.protein3d
     "nature/pebble.glb": [pbr("pebble", (0.35, 0.33, 0.3), 0.9)],       # WorldPalette.pebble
@@ -35,6 +43,6 @@ MATERIALS = {
     "insects/prey.glb": [pbr("body", (0.35, 0.7, 0.3), 0.55), pbr("eye", EYE, 0.15), pbr("mark", (0.35, 0.7, 0.3), 0.55)],
     "insects/predator.glb": [pbr("body", (0.45, 0.25, 0.55), 0.5), pbr("eye", EYE, 0.15), pbr("mark", (0.45, 0.25, 0.55), 0.5)],
     "insects/spider.glb": [pbr("body", (0.35, 0.35, 0.38), 0.6), pbr("eye", EYE, 0.15), pbr("mark", (0.35, 0.35, 0.38), 0.6)],
-    "insects/ladybug.glb": [pbr("shell", (1.0, 0.02, 0.02), 0.3), pbr("eye", EYE, 0.15), pbr("spot", (0.08, 0.04, 0.04), 0.35)],
+    "insects/ladybug.glb": [pbr("shell", (1.0, 0.02, 0.02), 0.3), pbr("eye", EYE, 0.15), pbr("spot", (0.012, 0.008, 0.008), 1.0)],  # spot: WorldPalette.ladybugSpot / CHITIN_ROUGHNESS (#79)
     "insects/beetle.glb": [pbr("chitin", (0.08, 0.06, 0.05), 0.35)],    # critterTint(BEETLE).body
 }

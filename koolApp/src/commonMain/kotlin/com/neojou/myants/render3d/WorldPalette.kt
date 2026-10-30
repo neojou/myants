@@ -62,6 +62,29 @@ object WorldPalette {
     const val PETAL_ROUGHNESS = 0.85f
     /** Clover leaf / grass roughness (#75): a little sheen keeps leaves apart from petals. */
     const val LEAF_ROUGHNESS = 0.70f
+    /**
+     * Roughness for dark chitin: ant body, head, jaws and legs, ladybug spots, critter legs (#79).
+     * The top-down camera and the noon sun are both near vertical, so every upward facet sits at
+     * the GGX specular peak. At 0.42 that peak equals a ~0.32 grey albedo ([topDownSheen]) and
+     * buried the 0.07 black chitin, so ants read pale grey whatever their colour.
+     * 0.80 still left the ant at 2.2:1 on the ground in `shot=specimen`; 1.0 measured 4.5:1.
+     */
+    const val CHITIN_ROUGHNESS = 1.0f
+
+    /**
+     * Ladybug spots, pronotum and head (#79 D2). At 0.08 the ambient light alone lifted them to
+     * about 2.6:1 against the red shell whatever the roughness; 0.03 measured 3.01:1 and the Artist asked for >= 3.3:1 (#80), so 0.012.
+     */
+    val ladybugSpot = Color(0.012f, 0.008f, 0.008f, 1f)
+
+    /**
+     * Specular peak of a dielectric (F0 0.04) when the view, the light and the normal line up,
+     * expressed as the Lambert albedo with the same brightness: F0 / (4 alpha^2), alpha = roughness^2.
+     */
+    fun topDownSheen(roughness: Float): Float {
+        val alpha = roughness * roughness
+        return 0.04f / (4f * alpha * alpha)
+    }
     val petalWhite = Color(0.95f, 0.95f, 0.95f, 1f)
     val stem = Color(0.22f, 0.38f, 0.14f, 1f)
     val simGrass = Color(0.11f, 0.32f, 0.15f, 1f)
