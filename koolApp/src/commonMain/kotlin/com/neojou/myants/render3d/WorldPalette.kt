@@ -48,12 +48,23 @@ object WorldPalette {
     val selectRingOuter = Color("#EADDFF")
     val pebble = Color(0.35f, 0.33f, 0.3f, 1f)
     val leaf = Color(0.45f, 0.32f, 0.12f, 1f)
-    val petalRose = Color(0.85f, 0.35f, 0.45f, 1f)
-    val petalGold = Color(0.95f, 0.85f, 0.35f, 1f)
-    val petalLilac = Color(0.65f, 0.4f, 0.75f, 1f)
+    /*
+     * #75 clover colours (Artist targets on #75). kool feeds instance colours and the soil texture
+     * (gamma = 1) to the PBR shader without any sRGB→linear step, so these literals act as linear
+     * albedo. The Artist calibrated the targets against measured renders of the old literals in this
+     * same encoding, so the literals are the Artist's "目標 sRGB" column, written the same way as before.
+     * Runtime colour comes only from here; glb baseColorFactor is never read for these meshes.
+     */
+    val petalRose = Color(0.95f, 0.22f, 0.42f, 1f)
+    val petalGold = Color(1.00f, 0.70f, 0.06f, 1f)
+    val petalLilac = Color(0.40f, 0.46f, 1.00f, 1f)
+    /** Clover petal roughness (#75): less blue sky sheen washing the hue out. */
+    const val PETAL_ROUGHNESS = 0.85f
+    /** Clover leaf / grass roughness (#75): a little sheen keeps leaves apart from petals. */
+    const val LEAF_ROUGHNESS = 0.70f
     val petalWhite = Color(0.95f, 0.95f, 0.95f, 1f)
-    val stem = Color(0.2f, 0.45f, 0.16f, 1f)
-    val simGrass = Color(0.22f, 0.48f, 0.18f, 1f)
+    val stem = Color(0.22f, 0.38f, 0.14f, 1f)
+    val simGrass = Color(0.11f, 0.32f, 0.15f, 1f)
     val rock = Color(0.32f, 0.3f, 0.27f, 1f)
     val aphidFallback = Color(0.50f, 0.78f, 0.26f, 1f)
     val aphidEye = Color(0.42f, 0.09f, 0.06f, 1f)
@@ -125,7 +136,9 @@ object WorldPalette {
     fun groundTint(k: Float, wet: Boolean): Color =
         if (wet) Color(k * 0.62f, k * 0.7f, k * 0.78f, 1f) else Color(k, k, k, 1f)
 
-    fun scatterGrass(shade: Float): Color = Color(0.18f, 0.42f + shade * 0.2f, 0.14f, 1f)
+    /** Same hue family as [simGrass], value within ±0.04 (#75). [shade] is 0..1. */
+    fun scatterGrass(shade: Float): Color = Color(0.10f, 0.28f + shade * 0.08f, 0.14f, 1f)
 
-    fun soil(n: Float): Color = Color(0.32f + n * 0.12f, 0.22f + n * 0.06f, 0.12f + n * 0.04f, 1f)
+    /** #75: H 30°, S about 0.5, so night light can pull B/R up. */
+    fun soil(n: Float): Color = Color(0.34f + n * 0.10f, 0.25f + n * 0.08f, 0.16f + n * 0.06f, 1f)
 }

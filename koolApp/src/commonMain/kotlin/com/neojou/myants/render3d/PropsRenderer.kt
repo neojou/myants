@@ -50,7 +50,7 @@ internal class PropsRenderer(
 
     override fun build(opaque: Node, forward: Node) {
         grass = inst.batch(8192)
-        grassMesh = inst.instanced(opaque, grass, "grass", doubleSided = true) {
+        grassMesh = inst.instanced(opaque, grass, "grass", WorldPalette.LEAF_ROUGHNESS, doubleSided = true) {
             cube { size.set(0.2f, 1f, 0.45f) }
         }
         rocks = inst.batch(1024)
@@ -58,7 +58,7 @@ internal class PropsRenderer(
         leaves = inst.batch(1024)
         leafMesh = inst.instanced(opaque, leaves, "leaf") { cube { size.set(1.2f, 0.08f, 0.45f) } }
         flowers = inst.batch(4096)
-        flowerMesh = inst.instanced(opaque, flowers, "flower") { icoSphere { steps = 1; radius = 0.45f } }
+        flowerMesh = inst.instanced(opaque, flowers, "flower", WorldPalette.PETAL_ROUGHNESS) { icoSphere { steps = 1; radius = 0.45f } }
         rain = inst.batch(1024)
         val rainShader = KslUnlitShader {
             vertices { instancedModelMatrix(inst.layout.modelMat) }

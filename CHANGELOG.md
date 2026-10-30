@@ -8,6 +8,7 @@
 - headless 固定構圖截圖模式 `shot=specimen`（瀏覽器 `?shot=specimen`、桌面 `--shot=specimen`）：正午光、zoom 6、相機固定在世界 (420, 300)，把一隻工蟻和一隻瓢蟲擺在畫面中央，模擬開場就暫停、自動運鏡關閉（只在記憶體，不寫入設定）。同 seed 連拍兩次瓢蟲像素完全相同，供 #68 D1、D2、E2 量測。只在 `shot=specimen` 時生效，一般執行的模擬行為不變（Closes #76）
 
 ### 修正
+- 三葉草花與葉、地面材質改成 #75 美術目標值：花 rose (0.95,0.22,0.42)、gold (1.00,0.70,0.06)、lilac (0.40,0.46,1.00)，花瓣 roughness 0.85；葉 simGrass (0.11,0.32,0.15)、scatterGrass 同色系（亮度 ±0.04），草葉 roughness 0.70；莖 (0.22,0.38,0.14)；地面 `soil(n)` = (0.34+0.10n, 0.25+0.08n, 0.16+0.06n)。已確認 kool 的 instance 色與地面貼圖（gamma 1）都不做 sRGB→linear 轉換，數值直接當 linear albedo；美術的校正是以舊數值的同一種寫法算的，所以沿用同一種寫法。執行時的顏色只由 `WorldPalette` 提供，三葉草 glb 的 baseColor／roughness 用 `tools/glb_palette.py` 同步（Closes #75）
 - 戶外光照照 #68 美術目標值修正：太陽色 (1, 0.93, 0.82)、強度隨高度 1.0–3.2、仰角 10°–58°；月光 (0.62, 0.66, 0.78)×0.7；拿掉 SkyCube 動態 IBL（藍天把石頭與數字洗成藍白），改成去藍的固定漸層環境光，ambient 日 0.40／夜 0.22，夜間環境光帶冷色（依夜空漸層 (0.34, 0.38, 0.48) 換算的色調，B/R 約 1.5），天亮時漸變回中性；bloom 0.35／門檻 1.2／半徑 2；時鐘石數字改成 unlit（forward pass，不受日月與天光影響，畫面上就是 #E9C46A）。參數集中在 `render3d/OutdoorLighting.kt`，有單元測試（Closes #68）
 - 室外 glb 的材質不再沿用螞蟻的 chitin／eye／mandible：sugar、protein、pebble、leaf、clock_stone、clover_tuft、clover_flower、prey、predator、spider、ladybug 改成跟 runtime 顏色一致的 PBR baseColor 和 roughness，鍬形蟲（beetle.glb）補上材質。只改 JSON，幾何不變。對照表在 `tools/glb_palette.py`，用 `tools/glb_materials.py --check` 驗證（Refs #62）
 - 三葉草 glb 重做：小葉改成有深缺口的心形，三片以 120° 排列；花從平滑球改成低多邊面的小花冠（46 面），草叢 144 面。材質沿用 `tools/glb_palette.py`（Refs #69、#68）

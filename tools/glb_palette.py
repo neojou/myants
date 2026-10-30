@@ -29,8 +29,8 @@ MATERIALS = {
     "nature/pebble.glb": [pbr("pebble", (0.35, 0.33, 0.3), 0.9)],       # WorldPalette.pebble
     "nature/leaf.glb": [pbr("leaf", (0.45, 0.32, 0.12), 0.8)],          # WorldPalette.leaf
     "nature/clock_stone.glb": [pbr("clock_stone", (0.50, 0.45, 0.38), 0.85)],  # WorldPalette.clockStone
-    "nature/clover_tuft.glb": [pbr("clover", (0.22, 0.48, 0.18), 0.65)],      # WorldPalette.simGrass
-    "nature/clover_flower.glb": [pbr("clover_flower", (0.95, 0.95, 0.95), 0.6)],  # WorldPalette.petalWhite
+    "nature/clover_tuft.glb": [pbr("clover", (0.11, 0.32, 0.15), 0.70)],      # WorldPalette.simGrass / LEAF_ROUGHNESS (#75)
+    "nature/clover_flower.glb": [pbr("clover_flower", (0.95, 0.95, 0.95), 0.85)],  # WorldPalette.petalWhite / PETAL_ROUGHNESS (#75)
     # critterTint(kind): body, eye, mark
     "insects/prey.glb": [pbr("body", (0.35, 0.7, 0.3), 0.55), pbr("eye", EYE, 0.15), pbr("mark", (0.35, 0.7, 0.3), 0.55)],
     "insects/predator.glb": [pbr("body", (0.45, 0.25, 0.55), 0.5), pbr("eye", EYE, 0.15), pbr("mark", (0.45, 0.25, 0.55), 0.5)],
