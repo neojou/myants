@@ -38,7 +38,7 @@ internal fun critterTint(kind: InsectKind): CritterTint {
         InsectKind.APHID -> WorldPalette.aphidLeg
     }
     val mark = when (kind) {
-        InsectKind.LADYBUG -> Color(0.08f, 0.04f, 0.04f, 1f)
+        InsectKind.LADYBUG -> WorldPalette.ladybugSpot
         InsectKind.BEETLE -> Color(0.13f, 0.07f, 0.045f, 1f)
         else -> body
     }

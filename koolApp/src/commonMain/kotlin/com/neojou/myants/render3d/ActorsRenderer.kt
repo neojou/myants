@@ -183,12 +183,12 @@ internal class ActorsRenderer(
             eyes,
             jaws,
             legs,
-            shadedInstances(content, body, "$name-chitin", 0.42f, 0.08f),
-            shadedInstances(content, head, "$name-head", 0.42f, 0.08f),
+            shadedInstances(content, body, "$name-chitin", WorldPalette.CHITIN_ROUGHNESS, 0f),
+            shadedInstances(content, head, "$name-head", WorldPalette.CHITIN_ROUGHNESS, 0f),
             shadedInstances(content, eyes, "$name-eye", 0.12f, 0.02f),
-            shadedInstances(content, jaws, "$name-jaw", 0.38f, 0.12f),
+            shadedInstances(content, jaws, "$name-jaw", WorldPalette.CHITIN_ROUGHNESS, 0f),
             legs.mapIndexed { index, batch ->
-                shadedInstances(content, batch, "$name-leg-$index", 0.42f, 0.08f)
+                shadedInstances(content, batch, "$name-leg-$index", WorldPalette.CHITIN_ROUGHNESS, 0f)
             },
         )
     }
@@ -211,11 +211,11 @@ internal class ActorsRenderer(
                 content,
                 marks,
                 "${kind.name}-mark",
-                if (kind == InsectKind.BEETLE) 0.22f else 0.45f,
+                if (kind == InsectKind.BEETLE) 0.22f else WorldPalette.CHITIN_ROUGHNESS,
                 0.02f,
             ),
             legs.mapIndexed { index, batch ->
-                shadedInstances(content, batch, "${kind.name}-leg-$index", 0.55f, 0.02f)
+                shadedInstances(content, batch, "${kind.name}-leg-$index", WorldPalette.CHITIN_ROUGHNESS, 0.02f)
             },
         )
     }

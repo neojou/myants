@@ -21,8 +21,9 @@
 - #62 上色：時鐘石暖灰、數字 #E9C46A、三葉草花三色，在分支 `feat/62-clock-clover-colors`，未合併；glb 材質在 #65。
 - #68 戶外光照：太陽／月光／環境光／bloom／數字自發光改成美術目標值，SkyCube IBL 改成固定去藍漸層，在分支 `feat/68-outdoor-lighting`，未合併；對照圖在 `docs/screenshots/68-lighting/`。
 - #61（M4 Inspect 美術必改 4 項）：浮動卡、雙環選取圈、Follow 狀態色、文字層級；色條一律用 onSurfaceVar，在分支 `feat/61-inspect-art`，未合併。實機截圖還沒拍。
-- #75 三葉草花／葉／地面材質改成美術目標值：在分支 `feat/75-clover-palette`，未合併；量測在 `docs/screenshots/75-clover/`。
+- #75 三葉草花／葉／地面材質改成美術目標值：已合併（PR #78）；量測在 `docs/screenshots/75-clover/`。
 - #76 固定構圖截圖模式 `shot=specimen`：已合併（PR #77）；截圖與重現性數據在 `docs/screenshots/76-specimen/`。
+- #79 蟻身淡灰（甲殼 roughness 太低，俯視正午高光蓋過黑色）與瓢蟲黑點對比：在分支 `feat/79-ant-ladybug-contrast`，未合併；量測在 `docs/screenshots/79-chitin/`。
 - 下一步：#47 依序合併：守門（#60）→ InspectRing 分派移到 session（#63）→ RenderState／RenderHost 介面（PR 已開，疊在 #63 上，允許清單已清空）→ 子渲染器物件（PR 已開，疊在 RenderState／RenderHost PR 上），皆不改行為；#13 與 milestone M5 仍開。巢穴 glTF 沒做。不 push main、不關 issue、不改版號。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
