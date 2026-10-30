@@ -30,6 +30,6 @@ class ChitinSheenTest {
     fun ladybugSpotsUseThePaletteAndStayDarkerThanBefore() {
         assertEquals(WorldPalette.ladybugSpot, critterTint(InsectKind.LADYBUG).mark)
         val spot = WorldPalette.ladybugSpot
-        assertTrue(maxOf(spot.r, spot.g, spot.b) <= 0.04f, "spot $spot")
+        assertTrue(maxOf(spot.r, spot.g, spot.b) <= 0.015f, "spot $spot")
     }
 }

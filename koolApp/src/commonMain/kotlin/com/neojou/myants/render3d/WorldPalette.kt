@@ -73,9 +73,9 @@ object WorldPalette {
 
     /**
      * Ladybug spots, pronotum and head (#79 D2). At 0.08 the ambient light alone lifted them to
-     * about 2.6:1 against the red shell whatever the roughness; 0.03 targets >= 3:1.
+     * about 2.6:1 against the red shell whatever the roughness; 0.03 measured 3.01:1 and the Artist asked for >= 3.3:1 (#80), so 0.012.
      */
-    val ladybugSpot = Color(0.03f, 0.02f, 0.02f, 1f)
+    val ladybugSpot = Color(0.012f, 0.008f, 0.008f, 1f)
 
     /**
      * Specular peak of a dielectric (F0 0.04) when the view, the light and the normal line up,
