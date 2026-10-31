@@ -39,6 +39,22 @@ kool 0.19 的 `GlfwWindowSubsystem.onEarlyInit` 在 Linux 只要 GLFW 支援 Way
 
 `FrameLog`（`desktopMain/FrameLog.kt`）是量測工具，保留在程式裡、預設關閉：只有設了 `MYANTS_FRAME_LOG` 才會每格寫一行 `System.nanoTime()`。`MYANTS_LOCK_QUALITY=1`（web 用 `lockQuality=1`）停用自動降畫質，讓整段維持 Medium。量測前先關掉其他吃 GPU 的程式，視窗保持在前景、不要縮小。
 
+### 0. 前置需求
+
+- **JDK 25**，`JAVA_HOME` 要指向它（沒設時 gradlew 會停在「Please set the JAVA_HOME variable…」）：
+
+  ```sh
+  /usr/libexec/java_home -V          # 列出已裝的 JDK
+  brew install openjdk@25            # 沒有 25 才需要；或從 https://adoptium.net 下載 Temurin 25 安裝
+  # brew 版要讓 java_home 找得到：
+  sudo ln -sfn "$(brew --prefix openjdk@25)/libexec/openjdk.jdk" /Library/Java/JavaVirtualMachines/openjdk-25.jdk
+  export JAVA_HOME=$(/usr/libexec/java_home -v 25)
+  java -version                      # 應該顯示 25
+  ```
+
+  以下每個新開的終端機都要先 `export JAVA_HOME=$(/usr/libexec/java_home -v 25)`。
+- **Python 3** 與 **Google Chrome**（web 量測用）。
+
 ### 1. 取得程式
 
 ```sh
@@ -63,10 +79,12 @@ python3 docs/perf/frames_to_fps.py /tmp/myants-frames.txt 10 60
 ```sh
 ./gradlew :koolApp:jsBrowserDistribution
 (cd koolApp/build/dist/js/productionExecutable && python3 -m http.server 8831) &
-python3 -m pip install playwright
-python3 docs/perf/fps_web.py 8831 gpu_chrome "&lockQuality=1" \
+python3 -m venv .venv && source .venv/bin/activate   # 用 venv，避開 PEP 668 的 externally-managed-environment
+pip install playwright && python -m playwright install chromium
+python docs/perf/fps_web.py 8831 gpu_chrome "&lockQuality=1" \
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-kill %1   # 關掉臨時 server
+kill %1      # 關掉臨時 server
+deactivate   # 離開 venv
 ```
 
 腳本會用全新的瀏覽器設定開 `?backend=gl&seed=12345&quality=medium&lockQuality=1`（1600×900），暖機 10 秒、取 60 秒，印出平均 fps、1% low、UA 與 GPU 名稱（`info.gl`），逐格資料存在 `gpu_chrome.json`。tag 裡沒有 `swiftshader` 時不加 SwiftShader 旗標，會用真正的 GPU。想看 WebGPU，就把第三個參數裡的 `backend` 改掉，或在網址拿掉 `backend=gl`。
