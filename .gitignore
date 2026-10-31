@@ -148,3 +148,7 @@ cmake-build-*/
 .idea/httpRequests
 .idea/caches/build_file_checksums.ser
 
+
+# Local perf measurement (docs/perf/52-fps.md): Python venv and fps_web.py output
+.venv/
+gpu_chrome.json
