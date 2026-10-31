@@ -34,6 +34,8 @@ object MyantsTheme {
      * [name] follows the interface language so the swatch is not identified by color alone.
      */
     data class AntColorChoice(val hex: String, val en: String, val zh: String, val ja: String, val de: String) {
+        val color: Color get() = Color(hex)
+
         fun name(lang: UiLanguage): String = when (lang) {
             UiLanguage.EN -> en
             UiLanguage.ZH_TW -> zh

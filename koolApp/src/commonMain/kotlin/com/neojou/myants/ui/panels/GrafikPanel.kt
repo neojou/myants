@@ -18,7 +18,6 @@ import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.bloomAllowed
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.QualityLevel
-import de.fabmax.kool.util.Color
 import com.neojou.myants.AppSession
 import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.MyantsTheme
@@ -61,14 +60,14 @@ internal fun UiScope.grafik(session: AppSession) {
     Text(tr(UiText.ANT_COLOR)) { modifier.margin(top = MyantsTheme.space.s2) }
     Row {
         for (choice in ANT_COLORS) {
-            val selected = session.antColor == Color(choice.hex)
+            val selected = session.antColor == choice.color
             Column {
                 modifier.margin(end = MyantsTheme.space.s2).onClick { session.setAntColor(choice.hex) }
                 Box {
                     modifier
                         .size(MyantsTheme.size.button, MyantsTheme.size.button)
                         .alignX(AlignmentX.Center)
-                        .background(RoundRectBackground(Color(choice.hex), MyantsTheme.radius.md))
+                        .background(RoundRectBackground(choice.color, MyantsTheme.radius.md))
                     if (selected) modifier.border(selectedBorder())
                 }
                 Text(choice.name(lang)) {

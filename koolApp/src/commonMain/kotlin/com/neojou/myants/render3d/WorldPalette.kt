@@ -116,6 +116,25 @@ object WorldPalette {
     val rivalEye = Color(0.08f, 0.04f, 0.03f, 1f)
     val rivalJaw = Color(0.32f, 0.16f, 0.10f, 1f)
 
+    /**
+     * Outdoor glTF chitin for colony 0 from the antColor setting (#82). The default setting
+     * (worker copper) keeps the black species chitin, so the default picture and D1 do not change.
+     * Any other choice is the swatch converted from sRGB to linear albedo, which is how kool
+     * reads instance colours.
+     */
+    fun outdoorChitin(antColor: Color): Color = if (antColor == worker) antChitin else antColor.toLinear()
+
+    // Glb critter tints that differ from the classic 2D palette (#48: moved from Critter.kt, values unchanged).
+    val beetleShell3d = Color(0.08f, 0.06f, 0.05f, 1f)
+    val ladybugShell3d = Color(1.0f, 0.02f, 0.02f, 1f)
+    val critterEye = Color(0.05f, 0.04f, 0.04f, 1f)
+    val preyLeg = Color(0.22f, 0.45f, 0.18f, 1f)
+    val predatorLeg = Color(0.28f, 0.16f, 0.34f, 1f)
+    val spiderLeg = Color(0.22f, 0.22f, 0.24f, 1f)
+    val beetleLeg = Color(0.10f, 0.07f, 0.05f, 1f)
+    val ladybugLeg = Color(0.12f, 0.08f, 0.08f, 1f)
+    val beetleMark = Color(0.13f, 0.07f, 0.045f, 1f)
+
     val cloverPetals = arrayOf(petalRose, petalGold, petalLilac)
     val petals = arrayOf(petalRose, petalGold, petalLilac, petalWhite)
 
