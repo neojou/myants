@@ -12,13 +12,13 @@ object ShotPose {
     /**
      * `specimen` (#76): fixed composition for headless measurement. Noon light, zoom 6, one ant and one
      * ladybug at fixed world points around the camera centre. Returns true when the sim must start paused
-     * so the composition stays frozen. Only runs when `shot=specimen`; normal runs never reach it.
+     * so the composition stays frozen. `specimenCritter=beetle` (#81) swaps the ladybug for a beetle at the same spot. Only runs when `shot=specimen`; normal runs never reach it.
      */
     const val SPECIMEN_X = 420.0
     const val SPECIMEN_Y = 300.0
     const val SPECIMEN_GAP = 9.0
 
-    fun apply(shot: String?, world: World, camera: CameraState): Boolean {
+    fun apply(shot: String?, world: World, camera: CameraState, critter: InsectKind = InsectKind.LADYBUG): Boolean {
         if (shot == "specimen") {
             world.age = (world.dayLength * 0.45).toInt()
             world.timeOfDay = 0.45
@@ -33,7 +33,7 @@ object ShotPose {
                 ant.y = SPECIMEN_Y
                 ant.angle = 0.0
             }
-            val bug = Insect(SPECIMEN_X + SPECIMEN_GAP, SPECIMEN_Y, InsectKind.LADYBUG)
+            val bug = Insect(SPECIMEN_X + SPECIMEN_GAP, SPECIMEN_Y, critter)
             bug.angle = kotlin.math.PI
             world.insects.add(bug)
             return true

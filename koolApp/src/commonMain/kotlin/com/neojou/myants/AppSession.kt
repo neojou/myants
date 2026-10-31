@@ -21,6 +21,7 @@ import com.neojou.myants.ui.UiLanguage
 import com.neojou.myants.session.buildAnalyseLines
 import com.neojou.myants.sim.Ant
 import com.neojou.myants.sim.AntPlace
+import com.neojou.myants.sim.InsectKind
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.QualityLevel
 import com.neojou.myants.sim.Rng
@@ -102,6 +103,7 @@ class AppSession(launch: LaunchConfig) {
     val noBloom: Boolean = launch.noBloom
     val shot: String? = launch.shot
     val shotOut: String? = launch.shotOut
+    private val specimenCritter: InsectKind = launch.specimenCritter ?: InsectKind.LADYBUG
 
     var classicScene: Scene? = null
     var worldScene: Scene? = null
@@ -152,7 +154,7 @@ class AppSession(launch: LaunchConfig) {
         PerformanceManager.setQuality(quality)
         world = World()
         resetCamera(fromUser = false)
-        if (ShotPose.apply(shot, world, camera)) {
+        if (ShotPose.apply(shot, world, camera, specimenCritter)) {
             // #76 specimen: freeze sim and keep the cinematic camera off, in memory only (not saved).
             clock.paused = true
             cine.pausedUntil = Double.POSITIVE_INFINITY

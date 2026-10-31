@@ -72,6 +72,14 @@ object WorldPalette {
     const val CHITIN_ROUGHNESS = 1.0f
 
     /**
+     * Body / mark roughness per critter (#81). The beetle's dark body (0.08) at 0.55 and its marks at
+     * 0.22 sat on the same top-down GGX peak as the ants in #79, so the beetle goes matte with
+     * [CHITIN_ROUGHNESS]. The ladybug keeps a glossy red shell (its spots are already matte).
+     */
+    fun critterBodyRoughness(kind: InsectKind): Float = if (kind == InsectKind.BEETLE) CHITIN_ROUGHNESS else 0.55f
+    fun critterMarkRoughness(kind: InsectKind): Float = CHITIN_ROUGHNESS
+
+    /**
      * Ladybug spots, pronotum and head (#79 D2). At 0.08 the ambient light alone lifted them to
      * about 2.6:1 against the red shell whatever the roughness; 0.03 measured 3.01:1 and the Artist asked for >= 3.3:1 (#80), so 0.012.
      */

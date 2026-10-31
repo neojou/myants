@@ -58,4 +58,23 @@ class ShotPoseSpecimenTest {
             assertEquals(before, w.insects.size)
         }
     }
+
+    @Test
+    fun specimenCritterBeetleTakesTheLadybugSpot() {
+        val lady = world().also { ShotPose.apply("specimen", it, CameraState()) }.insects.last()
+        val w = world()
+        assertTrue(ShotPose.apply("specimen", w, CameraState(), InsectKind.BEETLE))
+        val beetle = w.insects.last()
+        assertEquals(InsectKind.BEETLE, beetle.type)
+        assertEquals(listOf(lady.x, lady.y, lady.angle), listOf(beetle.x, beetle.y, beetle.angle))
+        assertTrue(w.insects.none { it.type == InsectKind.LADYBUG && it.x == lady.x && it.y == lady.y })
+    }
+
+    @Test
+    fun specimenCritterParsesOnlyKnownNames() {
+        assertEquals(null, com.neojou.myants.parseLaunch(emptyList()).specimenCritter)
+        assertEquals(InsectKind.BEETLE, com.neojou.myants.parseLaunch(listOf("specimenCritter=beetle")).specimenCritter)
+        assertEquals(InsectKind.BEETLE, com.neojou.myants.parseLaunch(listOf("--specimen-critter=BEETLE")).specimenCritter)
+        assertEquals(null, com.neojou.myants.parseLaunch(listOf("specimenCritter=spider")).specimenCritter)
+    }
 }

@@ -4,6 +4,7 @@ import com.neojou.myants.render3d.GpuBackend
 import com.neojou.myants.render3d.RenderMode
 import com.neojou.myants.render3d.parseBackend
 import com.neojou.myants.render3d.parseRenderMode
+import com.neojou.myants.sim.InsectKind
 import com.neojou.myants.sim.QualityLevel
 
 data class LaunchConfig(
@@ -15,6 +16,8 @@ data class LaunchConfig(
     val noBloom: Boolean = false,
     val shot: String? = null,
     val shotOut: String? = null,
+    /** `specimenCritter=beetle` (#81): swap the specimen ladybug for another critter. Only read by `shot=specimen`. */
+    val specimenCritter: InsectKind? = null,
 )
 
 fun parseLaunch(tokens: List<String>): LaunchConfig {
@@ -26,6 +29,7 @@ fun parseLaunch(tokens: List<String>): LaunchConfig {
     var noBloom = false
     var shot: String? = null
     var shotOut: String? = null
+    var specimenCritter: InsectKind? = null
     for (raw in tokens) {
         val body = raw.removePrefix("--").removePrefix("-")
         if (body == "no-bloom" || body == "nobloom") {
@@ -44,9 +48,17 @@ fun parseLaunch(tokens: List<String>): LaunchConfig {
             "backend" -> backend = parseBackend(value)
             "shot" -> shot = value
             "shot-out" -> shotOut = value
+            "specimenCritter", "specimen-critter" -> specimenCritter = parseSpecimenCritter(value)
         }
     }
-    return LaunchConfig(seed, colonies, quality, renderer, backend, noBloom, shot, shotOut)
+    return LaunchConfig(seed, colonies, quality, renderer, backend, noBloom, shot, shotOut, specimenCritter)
+}
+
+/** Critters that `shot=specimen` can show next to the ant (#81). */
+fun parseSpecimenCritter(raw: String): InsectKind? = when (raw.lowercase()) {
+    "beetle" -> InsectKind.BEETLE
+    "ladybug" -> InsectKind.LADYBUG
+    else -> null
 }
 
 fun parseQuality(raw: String): QualityLevel? = when (raw.uppercase().replace('-', '_')) {
