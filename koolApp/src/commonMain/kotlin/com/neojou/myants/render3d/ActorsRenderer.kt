@@ -468,7 +468,7 @@ internal class ActorsRenderer(
                     model.draw(
                         slot.body, slot.head, slot.eyes, slot.jaws, slot.legs,
                         x, y, z, yaw, len, phase, moving && preset.legAnimation,
-                        outdoorAntTint(colony.id, ant.type), mat, scale,
+                        outdoorAntTint(colony.id, ant.type, state.view.antColor), mat, scale,
                     )
                     if (ant.carrying == CarryKind.SUGAR || ant.carrying == CarryKind.PROTEIN) {
                         val carry = WorldPalette.food3d(if (ant.carrying == CarryKind.SUGAR) FoodKind.SUGAR else FoodKind.PROTEIN)
