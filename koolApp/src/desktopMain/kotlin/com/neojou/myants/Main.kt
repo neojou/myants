@@ -17,7 +17,9 @@ fun main(args: Array<String>) {
     // must show up without waiting for the process to exit.
     System.setOut(java.io.PrintStream(System.out, true))
     System.setErr(java.io.PrintStream(System.err, true))
-    val launch = parseLaunch(args.toList())
+    val launch = parseLaunch(args.toList()).let {
+        if (System.getenv("MYANTS_LOCK_QUALITY") == "1") it.copy(lockQuality = true) else it
+    }
     val backend = if (launch.backend == GpuBackend.GL) RenderBackendGl else RenderBackendVk
     KoolApplication(
         config = KoolConfigJvm(

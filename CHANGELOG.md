@@ -9,7 +9,8 @@
 
 ### 新增
 - glb 載入失敗時一律退回程序網格並寫一行 WARN log（`RENDER`）：缺檔、檔頭壞掉、截斷、模型被拒（如腳數不符）都不會丟例外，同時涵蓋工蟻、兵蟻、蚜蟲、瓢蟲、蜘蛛與 sugar／pebble／clover 等合併 glb，`GlbFallbackTest` 檢查（Refs #52）
-- 桌面版可選的逐格時間記錄：環境變數 `MYANTS_FRAME_LOG` 指定檔案時，每格寫一個 `System.nanoTime()`；預設關閉。web 量測腳本與 #52 fps 結果在 `docs/perf/`（Refs #52）
+- 桌面版可選的逐格時間記錄：環境變數 `MYANTS_FRAME_LOG` 指定檔案時，每格寫一個 `System.nanoTime()`；預設關閉。web 量測腳本、frame log 換算腳本與 #52 fps 結果在 `docs/perf/`（Refs #52）
+- 量測用的畫質鎖定：桌面 `MYANTS_LOCK_QUALITY=1`、瀏覽器 `?lockQuality=1`（或啟動參數 `--lock-quality=1`）時停用 `monitorFps` 的自動降級，整段量測維持指定畫質。預設關閉、行為不變，由 `LockQualityTest` 檢查（Refs #52）
 - headless 固定構圖截圖模式 `shot=specimen`（瀏覽器 `?shot=specimen`、桌面 `--shot=specimen`）：正午光、zoom 6、相機固定在世界 (420, 300)，把一隻工蟻和一隻瓢蟲擺在畫面中央，模擬開場就暫停、自動運鏡關閉（只在記憶體，不寫入設定）。同 seed 連拍兩次瓢蟲像素完全相同，供 #68 D1、D2、E2 量測。只在 `shot=specimen` 時生效，一般執行的模擬行為不變（Closes #76）
 
 ### 修正

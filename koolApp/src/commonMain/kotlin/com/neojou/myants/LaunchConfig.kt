@@ -15,6 +15,8 @@ data class LaunchConfig(
     val noBloom: Boolean = false,
     val shot: String? = null,
     val shotOut: String? = null,
+    /** `lock-quality=1` / `lockQuality=1`, or MYANTS_LOCK_QUALITY=1 on desktop: no auto-downgrade. */
+    val lockQuality: Boolean = false,
 )
 
 fun parseLaunch(tokens: List<String>): LaunchConfig {
@@ -26,6 +28,7 @@ fun parseLaunch(tokens: List<String>): LaunchConfig {
     var noBloom = false
     var shot: String? = null
     var shotOut: String? = null
+    var lockQuality = false
     for (raw in tokens) {
         val body = raw.removePrefix("--").removePrefix("-")
         if (body == "no-bloom" || body == "nobloom") {
@@ -44,9 +47,10 @@ fun parseLaunch(tokens: List<String>): LaunchConfig {
             "backend" -> backend = parseBackend(value)
             "shot" -> shot = value
             "shot-out" -> shotOut = value
+            "lock-quality", "lockQuality" -> lockQuality = value == "1" || value.equals("true", ignoreCase = true)
         }
     }
-    return LaunchConfig(seed, colonies, quality, renderer, backend, noBloom, shot, shotOut)
+    return LaunchConfig(seed, colonies, quality, renderer, backend, noBloom, shot, shotOut, lockQuality)
 }
 
 fun parseQuality(raw: String): QualityLevel? = when (raw.uppercase().replace('-', '_')) {

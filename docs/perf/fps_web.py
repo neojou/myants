@@ -1,13 +1,16 @@
 import asyncio,sys,json,statistics
 from playwright.async_api import async_playwright
 port,tag=sys.argv[1],sys.argv[2]
+extra=sys.argv[3] if len(sys.argv)>3 else "&lockQuality=1"
+exe=sys.argv[4] if len(sys.argv)>4 else "/usr/bin/google-chrome"
+flags=["--use-angle=swiftshader","--enable-unsafe-swiftshader","--ignore-gpu-blocklist","--disable-webgpu"] if "swiftshader" in tag else []
 JS="""window.__ft=[];(function f(t){window.__ft.push(t);requestAnimationFrame(f)})(performance.now());"""
 async def main():
     async with async_playwright() as p:
-        b=await p.chromium.launch(executable_path="/usr/bin/google-chrome",args=["--use-angle=swiftshader","--enable-unsafe-swiftshader","--ignore-gpu-blocklist","--disable-webgpu"])
+        b=await p.chromium.launch(executable_path=exe,args=flags)
         pg=await b.new_page(viewport={"width":1600,"height":900})
         logs=[]; pg.on("console",lambda m:logs.append(m.text))
-        await pg.goto(f"http://localhost:{port}/index.html?backend=gl&seed=12345&quality=medium")
+        await pg.goto(f"http://localhost:{port}/index.html?backend=gl&seed=12345&quality=medium{extra}")
         await pg.evaluate(JS); await pg.wait_for_timeout(10000)
         await pg.evaluate("window.__ft=[]"); await pg.wait_for_timeout(60000)
         ts=await pg.evaluate("window.__ft")

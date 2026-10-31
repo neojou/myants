@@ -144,6 +144,8 @@ class AppSession(launch: LaunchConfig) {
         L10n.language.value = view.language
         launch.colonies?.let { colonies = it.coerceIn(1, 2) }
         launch.quality?.let { quality = it }
+        PerformanceManager.lockQuality = launch.lockQuality
+        if (launch.lockQuality) MyLog.add("PERF", "Quality locked: auto-downgrade is off for this run.", LogLevel.INFO)
         launch.renderer?.let { renderer = it }
         overrides.load(saved)
         seed = launch.seed ?: wallClockSeed()
