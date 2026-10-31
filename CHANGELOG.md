@@ -8,9 +8,11 @@
 - 色彩 token 收斂第二輪：`Critter.kt` 的甲蟲／瓢蟲殼、眼、腳與甲蟲斑紋色移到 `WorldPalette`（數值不變），`GrafikPanel` 的色票改用 `MyantsTheme.Data.AntColorChoice.color`。WorldRenderer、Critter、GrafikPanel、NestCutaway、GltfMerged 不再有 `Color(` 字面值或 hex 色碼，由 `ColorTokenTest` 檢查（Closes #48）
 
 ### 新增
+- `specimenCritter=beetle`（瀏覽器 `?shot=specimen&specimenCritter=beetle`、桌面 `--specimen-critter=beetle`）：specimen 構圖改擺甲蟲取代瓢蟲，位置、光、相機相同；預設仍是瓢蟲（#81）
 - headless 固定構圖截圖模式 `shot=specimen`（瀏覽器 `?shot=specimen`、桌面 `--shot=specimen`）：正午光、zoom 6、相機固定在世界 (420, 300)，把一隻工蟻和一隻瓢蟲擺在畫面中央，模擬開場就暫停、自動運鏡關閉（只在記憶體，不寫入設定）。同 seed 連拍兩次瓢蟲像素完全相同，供 #68 D1、D2、E2 量測。只在 `shot=specimen` 時生效，一般執行的模擬行為不變（Closes #76）
 
 ### 修正
+- 甲蟲身體與斑紋改霧面（身體 roughness 0.55→1.0、斑紋 0.22→1.0、beetle.glb chitin 0.35→1.0），殼色不變；俯視正午高光不再把甲蟲洗淡，身體對地面 2.90→3.28:1（Closes #81）
 - 設定裡的蟻色（antColor）對室外 glTF 蟻沒有作用（#82）：colony 0 的甲殼改由 `WorldPalette.outdoorChitin(antColor)` 決定。預設的銅色仍是黑甲殼（預設畫面與 D1 不變），其他色票改用 sRGB→linear 後的值；兵蟻頭維持紅色標記，對手蟻群不受影響（Closes #82）
 - 三葉草花與葉、地面材質改成 #75 美術目標值：花 rose (0.95,0.22,0.42)、gold (1.00,0.70,0.06)、lilac (0.40,0.46,1.00)，花瓣 roughness 0.85；葉 simGrass (0.11,0.32,0.15)、scatterGrass 同色系（亮度 ±0.04），草葉 roughness 0.70；莖 (0.22,0.38,0.14)；地面 `soil(n)` = (0.34+0.10n, 0.25+0.08n, 0.16+0.06n)。已確認 kool 的 instance 色與地面貼圖（gamma 1）都不做 sRGB→linear 轉換，數值直接當 linear albedo；美術的校正是以舊數值的同一種寫法算的，所以沿用同一種寫法。執行時的顏色只由 `WorldPalette` 提供，三葉草 glb 的 baseColor／roughness 用 `tools/glb_palette.py` 同步（Closes #75）
 - 室外工蟻／兵蟻渲染成淺灰（#79 D1）：根因是材質，不是顏色。俯視相機與正午太陽都接近垂直，每個朝上的面都在 GGX 高光峰上；甲殼 roughness 0.42 時峰值等於約 0.32 的灰色反照率，蓋過 0.07 的黑甲殼（把甲殼改成紅色，畫面仍是淺灰，就是這個原因）。蟻身、頭、顎、腳與瓢蟲黑點、其他昆蟲的腳改用 `WorldPalette.CHITIN_ROUGHNESS` 1.0、metallic 0，峰值降到約 0.01（0.80 實測仍只有 2.2:1）。瓢蟲黑點（#79 D2）光靠環境光就被抬到約 2.6:1，與 roughness 無關，改用 `WorldPalette.ladybugSpot` (0.012,0.008,0.008)，specimen 實測 D2 3.31。工蟻、兵蟻與瓢蟲 glb 的材質用 `tools/glb_palette.py` 同步（Closes #79）
