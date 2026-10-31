@@ -141,7 +141,7 @@ object WorldPalette {
     val spiderLeg = Color(0.22f, 0.22f, 0.24f, 1f)
     val beetleLeg = Color(0.10f, 0.07f, 0.05f, 1f)
     val ladybugLeg = Color(0.12f, 0.08f, 0.08f, 1f)
-    val beetleMark = Color(0.13f, 0.07f, 0.045f, 1f)
+    val beetleMark = Color(0.17f, 0.06f, 0.02f, 1f)
 
     val cloverPetals = arrayOf(petalRose, petalGold, petalLilac)
     val petals = arrayOf(petalRose, petalGold, petalLilac, petalWhite)

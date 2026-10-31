@@ -1,6 +1,10 @@
 # 用法：python3 measure.py 預設.png ...   或   python3 measure.py --beetle 甲蟲.png ...
+# --beetle 另外輸出：斑紋框 x660–685,y435–450、前胸框 x642–654,y432–452 的中位數，斑紋對前胸 CIEDE2000 ΔE，各自對地面的對比。
 # D1/D2 與 79-chitin/measure.py 相同；D3 = 甲蟲身體（固定框內 L<0.15 像素中位數）對地面（固定地面框中位數）。
 import sys,numpy as np
+from skimage.color import rgb2lab,deltaE_ciede2000
+def lab(c):return rgb2lab(np.asarray(c,float).reshape(1,1,3)/255.)[0,0]
+def de(a,b):return float(deltaE_ciede2000(lab(a),lab(b)))
 from PIL import Image
 def L(c):
   c=np.asarray(c)/255.;c=np.where(c<=.04045,c/12.92,((c+.055)/1.055)**2.4);return c@[.2126,.7152,.0722]
@@ -11,7 +15,9 @@ for f in [a for a in sys.argv[1:] if a!='--beetle']:
   if beetle:
     b=im[422:462,615:695].reshape(-1,3);body=b[L(b)<0.15];bm=np.median(body,0)
     g=np.median(im[470:500,700:740].reshape(-1,3),0)
-    print(f,'body',bm.astype(int),'gnd',g.astype(int),'px',len(body),'D3=%.2f'%cr(L(bm),L(g)));continue
+    print(f,'body',bm.astype(int),'gnd',g.astype(int),'px',len(body),'D3=%.2f'%cr(L(bm),L(g)))
+    mk=np.median(im[435:450,660:685].reshape(-1,3),0);pr=np.median(im[432:452,642:654].reshape(-1,3),0)
+    print('  mark',mk.astype(int),'%.2f:1'%cr(L(mk),L(g)),'pronotum',pr.astype(int),'%.2f:1'%cr(L(pr),L(g)),'dE00 mark-pronotum=%.1f'%de(mk,pr));continue
   a=im[420:470,505:600].reshape(-1,3);la=L(a)
   ant=np.median(a[la<=np.percentile(la,10)],0);gnd=np.median(a[la>=np.percentile(la,60)],0)
   b=im[395:480,590:680].reshape(-1,3);red=(b[:,0]>1.8*b[:,1])&(b[:,0]>120)
