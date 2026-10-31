@@ -27,6 +27,7 @@ fun main(args: Array<String>) {
         ),
     ) {
         applyMacOsApplicationName(AppVersion.APP_NAME, AppVersion.NAME)
+        attachFrameLog(ctx)
         myantsApp(launch)
     }
 }

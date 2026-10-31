@@ -24,7 +24,8 @@
 - #75 三葉草花／葉／地面材質改成美術目標值：已合併（PR #78）；量測在 `docs/screenshots/75-clover/`。
 - #76 固定構圖截圖模式 `shot=specimen`：已合併（PR #77）；截圖與重現性數據在 `docs/screenshots/76-specimen/`。
 - #79 蟻身淡灰（甲殼 roughness 太低，俯視正午高光蓋過黑色）與瓢蟲黑點對比：已合併（PR #80）；量測在 `docs/screenshots/79-chitin/`。
-- #48 theme token 第二輪與 #82 antColor 接上 glTF 蟻：在分支 `feat/48-theme-tokens`，未合併；截圖在 `docs/screenshots/48-tokens/`。
+- #48 theme token 第二輪與 #82 antColor 接上 glTF 蟻：已在 PR #85 合併。
+- #52 glb 退回測試與 Medium 300 蟻 fps：在分支 `feat/52-gltf-fallback-fps`。web 在 headless SwiftShader（無 GPU）約 1.7 fps，桌面因 kool 在 Linux 強制 Wayland、box 沒有 compositor 而量不到；結果見 `docs/perf/52-fps.md`。
 - 下一步：#47 依序合併：守門（#60）→ InspectRing 分派移到 session（#63）→ RenderState／RenderHost 介面（PR 已開，疊在 #63 上，允許清單已清空）→ 子渲染器物件（PR 已開，疊在 RenderState／RenderHost PR 上），皆不改行為；#13 與 milestone M5 仍開。巢穴 glTF 沒做。不 push main、不關 issue、不改版號。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
