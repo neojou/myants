@@ -24,22 +24,22 @@ internal class CritterTint(val body: Color, val eye: Color, val leg: Color, val 
  */
 internal fun critterTint(kind: InsectKind): CritterTint {
     val body = when (kind) {
-        InsectKind.BEETLE -> Color(0.08f, 0.06f, 0.05f, 1f)
-        InsectKind.LADYBUG -> Color(1.0f, 0.02f, 0.02f, 1f)
+        InsectKind.BEETLE -> WorldPalette.beetleShell3d
+        InsectKind.LADYBUG -> WorldPalette.ladybugShell3d
         else -> WorldPalette.insect(kind)
     }
-    val eye = Color(0.05f, 0.04f, 0.04f, 1f)
+    val eye = WorldPalette.critterEye
     val leg = when (kind) {
-        InsectKind.PREY -> Color(0.22f, 0.45f, 0.18f, 1f)
-        InsectKind.PREDATOR -> Color(0.28f, 0.16f, 0.34f, 1f)
-        InsectKind.SPIDER -> Color(0.22f, 0.22f, 0.24f, 1f)
-        InsectKind.BEETLE -> Color(0.10f, 0.07f, 0.05f, 1f)
-        InsectKind.LADYBUG -> Color(0.12f, 0.08f, 0.08f, 1f)
+        InsectKind.PREY -> WorldPalette.preyLeg
+        InsectKind.PREDATOR -> WorldPalette.predatorLeg
+        InsectKind.SPIDER -> WorldPalette.spiderLeg
+        InsectKind.BEETLE -> WorldPalette.beetleLeg
+        InsectKind.LADYBUG -> WorldPalette.ladybugLeg
         InsectKind.APHID -> WorldPalette.aphidLeg
     }
     val mark = when (kind) {
         InsectKind.LADYBUG -> WorldPalette.ladybugSpot
-        InsectKind.BEETLE -> Color(0.13f, 0.07f, 0.045f, 1f)
+        InsectKind.BEETLE -> WorldPalette.beetleMark
         else -> body
     }
     return CritterTint(body, eye, leg, mark)
