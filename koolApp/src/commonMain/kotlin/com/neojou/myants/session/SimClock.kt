@@ -8,6 +8,12 @@ class SimClock {
     val speeds = doubleArrayOf(0.0, 0.5, 1.0, 2.0, 4.0, 8.0)
     var speedIndex: Int = 2
     var paused: Boolean = false
+    /**
+     * Seconds of unpaused play, for render animation (leg cycles, grass sway, rain) (#83).
+     * Stops while paused, so a paused frame looks the same no matter how much wall time passes.
+     */
+    var animTime: Double = 0.0
+        private set
     private var accum: Double = 0.0
     private var halfTick: Boolean = false
 
@@ -33,6 +39,7 @@ class SimClock {
      */
     fun advance(dt: Double, stepSim: () -> Unit) {
         if (paused) return
+        animTime += dt
         accum += dt
         val step = 1.0 / 60.0
         var frames = 0

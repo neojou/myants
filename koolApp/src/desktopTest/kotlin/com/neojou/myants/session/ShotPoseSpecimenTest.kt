@@ -77,4 +77,20 @@ class ShotPoseSpecimenTest {
         assertEquals(InsectKind.BEETLE, com.neojou.myants.parseLaunch(listOf("--specimen-critter=BEETLE")).specimenCritter)
         assertEquals(null, com.neojou.myants.parseLaunch(listOf("specimenCritter=spider")).specimenCritter)
     }
+
+    @Test
+    fun specimenNightIsSameCompositionAtNightAndAsksForPause() {
+        val day = world(); val dayCam = CameraState()
+        ShotPose.apply("specimen", day, dayCam, InsectKind.BEETLE)
+        val night = world(); val cam = CameraState()
+        assertTrue(ShotPose.apply("specimen-night", night, cam, InsectKind.BEETLE))
+        assertEquals(0.92, night.timeOfDay, 0.005)
+        assertEquals(0.0, night.dayBrightness(), 1e-9)
+        assertFalse(night.raining)
+        assertEquals(dayCam.x, cam.x); assertEquals(dayCam.y, cam.y); assertEquals(dayCam.zoom, cam.zoom)
+        val b = night.insects.single { it.type == InsectKind.BEETLE }
+        val bd = day.insects.single { it.type == InsectKind.BEETLE }
+        assertEquals(bd.x, b.x); assertEquals(bd.y, b.y)
+        assertEquals(0.45, day.timeOfDay)
+    }
 }

@@ -14,7 +14,6 @@ import de.fabmax.kool.scene.Node
 import de.fabmax.kool.scene.VertexLayouts
 import de.fabmax.kool.scene.addMesh
 import de.fabmax.kool.util.Color
-import de.fabmax.kool.util.Time
 import kotlin.math.sin
 import kotlin.random.Random
 import kotlinx.coroutines.CoroutineScope
@@ -84,7 +83,7 @@ internal class PropsRenderer(
     override fun update(state: RenderState, preset: QualityPreset, dt: Float) {
         rebuildScatter(state, preset)
         grass.clear(); rocks.clear(); leaves.clear(); flowers.clear()
-        val time = Time.gameTime.toFloat()
+        val time = state.animTime
         pushScatter(state, preset, time)
         pushSimGrass(state, preset, time)
         pushObstacles(state)
@@ -195,7 +194,7 @@ internal class PropsRenderer(
             rainZ = FloatArray(preset.rainStreaks) { rnd.nextFloat() * SimConfig.height }
             rainPhase = FloatArray(preset.rainStreaks) { rnd.nextFloat() }
         }
-        val t = Time.gameTime.toFloat()
+        val t = state.animTime
         val color = WorldPalette.rain3d
         for (i in rainX.indices) {
             val drop = ((t * 0.35f + rainPhase[i]) % 1f)

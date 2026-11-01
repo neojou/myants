@@ -19,6 +19,11 @@ interface RenderState {
     val camera: CameraView
     /** Ring for the current Inspect hit, or null. A new object on every read. */
     val inspectRing: InspectRing?
+    /**
+     * Animation clock in seconds (#83). Use this, not kool's Time.gameTime, for anything that moves:
+     * it stops while the sim is paused, so paused frames (and shot=specimen) do not depend on wall time.
+     */
+    val animTime: Float
 }
 
 /** User view switches. */

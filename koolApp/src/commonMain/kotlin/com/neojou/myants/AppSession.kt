@@ -52,6 +52,8 @@ class AppSession(launch: LaunchConfig) {
     val speeds: DoubleArray get() = clock.speeds
     var speedIndex by clock::speedIndex
     var paused by clock::paused
+    /** Render animation time; frozen while paused (#83). */
+    val animTime: Double get() = clock.animTime
     var tool by tools::tool
     var inspectedAnt by tools::inspectedAnt
     val inspect get() = tools.inspect
