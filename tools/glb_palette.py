@@ -44,5 +44,5 @@ MATERIALS = {
     "insects/predator.glb": [pbr("body", (0.45, 0.25, 0.55), 0.5), pbr("eye", EYE, 0.15), pbr("mark", (0.45, 0.25, 0.55), 0.5)],
     "insects/spider.glb": [pbr("body", (0.35, 0.35, 0.38), 0.6), pbr("eye", EYE, 0.15), pbr("mark", (0.35, 0.35, 0.38), 0.6)],
     "insects/ladybug.glb": [pbr("shell", (1.0, 0.02, 0.02), 0.3), pbr("eye", EYE, 0.15), pbr("spot", (0.012, 0.008, 0.008), 1.0)],  # spot: WorldPalette.ladybugSpot / CHITIN_ROUGHNESS (#79)
-    "insects/beetle.glb": [pbr("chitin", (0.08, 0.06, 0.05), 0.35)],    # critterTint(BEETLE).body
+    "insects/beetle.glb": [pbr("chitin", (0.08, 0.06, 0.05), 1.0)],    # critterTint(BEETLE).body, CHITIN_ROUGHNESS (#81)
 }

@@ -206,13 +206,13 @@ internal class ActorsRenderer(
             eyes,
             marks,
             legs,
-            shadedInstances(content, body, "${kind.name}-body", 0.55f, 0.02f),
+            shadedInstances(content, body, "${kind.name}-body", WorldPalette.critterBodyRoughness(kind), 0.02f),
             shadedInstances(content, eyes, "${kind.name}-eye", 0.25f, 0.02f),
             shadedInstances(
                 content,
                 marks,
                 "${kind.name}-mark",
-                if (kind == InsectKind.BEETLE) 0.22f else WorldPalette.CHITIN_ROUGHNESS,
+                WorldPalette.critterMarkRoughness(kind),
                 0.02f,
             ),
             legs.mapIndexed { index, batch ->
