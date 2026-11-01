@@ -150,6 +150,8 @@ class WorldRenderer(
             if (map != null && state.view.shadowsUser) useShadowMaps(listOf(map))
         }
         val pipe = DeferredPipeline(scene, cfg)
+        // #83: kool shuffles the AO noise without a seed; use a fixed one so page loads match.
+        pipe.aoPipeline?.aoPass?.aoPassShader?.noiseTex = AoNoise.texture()
         // MaterialPass only installs a proxy when the scene camera is perspective.
         // An orthographic camera would otherwise leave the g-buffer on the default
         // perspective camera, which never sees the ground.
