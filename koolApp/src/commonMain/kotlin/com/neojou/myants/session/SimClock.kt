@@ -7,7 +7,23 @@ package com.neojou.myants.session
 class SimClock {
     val speeds = doubleArrayOf(0.0, 0.5, 1.0, 2.0, 4.0, 8.0)
     var speedIndex: Int = 2
+    /** Unpausing (user resume) also lifts [animFrozen] (#83). */
     var paused: Boolean = false
+        set(v) {
+            if (!v) animFrozen = false
+            field = v
+        }
+    /**
+     * Seconds of real time for render animation (leg cycles, grass sway, rain) (#83).
+     * Keeps running while paused, like kool's wall clock did; only [animFrozen] stops it.
+     */
+    var animTime: Double = 0.0
+        private set
+    /** Set by specimen shots (#83) so the frame stays the same no matter how much wall time passes. */
+    var animFrozen: Boolean = false
+
+    /** Frame delta for render code (#83): wall [dt], or 0 while [animFrozen]. */
+    fun renderDt(dt: Double): Double = if (animFrozen) 0.0 else dt
     private var accum: Double = 0.0
     private var halfTick: Boolean = false
 
@@ -29,9 +45,10 @@ class SimClock {
 
     /**
      * Advances real time by [dt] seconds and calls [stepSim] for every simulation tick due.
-     * Does nothing while paused. At most 64 fixed frames per call; leftover time is capped at one frame.
+     * Ticks nothing while paused (animation time still runs unless [animFrozen]). At most 64 fixed frames per call; leftover time is capped at one frame.
      */
     fun advance(dt: Double, stepSim: () -> Unit) {
+        if (!animFrozen) animTime += dt
         if (paused) return
         accum += dt
         val step = 1.0 / 60.0

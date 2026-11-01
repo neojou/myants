@@ -20,9 +20,12 @@ class SessionRenderBridge(private val s: AppSession) : RenderState, RenderHost, 
     override val renderer: RenderMode get() = s.renderer
     override val renderTierBias: Int get() = s.renderTierBias
     override val fpsShown: Int get() = s.fpsShownPublic
+    override val frameDt: Float get() = s.renderDt.toFloat()
+    override val animFrozen: Boolean get() = s.animFrozen
     override val view: ViewFlags get() = this
     override val camera: CameraView get() = this
     override val inspectRing: InspectRing? get() = s.inspectRingNow
+    override val animTime: Float get() = s.animTime.toFloat()
 
     override val showPheromones: Boolean get() = s.showPheromones
     override val pheromoneStrength: Double get() = s.pheromoneStrength
