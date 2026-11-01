@@ -81,7 +81,7 @@ class WorldRenderer(
                 MyLog.add(TAG, "backend ${backendLabel()} compute=${de.fabmax.kool.KoolSystem.features.computeShaders}", LogLevel.DEBUG)
             }
             ensurePipeline(content, forward)
-            top.update(Time.deltaT, state.camera, host)
+            top.update(state.frameDt, state.camera, host)
             val preset = QualityPreset.from(PerformanceManager.level, state.renderTierBias)
             applyPreset(preset)
             val winW = it.ctx.window.size.x.toFloat().coerceAtLeast(1f)
@@ -182,14 +182,15 @@ class WorldRenderer(
     }
 
     internal fun fill(preset: QualityPreset, winW: Float, winH: Float) {
-        terrain.update(state, preset, Time.deltaT)
-        actors.update(state, preset, Time.deltaT)
-        props.update(state, preset, Time.deltaT)
-        overlay.update(state, preset, Time.deltaT)
+        terrain.update(state, preset, state.frameDt)
+        actors.update(state, preset, state.frameDt)
+        props.update(state, preset, state.frameDt)
+        overlay.update(state, preset, state.frameDt)
         NestCutaway.update(state, winW, winH)
     }
 
     internal fun watchFps() {
+        if (state.animFrozen) return // #83: wall-clock fps must not change a specimen frame
         val fps = state.fpsShown
         if (fps <= 0 || fps == lastFps) return
         lastFps = fps

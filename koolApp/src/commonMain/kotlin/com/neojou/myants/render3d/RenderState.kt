@@ -24,6 +24,10 @@ interface RenderState {
      * it runs like wall time (also while paused) but freezes for shot=specimen*, so those frames do not depend on wall time.
      */
     val animTime: Float
+    /** Frame delta in seconds (#83); use instead of Time.deltaT. 0 while [animFrozen]. */
+    val frameDt: Float
+    /** shot=specimen* until the user resumes: no wall-time input (fps adaptation included) may change the frame. */
+    val animFrozen: Boolean
 }
 
 /** User view switches. */

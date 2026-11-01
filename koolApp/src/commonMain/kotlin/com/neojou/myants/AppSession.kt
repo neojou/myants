@@ -54,6 +54,11 @@ class AppSession(launch: LaunchConfig) {
     var paused by clock::paused
     /** Render animation time; frozen only for specimen shots (#83). */
     val animTime: Double get() = clock.animTime
+    /** True for shot=specimen* until the user resumes; nothing visual may follow wall time then (#83). */
+    val animFrozen: Boolean get() = clock.animFrozen
+    /** Last frame delta for render code; 0 while [animFrozen] (#83). */
+    var renderDt: Double = 0.0
+        private set
     var tool by tools::tool
     var inspectedAnt by tools::inspectedAnt
     val inspect get() = tools.inspect
@@ -194,10 +199,11 @@ class AppSession(launch: LaunchConfig) {
     fun notifyInput() = cine.notifyInput(Time.gameTime)
 
     fun tick(dt: Float) {
+        renderDt = clock.renderDt(dt.toDouble())
         val now = Time.gameTime
         if (fps.frame(now)) {
             fpsShownPublic = fpsShown
-            PerformanceManager.monitorFps(fpsShown.toDouble(), (now * 1000.0).toLong())
+            if (!clock.animFrozen) PerformanceManager.monitorFps(fpsShown.toDouble(), (now * 1000.0).toLong())
         }
         if (!paused) {
             clock.advance(dt.toDouble()) { stepSim() }

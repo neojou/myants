@@ -80,4 +80,36 @@ class SpecimenClockLockTest {
         assertEquals(age, s.world.age, "paused sim does not tick")
         assertTrue(s.renderBridge.animTime > anim, "animation still runs in a normal pause")
     }
+
+    @Test
+    fun userResumeLiftsSpecimenFreeze() {
+        val s = AppSession(LaunchConfig(seed = 12345, colonies = 1, shot = "specimen"))
+        assertTrue(s.animFrozen, "specimen starts frozen")
+        s.tick(1f / 60f)
+        assertEquals(0.0, s.renderDt, "frozen frames get no render delta")
+        s.paused = false
+        assertTrue(!s.animFrozen, "user resume lifts the freeze")
+        val anim = s.renderBridge.animTime
+        repeat(30) { s.tick(1f / 60f) }
+        assertTrue(s.renderBridge.animTime > anim, "animation runs again")
+        assertEquals(1.0 / 60.0, s.renderDt, 1e-6)
+    }
+
+    @Test
+    fun togglePauseAlsoLiftsFreeze() {
+        val c = SimClock()
+        c.paused = true
+        c.animFrozen = true
+        c.togglePause()
+        assertTrue(!c.animFrozen)
+        assertEquals(0.25, c.renderDt(0.25), 1e-9)
+    }
+
+    @Test
+    fun normalPauseKeepsRenderDelta() {
+        val s = AppSession(LaunchConfig(seed = 12345, colonies = 1))
+        s.paused = true
+        s.tick(1f / 60f)
+        assertEquals(1.0 / 60.0, s.renderDt, 1e-6)
+    }
 }
