@@ -53,15 +53,31 @@ class SpecimenClockLockTest {
     fun specimenNightStaysFrozenThroughFrames() = assertFrozen("specimen-night", 0.92)
 
     @Test
-    fun animationClockRunsOnlyWhileUnpaused() {
+    fun animationClockKeepsRunningInNormalPause() {
         val c = SimClock()
         c.advance(0.5) { }
-        assertEquals(0.5, c.animTime, 1e-9)
         c.paused = true
         c.advance(3.0) { }
+        assertEquals(3.5, c.animTime, 1e-9)
+    }
+
+    @Test
+    fun animationClockStopsOnlyWhenFrozen() {
+        val c = SimClock()
+        c.advance(0.5) { }
+        c.animFrozen = true
+        c.advance(3.0) { }
         assertEquals(0.5, c.animTime, 1e-9)
-        c.paused = false
-        c.advance(0.25) { }
-        assertEquals(0.75, c.animTime, 1e-9)
+    }
+
+    @Test
+    fun normalSessionPauseKeepsAnimating() {
+        val s = AppSession(LaunchConfig(seed = 12345, colonies = 1))
+        s.paused = true
+        val age = s.world.age
+        val anim = s.renderBridge.animTime
+        repeat(60) { s.tick(1f / 60f) }
+        assertEquals(age, s.world.age, "paused sim does not tick")
+        assertTrue(s.renderBridge.animTime > anim, "animation still runs in a normal pause")
     }
 }

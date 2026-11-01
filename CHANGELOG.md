@@ -16,7 +16,7 @@
 - headless 固定構圖截圖模式 `shot=specimen`（瀏覽器 `?shot=specimen`、桌面 `--shot=specimen`）：正午光、zoom 6、相機固定在世界 (420, 300)，把一隻工蟻和一隻瓢蟲擺在畫面中央，模擬開場就暫停、自動運鏡關閉（只在記憶體，不寫入設定）。同 seed 連拍兩次瓢蟲像素完全相同，供 #68 D1、D2、E2 量測。只在 `shot=specimen` 時生效，一般執行的模擬行為不變（Closes #76）
 
 ### 修正
-- 暫停時畫面不再隨真實時間變動：蟲腳擺動、草擺動、雨滴原本讀 kool 的 `Time.gameTime`（真實時間），模擬暫停仍會動，`shot_lock` 截圖前 resume 時鐘後取樣遮罩因此逐幀變化。改讀新的 `RenderState.animTime`（`SimClock` 只在未暫停時累加），specimen 系列從開場到截圖 `world.age`、timeOfDay、動畫時鐘都不變，`SpecimenClockLockTest` 檢查。一般執行時動畫照常（Closes #83）
+- `shot=specimen*` 截圖畫面不再隨真實時間變動：蟲腳擺動、草擺動、雨滴原本讀 kool 的 `Time.gameTime`（真實時間），`shot_lock` 截圖前 resume 時鐘後取樣幀因此逐次不同。renderer 改讀單一時間來源 `RenderState.animTime`（`SimClock.animTime`）：平常（含一般暫停）跟真實時間一樣照走，只有 `shot=specimen`／`specimen-night` 會凍結，從開場到截圖 `world.age`、timeOfDay、動畫時鐘都不變（`SpecimenClockLockTest`）。一般暫停時動畫照常，與先前相同（Closes #83）
 - 甲蟲身體與斑紋改霧面（身體 roughness 0.55→1.0、斑紋 0.22→1.0、beetle.glb chitin 0.35→1.0），殼色不變；甲蟲鞘翅斑紋 `beetleMark` 改成紅棕 (0.13,0.07,0.045)→(0.17,0.06,0.02)，亮度不變、和身體分得開；俯視正午高光不再把甲蟲洗淡，身體對地面 2.90→3.28:1（Closes #81）
 - 設定裡的蟻色（antColor）對室外 glTF 蟻沒有作用（#82）：colony 0 的甲殼改由 `WorldPalette.outdoorChitin(antColor)` 決定。預設的銅色仍是黑甲殼（預設畫面與 D1 不變），其他色票改用 sRGB→linear 後的值；兵蟻頭維持紅色標記，對手蟻群不受影響（Closes #82）
 - 三葉草花與葉、地面材質改成 #75 美術目標值：花 rose (0.95,0.22,0.42)、gold (1.00,0.70,0.06)、lilac (0.40,0.46,1.00)，花瓣 roughness 0.85；葉 simGrass (0.11,0.32,0.15)、scatterGrass 同色系（亮度 ±0.04），草葉 roughness 0.70；莖 (0.22,0.38,0.14)；地面 `soil(n)` = (0.34+0.10n, 0.25+0.08n, 0.16+0.06n)。已確認 kool 的 instance 色與地面貼圖（gamma 1）都不做 sRGB→linear 轉換，數值直接當 linear albedo；美術的校正是以舊數值的同一種寫法算的，所以沿用同一種寫法。執行時的顏色只由 `WorldPalette` 提供，三葉草 glb 的 baseColor／roughness 用 `tools/glb_palette.py` 同步（Closes #75）

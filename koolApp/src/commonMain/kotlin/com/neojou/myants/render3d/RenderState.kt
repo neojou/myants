@@ -21,7 +21,7 @@ interface RenderState {
     val inspectRing: InspectRing?
     /**
      * Animation clock in seconds (#83). Use this, not kool's Time.gameTime, for anything that moves:
-     * it stops while the sim is paused, so paused frames (and shot=specimen) do not depend on wall time.
+     * it runs like wall time (also while paused) but freezes for shot=specimen*, so those frames do not depend on wall time.
      */
     val animTime: Float
 }

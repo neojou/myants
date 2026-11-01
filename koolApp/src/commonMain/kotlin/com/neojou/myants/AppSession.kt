@@ -52,7 +52,7 @@ class AppSession(launch: LaunchConfig) {
     val speeds: DoubleArray get() = clock.speeds
     var speedIndex by clock::speedIndex
     var paused by clock::paused
-    /** Render animation time; frozen while paused (#83). */
+    /** Render animation time; frozen only for specimen shots (#83). */
     val animTime: Double get() = clock.animTime
     var tool by tools::tool
     var inspectedAnt by tools::inspectedAnt
@@ -161,6 +161,7 @@ class AppSession(launch: LaunchConfig) {
         if (ShotPose.apply(shot, world, camera, specimenCritter)) {
             // #76 specimen: freeze sim and keep the cinematic camera off, in memory only (not saved).
             clock.paused = true
+            clock.animFrozen = true
             cine.pausedUntil = Double.POSITIVE_INFINITY
         }
         publishChrome()
@@ -207,6 +208,8 @@ class AppSession(launch: LaunchConfig) {
             } else {
                 deadFrames = 0
             }
+        } else {
+            clock.advance(dt.toDouble()) { } // paused: no sim ticks, animation time still runs (#83)
         }
         if (!userFollow && cinema) cine.update(world, camera, now)
         if (userFollow) {
