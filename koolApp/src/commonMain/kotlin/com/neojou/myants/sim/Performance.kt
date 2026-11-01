@@ -27,10 +27,17 @@ object PerformanceManager {
         settings = profile(next)
     }
 
+    /**
+     * Measurement switch (#52): when true, [monitorFps] never downgrades, so an fps
+     * run stays at the requested quality. Off by default.
+     */
+    var lockQuality: Boolean = false
+
     private var lowFpsFrames: Int = 0
     private var lastDowngradeMs: Long = 0
 
     fun monitorFps(fps: Double, nowMs: Long) {
+        if (lockQuality) return
         if (fps < 20.0) {
             lowFpsFrames++
             if (lowFpsFrames > 60 && nowMs - lastDowngradeMs > 10_000) {
