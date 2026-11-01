@@ -2,6 +2,7 @@ package com.neojou.myants.render3d
 
 import com.neojou.myants.render3d.actors.mergedTriangles
 import com.neojou.myants.render3d.actors.parseGltfMerged
+import com.neojou.myants.render3d.actors.parseGlbOrFallback
 import com.neojou.myants.render3d.actors.uploadMerged
 import com.neojou.myants.render3d.quality.QualityPreset
 import com.neojou.tools.LogLevel
@@ -107,18 +108,10 @@ internal fun loadMergedGlb(
     onReady: () -> Unit,
 ) {
     scope.launch {
-        val loaded = Assets.defaultLoader.loadBlob(path)
-        loaded.onSuccess { buf ->
-            try {
-                val parsed = parseGltfMerged(buf.toArray())
-                for (mesh in meshes) mesh.uploadMerged(parsed)
-                onReady()
-                MyLog.add(TAG, "$label gltf tris=${mergedTriangles(parsed)}", LogLevel.DEBUG)
-            } catch (err: Throwable) {
-                MyLog.add(TAG, "$label glTF failed: ${err.message}. Using the $fallback.", LogLevel.DEBUG)
-            }
-        }.onFailure { err ->
-            MyLog.add(TAG, "$label glTF missing: ${err.message}. Using the $fallback.", LogLevel.DEBUG)
-        }
+        val loaded = Assets.defaultLoader.loadBlob(path).map { it.toArray() }
+        val parsed = parseGlbOrFallback(label, fallback, loaded, parse = ::parseGltfMerged) ?: return@launch
+        for (mesh in meshes) mesh.uploadMerged(parsed)
+        onReady()
+        MyLog.add(TAG, "$label gltf tris=${mergedTriangles(parsed)}", LogLevel.DEBUG)
     }
 }

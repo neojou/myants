@@ -6,6 +6,7 @@ import com.neojou.myants.render3d.actors.draw
 import com.neojou.myants.render3d.actors.drawAphid
 import com.neojou.myants.render3d.actors.drawCritter
 import com.neojou.myants.render3d.actors.outdoorAntTint
+import com.neojou.myants.render3d.actors.parseGlbOrFallback
 import com.neojou.myants.render3d.actors.parseGltfAnt
 import com.neojou.myants.render3d.actors.parseGltfAphid
 import com.neojou.myants.render3d.actors.parseGltfCritter
@@ -222,41 +223,25 @@ internal class ActorsRenderer(
 
     private fun loadCritter(slot: CritterSlot) {
         scope.launch {
-            val loaded = Assets.defaultLoader.loadBlob(slot.path)
-            loaded.onSuccess { buf ->
-                try {
-                    val parsed = parseGltfCritter(buf.toArray())
-                    if (parsed.legs.size != slot.legMeshes.size) {
-                        MyLog.add(TAG, "${slot.kind} glTF has ${parsed.legs.size} legs. Using the block.", LogLevel.DEBUG)
-                        return@onSuccess
-                    }
-                    uploadCritterMeshes(parsed, slot.bodyMesh, slot.eyeMesh, slot.markMesh, slot.legMeshes)
-                    slot.model = parsed
-                    MyLog.add(TAG, "${slot.kind} gltf tris=${parsed.triangles}", LogLevel.DEBUG)
-                } catch (err: Throwable) {
-                    MyLog.add(TAG, "${slot.kind} glTF failed: ${err.message}. Using the block.", LogLevel.DEBUG)
+            val loaded = Assets.defaultLoader.loadBlob(slot.path).map { it.toArray() }
+            val parsed = parseGlbOrFallback("${slot.kind}", "block", loaded) { bytes ->
+                parseGltfCritter(bytes).also {
+                    check(it.legs.size == slot.legMeshes.size) { "${it.legs.size} legs, expected ${slot.legMeshes.size}" }
                 }
-            }.onFailure { err ->
-                MyLog.add(TAG, "${slot.kind} glTF missing: ${err.message}. Using the block.", LogLevel.DEBUG)
-            }
+            } ?: return@launch
+            uploadCritterMeshes(parsed, slot.bodyMesh, slot.eyeMesh, slot.markMesh, slot.legMeshes)
+            slot.model = parsed
+            MyLog.add(TAG, "${slot.kind} gltf tris=${parsed.triangles}", LogLevel.DEBUG)
         }
     }
 
     private fun loadAnt(path: String, slot: AntSlot, label: String) {
         scope.launch {
-            val loaded = Assets.defaultLoader.loadBlob(path)
-            loaded.onSuccess { buf ->
-                try {
-                    val parsed = parseGltfAnt(buf.toArray())
-                    uploadAntMeshes(parsed, slot.bodyMesh, slot.headMesh, slot.eyeMesh, slot.jawMesh, slot.legMeshes)
-                    slot.model = parsed
-                    MyLog.add(TAG, "$label gltf tris=${parsed.triangles}", LogLevel.DEBUG)
-                } catch (err: Throwable) {
-                    MyLog.add(TAG, "$label glTF failed: ${err.message}. Using block ants.", LogLevel.DEBUG)
-                }
-            }.onFailure { err ->
-                MyLog.add(TAG, "$label glTF missing: ${err.message}. Using block ants.", LogLevel.DEBUG)
-            }
+            val loaded = Assets.defaultLoader.loadBlob(path).map { it.toArray() }
+            val parsed = parseGlbOrFallback(label, "block ants", loaded, parse = ::parseGltfAnt) ?: return@launch
+            uploadAntMeshes(parsed, slot.bodyMesh, slot.headMesh, slot.eyeMesh, slot.jawMesh, slot.legMeshes)
+            slot.model = parsed
+            MyLog.add(TAG, "$label gltf tris=${parsed.triangles}", LogLevel.DEBUG)
         }
     }
 
@@ -298,19 +283,11 @@ internal class ActorsRenderer(
 
     private fun loadGreenAphid() {
         scope.launch {
-            val loaded = Assets.defaultLoader.loadBlob("models/insects/aphid_green.glb")
-            loaded.onSuccess { buf ->
-                try {
-                    val parsed = parseGltfAphid(buf.toArray())
-                    uploadAphidMeshes(parsed, aphidBodyMesh, aphidEyeMesh, aphidLegMeshes)
-                    greenAphid = parsed
-                    MyLog.add(TAG, "green aphid gltf tris=${parsed.triangles}", LogLevel.DEBUG)
-                } catch (err: Throwable) {
-                    MyLog.add(TAG, "Green aphid glTF failed: ${err.message}. Using block aphids.", LogLevel.DEBUG)
-                }
-            }.onFailure { err ->
-                MyLog.add(TAG, "Green aphid glTF missing: ${err.message}. Using block aphids.", LogLevel.DEBUG)
-            }
+            val loaded = Assets.defaultLoader.loadBlob("models/insects/aphid_green.glb").map { it.toArray() }
+            val parsed = parseGlbOrFallback("green aphid", "block aphids", loaded, parse = ::parseGltfAphid) ?: return@launch
+            uploadAphidMeshes(parsed, aphidBodyMesh, aphidEyeMesh, aphidLegMeshes)
+            greenAphid = parsed
+            MyLog.add(TAG, "green aphid gltf tris=${parsed.triangles}", LogLevel.DEBUG)
         }
     }
 

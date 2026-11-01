@@ -18,6 +18,8 @@ data class LaunchConfig(
     val shotOut: String? = null,
     /** `specimenCritter=beetle` (#81): swap the specimen ladybug for another critter. Only read by `shot=specimen`. */
     val specimenCritter: InsectKind? = null,
+    /** `lock-quality=1` / `lockQuality=1`, or MYANTS_LOCK_QUALITY=1 on desktop: no auto-downgrade. */
+    val lockQuality: Boolean = false,
 )
 
 fun parseLaunch(tokens: List<String>): LaunchConfig {
@@ -30,6 +32,7 @@ fun parseLaunch(tokens: List<String>): LaunchConfig {
     var shot: String? = null
     var shotOut: String? = null
     var specimenCritter: InsectKind? = null
+    var lockQuality = false
     for (raw in tokens) {
         val body = raw.removePrefix("--").removePrefix("-")
         if (body == "no-bloom" || body == "nobloom") {
@@ -48,10 +51,11 @@ fun parseLaunch(tokens: List<String>): LaunchConfig {
             "backend" -> backend = parseBackend(value)
             "shot" -> shot = value
             "shot-out" -> shotOut = value
+            "lock-quality", "lockQuality" -> lockQuality = value == "1" || value.equals("true", ignoreCase = true)
             "specimenCritter", "specimen-critter" -> specimenCritter = parseSpecimenCritter(value)
         }
     }
-    return LaunchConfig(seed, colonies, quality, renderer, backend, noBloom, shot, shotOut, specimenCritter)
+    return LaunchConfig(seed, colonies, quality, renderer, backend, noBloom, shot, shotOut, specimenCritter, lockQuality)
 }
 
 /** Critters that `shot=specimen` can show next to the ant (#81). */
