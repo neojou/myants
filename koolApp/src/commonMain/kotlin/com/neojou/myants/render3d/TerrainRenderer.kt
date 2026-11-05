@@ -17,9 +17,6 @@ import de.fabmax.kool.scene.Node
 import de.fabmax.kool.scene.VertexLayouts
 import de.fabmax.kool.scene.addMesh
 import de.fabmax.kool.util.Color
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 /** Ground mesh, pheromone emission, GroundHeight rebuild and sun / IBL (#47). */
 internal class TerrainRenderer : SubRenderer {
@@ -97,15 +94,7 @@ internal class TerrainRenderer : SubRenderer {
         val light = sun ?: return
         val world = state.world
         val bright = if (state.view.dayNight) world.dayBrightness().toFloat() else 1f
-        val elev = OutdoorLighting.sunElevation(bright)
-        val az = (world.timeOfDay * 160.0 - 80.0).toFloat()
-        val elevRad = elev * (PI.toFloat() / 180f)
-        val azRad = az * (PI.toFloat() / 180f)
-        val dir = Vec3f(
-            sin(azRad) * cos(elevRad),
-            -sin(elevRad),
-            cos(azRad) * cos(elevRad),
-        )
+        val dir = OutdoorLighting.lightDirection(bright, world.timeOfDay)
         light.setup(dir).setColor(OutdoorLighting.lightColor(bright), OutdoorLighting.lightIntensity(bright))
         lighting?.let {
             it.ambientFactor = OutdoorLighting.ambientColor(bright)

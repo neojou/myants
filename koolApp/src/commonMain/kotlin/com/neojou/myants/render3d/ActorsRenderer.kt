@@ -104,6 +104,7 @@ internal class ActorsRenderer(
 
     override fun update(state: RenderState, preset: QualityPreset, dt: Float) {
         this.state = state
+        inst.updateRim(state)
         pushActors(preset)
     }
 
@@ -183,8 +184,8 @@ internal class ActorsRenderer(
             eyes,
             jaws,
             legs,
-            shadedInstances(content, body, "$name-chitin", WorldPalette.CHITIN_ROUGHNESS, 0f),
-            shadedInstances(content, head, "$name-head", WorldPalette.CHITIN_ROUGHNESS, 0f),
+            shadedInstances(content, body, "$name-chitin", WorldPalette.CHITIN_ROUGHNESS, 0f, RimParts.ant(RimParts.AntPart.BODY)),
+            shadedInstances(content, head, "$name-head", WorldPalette.CHITIN_ROUGHNESS, 0f, RimParts.ant(RimParts.AntPart.HEAD)),
             shadedInstances(content, eyes, "$name-eye", 0.12f, 0.02f),
             shadedInstances(content, jaws, "$name-jaw", WorldPalette.CHITIN_ROUGHNESS, 0f),
             legs.mapIndexed { index, batch ->
@@ -205,7 +206,7 @@ internal class ActorsRenderer(
             eyes,
             marks,
             legs,
-            shadedInstances(content, body, "${kind.name}-body", WorldPalette.critterBodyRoughness(kind), 0.02f),
+            shadedInstances(content, body, "${kind.name}-body", WorldPalette.critterBodyRoughness(kind), 0.02f, RimParts.critterBody(kind)),
             shadedInstances(content, eyes, "${kind.name}-eye", 0.25f, 0.02f),
             shadedInstances(
                 content,
@@ -213,6 +214,7 @@ internal class ActorsRenderer(
                 "${kind.name}-mark",
                 WorldPalette.critterMarkRoughness(kind),
                 0.02f,
+                RimParts.critterBody(kind),
             ),
             legs.mapIndexed { index, batch ->
                 shadedInstances(content, batch, "${kind.name}-leg-$index", WorldPalette.CHITIN_ROUGHNESS, 0.02f)
@@ -499,8 +501,14 @@ internal class ActorsRenderer(
         color: Color,
     ) = inst.pose(batch, x, y, z, yaw, lx, ly, lz, sx, sy, sz, color)
 
-    private fun shadedInstances(parent: Node, instances: Batch, name: String, roughness: Float, metallic: Float): Mesh<*> =
-        inst.shaded(parent, instances, name, roughness, metallic)
+    private fun shadedInstances(
+        parent: Node,
+        instances: Batch,
+        name: String,
+        roughness: Float,
+        metallic: Float,
+        rim: Boolean = false,
+    ): Mesh<*> = inst.shaded(parent, instances, name, roughness, metallic, rim)
 
     private fun instanced(
         parent: Node,
