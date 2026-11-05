@@ -81,7 +81,7 @@ class WorldRenderer(
                 MyLog.add(TAG, "backend ${backendLabel()} compute=${de.fabmax.kool.KoolSystem.features.computeShaders}", LogLevel.DEBUG)
             }
             ensurePipeline(content, forward)
-            top.update(Time.deltaT, state.camera, host)
+            top.update(state.frameDt, state.camera, host)
             val preset = QualityPreset.from(PerformanceManager.level, state.renderTierBias)
             applyPreset(preset)
             val winW = it.ctx.window.size.x.toFloat().coerceAtLeast(1f)
@@ -150,6 +150,8 @@ class WorldRenderer(
             if (map != null && state.view.shadowsUser) useShadowMaps(listOf(map))
         }
         val pipe = DeferredPipeline(scene, cfg)
+        // #83: kool shuffles the AO noise without a seed; use a fixed one so page loads match.
+        pipe.aoPipeline?.aoPass?.aoPassShader?.noiseTex = AoNoise.texture()
         // MaterialPass only installs a proxy when the scene camera is perspective.
         // An orthographic camera would otherwise leave the g-buffer on the default
         // perspective camera, which never sees the ground.
@@ -182,14 +184,15 @@ class WorldRenderer(
     }
 
     internal fun fill(preset: QualityPreset, winW: Float, winH: Float) {
-        terrain.update(state, preset, Time.deltaT)
-        actors.update(state, preset, Time.deltaT)
-        props.update(state, preset, Time.deltaT)
-        overlay.update(state, preset, Time.deltaT)
+        terrain.update(state, preset, state.frameDt)
+        actors.update(state, preset, state.frameDt)
+        props.update(state, preset, state.frameDt)
+        overlay.update(state, preset, state.frameDt)
         NestCutaway.update(state, winW, winH)
     }
 
     internal fun watchFps() {
+        if (state.animFrozen) return // #83: wall-clock fps must not change a specimen frame
         val fps = state.fpsShown
         if (fps <= 0 || fps == lastFps) return
         lastFps = fps

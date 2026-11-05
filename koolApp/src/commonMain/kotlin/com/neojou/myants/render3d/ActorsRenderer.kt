@@ -36,7 +36,6 @@ import de.fabmax.kool.scene.TrsTransformF
 import de.fabmax.kool.scene.VertexLayouts
 import de.fabmax.kool.scene.addMesh
 import de.fabmax.kool.util.Color
-import de.fabmax.kool.util.Time
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -299,7 +298,7 @@ internal class ActorsRenderer(
         for (slot in critters) slot.clear()
         aphidBody.clear(); aphidEyes.clear(); honey.clear(); molts.clear()
         for (batch in aphidLegs) batch.clear()
-        val time = Time.gameTime.toFloat()
+        val time = state.animTime
         pushFood(preset)
         pushInsects()
         pushAnts(preset, time)
@@ -366,7 +365,7 @@ internal class ActorsRenderer(
                 val ground = GroundHeight.at(x, z)
                 val model = greenAphid
                 if (model != null) {
-                    val phase = (Time.gameTime.toFloat() * 0.25f + insect.seq * 0.173f) % 1f
+                    val phase = (state.animTime * 0.25f + insect.seq * 0.173f) % 1f
                     drawAphid(
                         model, aphidBody, aphidEyes, aphidLegs,
                         x, ground, z, yaw, size, phase, moved, mat, scale,
@@ -389,7 +388,7 @@ internal class ActorsRenderer(
                 critterPrevX[insect.seq] = x
                 critterPrevZ[insect.seq] = z
                 seen += insect.seq
-                val phase = (Time.gameTime.toFloat() * 0.35f + insect.seq * 0.173f) % 1f
+                val phase = (state.animTime * 0.35f + insect.seq * 0.173f) % 1f
                 drawCritter(
                     model, insect.type, slot.body, slot.eyes, slot.marks, slot.legs,
                     x, GroundHeight.at(x, z), z, yaw, size, phase, moved, mat, scale,

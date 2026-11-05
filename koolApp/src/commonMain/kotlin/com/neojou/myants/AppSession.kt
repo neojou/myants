@@ -52,6 +52,13 @@ class AppSession(launch: LaunchConfig) {
     val speeds: DoubleArray get() = clock.speeds
     var speedIndex by clock::speedIndex
     var paused by clock::paused
+    /** Render animation time; frozen only for specimen shots (#83). */
+    val animTime: Double get() = clock.animTime
+    /** True for shot=specimen* until the user resumes; nothing visual may follow wall time then (#83). */
+    val animFrozen: Boolean get() = clock.animFrozen
+    /** Last frame delta for render code; 0 while [animFrozen] (#83). */
+    var renderDt: Double = 0.0
+        private set
     var tool by tools::tool
     var inspectedAnt by tools::inspectedAnt
     val inspect get() = tools.inspect
@@ -159,6 +166,7 @@ class AppSession(launch: LaunchConfig) {
         if (ShotPose.apply(shot, world, camera, specimenCritter)) {
             // #76 specimen: freeze sim and keep the cinematic camera off, in memory only (not saved).
             clock.paused = true
+            clock.animFrozen = true
             cine.pausedUntil = Double.POSITIVE_INFINITY
         }
         publishChrome()
@@ -191,10 +199,11 @@ class AppSession(launch: LaunchConfig) {
     fun notifyInput() = cine.notifyInput(Time.gameTime)
 
     fun tick(dt: Float) {
+        renderDt = clock.renderDt(dt.toDouble())
         val now = Time.gameTime
         if (fps.frame(now)) {
             fpsShownPublic = fpsShown
-            PerformanceManager.monitorFps(fpsShown.toDouble(), (now * 1000.0).toLong())
+            if (!clock.animFrozen) PerformanceManager.monitorFps(fpsShown.toDouble(), (now * 1000.0).toLong())
         }
         if (!paused) {
             clock.advance(dt.toDouble()) { stepSim() }
@@ -205,6 +214,8 @@ class AppSession(launch: LaunchConfig) {
             } else {
                 deadFrames = 0
             }
+        } else {
+            clock.advance(dt.toDouble()) { } // paused: no sim ticks, animation time still runs (#83)
         }
         if (!userFollow && cinema) cine.update(world, camera, now)
         if (userFollow) {
