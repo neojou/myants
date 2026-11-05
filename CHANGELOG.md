@@ -8,6 +8,7 @@
 - 色彩 token 收斂第二輪：`Critter.kt` 的甲蟲／瓢蟲殼、眼、腳與甲蟲斑紋色移到 `WorldPalette`（數值不變），`GrafikPanel` 的色票改用 `MyantsTheme.Data.AntColorChoice.color`。WorldRenderer、Critter、GrafikPanel、NestCutaway、GltfMerged 不再有 `Color(` 字面值或 hex 色碼，由 `ColorTokenTest` 檢查（Closes #48）
 
 ### 新增
+- 蟻與甲蟲甲殼共用的 rim／fresnel 邊光（作法 A：在 deferred PBR 材質的 emission 加 `rimColor × strength × pow(1 − N·V, p) × side(N, L)`）。白天用太陽暖色、`RIM_DAY` 0.10、`RIM_EXP` 4.0，只在剪影邊緣，身體正面不變亮；套用在工蟻／兵蟻的頭、胸、腹與甲蟲身體，腳、觸角、顎和瓢蟲不套用。夜間強度先為 0（#91）。參數與套用部位由 `RimLightTest` 檢查，量測腳本 `docs/screenshots/84-rim/rim.py`（Closes #84）
 - 夜間固定構圖截圖 `shot=specimen-night`：與 `shot=specimen` 共用構圖（相機 420,300、zoom 6、蟻與 `specimenCritter`、無雨、開場暫停），只把 timeOfDay 換成 `shot=night` 的 0.92。供 QE 量夜間三花 ΔE 與蟻／甲蟲對地面對比（Closes #83）
 - `specimenCritter=beetle`（瀏覽器 `?shot=specimen&specimenCritter=beetle`、桌面 `--specimen-critter=beetle`）：specimen 構圖改擺甲蟲取代瓢蟲，位置、光、相機相同；預設仍是瓢蟲（#81）
 - glb 載入失敗時一律退回程序網格並寫一行 WARN log（`RENDER`）：缺檔、檔頭壞掉、截斷、模型被拒（如腳數不符）都不會丟例外，同時涵蓋工蟻、兵蟻、蚜蟲、瓢蟲、蜘蛛與 sugar／pebble／clover 等合併 glb，`GlbFallbackTest` 檢查（Refs #52）
