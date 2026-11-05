@@ -61,6 +61,11 @@ internal class RimShader(cfg: Config) : DeferredKslPbrShader(cfg) {
                     val base = float4Var(emission.input.input)
                     val n = float3Var(normalize(getFloat3Port("normal").output))
                     val v = float3Var(normalize(viewPos.output * (-1f).const))
+                    // Visible fragments face the camera; some glTF parts carry inward normals,
+                    // so face the normal towards the viewer (GLSL faceforward) before the fresnel.
+                    `if`(dot(n, v) lt 0f.const) {
+                        n set n * (-1f).const
+                    }
                     val l = float3Var(normalize((camData.viewMat * float4Value(toLight, 0f.const)).xyz))
                     val fres = float1Var(pow(1f.const - saturate(dot(n, v)), rimExp))
                     val side = float1Var(
