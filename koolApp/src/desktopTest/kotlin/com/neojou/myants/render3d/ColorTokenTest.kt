@@ -37,7 +37,9 @@ class ColorTokenTest {
         for (choice in MyantsTheme.Data.antColorChoices) {
             if (choice.color == WorldPalette.worker) continue
             val tint = outdoorAntTint(0, AntKind.WORKER, choice.color)
-            assertEquals(choice.color.toLinear(), tint.chitin, choice.hex)
+            val linear = choice.color.toLinear()
+            val s = WorldPalette.CHITIN_ALBEDO_SCALE
+            assertEquals(Color(linear.r * s, linear.g * s, linear.b * s, linear.a), tint.chitin, choice.hex)
             assertNotEquals(WorldPalette.antChitin, tint.chitin)
             assertEquals(tint.chitin, tint.head)
         }

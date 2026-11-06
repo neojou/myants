@@ -24,7 +24,7 @@ EYE = (0.05, 0.04, 0.04)
 
 # file path under koolApp/assets/models -> material list
 ANT = [  # WorldPalette.antChitin / antEye / antJaw; chitin and jaw use CHITIN_ROUGHNESS (#79)
-    pbr("chitin", (0.07, 0.07, 0.075), 1.0),
+    pbr("chitin", (0.036, 0.036, 0.039), 1.0),
     pbr("eye", (0.015, 0.015, 0.02), 0.12, 0.02),
     pbr("mandible", (0.16, 0.12, 0.09), 1.0),
 ]
