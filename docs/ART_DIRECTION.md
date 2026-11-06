@@ -63,6 +63,19 @@
 6. 結論寫 `[Artist] PASS` 或 `[Artist] FAIL`。PASS 時要註明還沒做的確認項目。
 7. 桌面版日、夜實機畫面的最終驗收由 Neo 在 macOS 執行 `./gradlew :koolApp:runDesktop` 並截圖；Artist 看過截圖後才算完成視覺驗收。
 
+## 6.7 室外蟻殼（正確法線下的 albedo，#94）
+
+原則：**不以錯誤法線把殼壓暗來換 D1**。甲殼 NORMAL 必須與外向 winding 一致；對比靠材質與光照，不靠 faceforward 或朝內法線。
+
+| 參數 | 字面值（線性） | 備註 |
+|---|---|---|
+| `WorldPalette.antChitin`（預設 Copper） | `(0.036, 0.036, 0.039)` | 計算值起點（由錯誤法線下 0.07、D1 3.53→目標 ≈4.71 反推 k≈0.52）；實測微調容許 0.035–0.038 |
+| `CHITIN_ALBEDO_SCALE` | `0.52` | 非預設 `outdoorChitin`：`toLinear()` 後再乘此係數，避免法線翻正後自選色再亮一截。各色票是否達 D1≥4.5 仍歸 #86 |
+| `CHITIN_ROUGHNESS` | `1.0` | 不動（#79） |
+| `antEye`／瓢蟲／甲蟲／地面／光照 | — | 本次不動 |
+
+門檻（正午 specimen，兩輪皆達）：D1≥4.5、D2≥3.3、D3≥3.25；瓢蟲觀感與 shell/gnd 不變；hot%≤2%。觀感：陰影核可暗，但體節受光明暗要留住。
+
 ## 7. 參考資料
 - 原作截圖：`docs/programming/antsim_screenshots/`
 - 3D 參考與比較圖：`docs/programming/3d_refs/references/`（說明見該目錄的 README）

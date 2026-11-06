@@ -152,3 +152,4 @@ cmake-build-*/
 # Local perf measurement (docs/perf/52-fps.md): Python venv and fps_web.py output
 .venv/
 gpu_chrome.json
+tools/__pycache__/

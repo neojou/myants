@@ -117,7 +117,12 @@ object WorldPalette {
     val nestSoil = Color(0.22f, 0.15f, 0.11f, 1f)
     val nestSoilDeep = Color(0.18f, 0.12f, 0.09f, 1f)
 
-    val antChitin = Color(0.07f, 0.07f, 0.075f, 1f)
+    /**
+     * Default outdoor ant shell albedo under correct outward normals (#94).
+     * Calculated from the §10 isolation shot (D1 3.53 at 0.07 → target ≈4.71 at k≈0.52).
+     * Locked by test; fine-tune only inside 0.035–0.038 with measured D1.
+     */
+    val antChitin = Color(0.036f, 0.036f, 0.039f, 1f)
     val antEye = Color(0.02f, 0.02f, 0.025f, 1f)
     val antJaw = Color(0.16f, 0.12f, 0.09f, 1f)
     val rivalChitin = Color(0.20f, 0.11f, 0.07f, 1f)
@@ -125,12 +130,23 @@ object WorldPalette {
     val rivalJaw = Color(0.32f, 0.16f, 0.10f, 1f)
 
     /**
-     * Outdoor glTF chitin for colony 0 from the antColor setting (#82). The default setting
-     * (worker copper) keeps the black species chitin, so the default picture and D1 do not change.
-     * Any other choice is the swatch converted from sRGB to linear albedo, which is how kool
-     * reads instance colours.
+     * Scale applied to non-default antColor swatches in [outdoorChitin] (#94).
+     * Same ratio as the default drop (0.036/0.07); keeps custom colours from
+     * reading ~1.94× brighter after the shell-normal fix. Per-swatch D1 is still #86.
      */
-    fun outdoorChitin(antColor: Color): Color = if (antColor == worker) antChitin else antColor.toLinear()
+    const val CHITIN_ALBEDO_SCALE = 0.52f
+
+    /**
+     * Outdoor glTF chitin for colony 0 from the antColor setting (#82, #94).
+     * Default (worker copper) uses [antChitin]. Any other swatch is sRGB→linear
+     * then multiplied by [CHITIN_ALBEDO_SCALE].
+     */
+    fun outdoorChitin(antColor: Color): Color {
+        if (antColor == worker) return antChitin
+        val c = antColor.toLinear()
+        val s = CHITIN_ALBEDO_SCALE
+        return Color(c.r * s, c.g * s, c.b * s, c.a)
+    }
 
     // Glb critter tints that differ from the classic 2D palette (#48: moved from Critter.kt, values unchanged).
     val beetleShell3d = Color(0.08f, 0.06f, 0.05f, 1f)
