@@ -94,4 +94,25 @@ class BlackAntGlbTest {
         ).firstOrNull { it.isFile }
         return found ?: error("$name not found from ${File(".").absolutePath}")
     }
+
+    /**
+     * #94: shell NORMALs must agree with outward winding in the committed glb.
+     * Delegates to `tools/check_ant_shell_normals.py` (same check as the asset
+     * pipeline). Checking after `parseGltfAnt` is not enough: body/head merge
+     * several nodes, and non-uniform scale makes face-vs-vertex tests noisy.
+     */
+    @Test
+    fun shellNormalsFaceOutwardWithWinding() {
+        val script = listOf(
+            File("tools/check_ant_shell_normals.py"),
+            File("../tools/check_ant_shell_normals.py"),
+        ).firstOrNull { it.isFile } ?: error("check_ant_shell_normals.py not found from ${File(".").absolutePath}")
+        val proc = ProcessBuilder("python3", script.absolutePath)
+            .directory(script.parentFile.parentFile)
+            .redirectErrorStream(true)
+            .start()
+        val out = proc.inputStream.bufferedReader().readText()
+        val code = proc.waitFor()
+        assertEquals(0, code, out)
+    }
 }

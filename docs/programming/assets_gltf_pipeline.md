@@ -99,3 +99,4 @@ tint：glTF 材質固定色，要每隻蟻群色時用 `pbrBlock = { prim -> col
 - `tools/make_*_glb.py` 輸出時套用這張表。鍬形蟲 `beetle.glb` 是 Blender 匯出，靠 `tools/glb_materials.py` 補材質。
 - `python3 tools/glb_materials.py` 只改 JSON chunk，BIN chunk 一個 byte 都不動；`--check` 會逐檔列出材質名稱、baseColor、roughness，有不符就失敗。
 - 已知：在目前的 main 上重跑 `make_food_glb.py`、`make_outdoor_insects_glb.py` 會把 protein、prey、predator、spider 的法線翻成朝外（2e8c201 改了共用的球體，但當時只重生了瓢蟲）。所以這次只用 `glb_materials.py` 改材質，不重生幾何。
+- #94：`worker_black.glb`／`soldier.glb` 同樣在 `2aabef9` 修正球體 winding 後沒重產，之後 `glb_materials.py` 只改 JSON，甲殼 NORMAL 一直朝內。已只翻正 BIN 中 13 個甲殼 mesh 的法線；之後若要重生，跑 `make_black_ant_glb.py` 再 `glb_materials.py`（或確認產生器輸出的法線與提交檔一致）。`BlackAntGlbTest.shellNormalsFaceOutwardWithWinding` 鎖定。
