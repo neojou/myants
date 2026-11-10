@@ -539,7 +539,7 @@ ANT_MATERIALS = [
     {
         "name": "chitin",
         "pbrMetallicRoughness": {
-            "baseColorFactor": [0.07, 0.07, 0.075, 1.0],
+            "baseColorFactor": [0.036, 0.036, 0.039, 1.0],
             "metallicFactor": 0.0,
             "roughnessFactor": 1.0,
         },

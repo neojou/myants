@@ -94,4 +94,86 @@ class BlackAntGlbTest {
         ).firstOrNull { it.isFile }
         return found ?: error("$name not found from ${File(".").absolutePath}")
     }
+
+    /**
+     * #94: shell NORMALs must agree with outward winding in the committed glb.
+     * Checks raw glTF accessors (before the node transform) via the same JsonReader
+     * / readVec3 path as the loader. Do not shell out to Python (CI has no numpy).
+     */
+    @Test
+    fun shellNormalsFaceOutwardWithWinding() {
+        val shells = setOf(
+            "HeadShell", "Neck", "Clypeus", "EyeL", "EyeR",
+            "ProthoraxShell", "MesothoraxShell", "MetathoraxShell",
+            "PetioleShell", "PostpetioleShell", "GasterRear", "GasterFront", "GasterTip",
+        )
+        for (name in listOf("worker_black.glb", "soldier.glb")) {
+            val bytes = glbFile(name).readBytes()
+            var jsonText = ""
+            var bin = ByteArray(0)
+            var cursor = 12
+            while (cursor + 8 <= bytes.size) {
+                val chunkLen = bytes.u32(cursor)
+                val chunkType = bytes.u32(cursor + 4)
+                val start = cursor + 8
+                val end = start + chunkLen
+                when (chunkType) {
+                    0x4E4F534A -> jsonText = bytes.decodeToString(start, end)
+                    0x004E4942 -> bin = bytes.copyOfRange(start, end)
+                }
+                cursor = end
+            }
+            val root = JsonReader(jsonText).parse() as JsonMap
+            val accessors = root.array("accessors")
+            val views = root.array("bufferViews")
+            val meshes = root.array("meshes")
+            var seen = 0
+            for (nodeEl in root.array("nodes")) {
+                val node = nodeEl as JsonMap
+                val nodeName = node.str("name")
+                if (nodeName !in shells) continue
+                val meshIndex = node.maybeNum("mesh")?.toInt() ?: continue
+                val mesh = meshes[meshIndex] as JsonMap
+                for (primEl in mesh.array("primitives")) {
+                    val prim = primEl as JsonMap
+                    val attrs = prim.map("attributes")
+                    val pos = readVec3(accessors, views, bin, attrs.num("POSITION").toInt())
+                    val nrm = readVec3(accessors, views, bin, attrs.num("NORMAL").toInt())
+                    val idx = readIndices(accessors, views, bin, prim.num("indices").toInt())
+                    var cx = 0f; var cy = 0f; var cz = 0f
+                    val verts = pos.size / 3
+                    var i = 0
+                    while (i < pos.size) {
+                        cx += pos[i]; cy += pos[i + 1]; cz += pos[i + 2]
+                        i += 3
+                    }
+                    cx /= verts; cy /= verts; cz /= verts
+                    var tris = 0; var agree = 0; var out = 0
+                    var t = 0
+                    while (t < idx.size) {
+                        val a = idx[t] * 3; val b = idx[t + 1] * 3; val c = idx[t + 2] * 3
+                        val ax = pos[a]; val ay = pos[a + 1]; val az = pos[a + 2]
+                        val bx = pos[b]; val by = pos[b + 1]; val bz = pos[b + 2]
+                        val dx = pos[c]; val dy = pos[c + 1]; val dz = pos[c + 2]
+                        val fx = (by - ay) * (dz - az) - (bz - az) * (dy - ay)
+                        val fy = (bz - az) * (dx - ax) - (bx - ax) * (dz - az)
+                        val fz = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax)
+                        val nx = (nrm[a] + nrm[b] + nrm[c]) / 3f
+                        val ny = (nrm[a + 1] + nrm[b + 1] + nrm[c + 1]) / 3f
+                        val nz = (nrm[a + 2] + nrm[b + 2] + nrm[c + 2]) / 3f
+                        if (fx * nx + fy * ny + fz * nz > 0f) agree++
+                        val mx = (ax + bx + dx) / 3f - cx
+                        val my = (ay + by + dy) / 3f - cy
+                        val mz = (az + bz + dz) / 3f - cz
+                        if (fx * mx + fy * my + fz * mz > 0f) out++
+                        tris++; t += 3
+                    }
+                    assertEquals(tris, agree, "$name $nodeName winding·N $agree/$tris")
+                    assertEquals(tris, out, "$name $nodeName winding outward $out/$tris")
+                    seen++
+                }
+            }
+            assertEquals(13, seen, "$name shell primitives")
+        }
+    }
 }
