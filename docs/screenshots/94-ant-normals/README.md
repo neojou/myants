@@ -1,5 +1,7 @@
 # #94 蟻殼法線＋albedo（實測值(headless)）
 
+下表的「門檻」是 #94／#95 當時的驗收值。現行門檻見 [`docs/ART_DIRECTION.md`](../../ART_DIRECTION.md) §6.8 與 [`docs/screenshots/MEASURE.md`](../MEASURE.md)。
+
 基準：main `c410196`（錯誤法線、`antChitin` 0.07）。PR：正確朝外法線 + `antChitin` (0.036, 0.036, 0.039) 計算值＝實測採用值（未再微調）。
 
 Playwright + Chrome headless（swiftshader）、1600×900、seed=12345、quality=medium、`83-specimen-night/shot_lock.py`。
