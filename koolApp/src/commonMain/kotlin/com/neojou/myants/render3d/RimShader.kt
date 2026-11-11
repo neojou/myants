@@ -72,4 +72,8 @@ internal object RimParts {
 
     /** Beetle body (elytra, pronotum, head) and marks; the ladybug keeps its glossy shell (#91 handles night). */
     fun critterBody(kind: com.neojou.myants.sim.InsectKind): Boolean = kind == com.neojou.myants.sim.InsectKind.BEETLE
+
+    /** TDD stub (#91). */
+    fun critter(kind: com.neojou.myants.sim.InsectKind): OutdoorLighting.RimProfile? =
+        if (critterBody(kind)) OutdoorLighting.RimProfile.CHITIN else null
 }

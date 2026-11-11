@@ -100,11 +100,20 @@ internal object OutdoorLighting {
     /** Fresnel exponent p, Artist range 3–5 for day (narrow edge). */
     const val RIM_EXP = 4.0f
 
+    /** TDD stub (#91): night exponent not set yet. */
+    const val RIM_EXP_NIGHT = RIM_EXP
+
+    /** TDD stub (#91): ladybug scale not set yet. */
+    const val RIM_LADYBUG_NIGHT_SCALE = 0f
+
+    enum class RimProfile { CHITIN, LADYBUG }
+
     /** Rim colour: warm sun by day, moon at night. */
     fun rimColor(bright: Float): Color = lightColor(bright)
 
     /** Night value under the moon, then linear to [RIM_DAY] with the same t as [ambientStrength]. */
-    fun rimStrength(bright: Float): Float {
+    @Suppress("UNUSED_PARAMETER")
+    fun rimStrength(bright: Float, profile: RimProfile = RimProfile.CHITIN): Float {
         if (isNight(bright)) return RIM_NIGHT
         val t = ((bright - NIGHT_BELOW) / (1f - NIGHT_BELOW)).coerceIn(0f, 1f)
         return RIM_NIGHT + (RIM_DAY - RIM_NIGHT) * t
@@ -118,6 +127,6 @@ internal object OutdoorLighting {
      * CPU mirror of the shader term (per channel factor before rimColor), for tests.
      * No side(N, L) base (Plan C, §6.8): it depends only on N·V, so it is 0 facing the camera.
      */
-    fun rimFactor(bright: Float, nDotV: Float): Float =
-        rimStrength(bright) * (1f - nDotV.coerceIn(0f, 1f)).pow(rimExp(bright))
+    fun rimFactor(bright: Float, nDotV: Float, profile: RimProfile = RimProfile.CHITIN): Float =
+        rimStrength(bright, profile) * (1f - nDotV.coerceIn(0f, 1f)).pow(rimExp(bright))
 }
