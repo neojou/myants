@@ -1,5 +1,7 @@
 package com.neojou.myants.render3d.actors
 
+import com.neojou.myants.render3d.RimParts
+
 /**
  * A rigid outdoor insect. +X is the head, feet sit on y = 0, and the length is 1.
  * Spots and elytra stay on [marks]. Legs pivot at the node named LegL1, LegR1, and so on.
@@ -9,11 +11,21 @@ internal class GltfCritter(
     val body: AntMesh,
     val eyes: AntMesh,
     val marks: AntMesh,
+    val appendages: AntMesh,
     val legs: List<AntLeg>,
 ) {
+    /** The meshes drawn in the batch for [part]; the renderer gives that batch [RimParts.critterRim] of [part]. */
+    fun mesh(part: RimParts.CritterPart): List<AntMesh> = when (part) {
+        RimParts.CritterPart.BODY -> listOf(body)
+        RimParts.CritterPart.MARK -> listOf(marks)
+        RimParts.CritterPart.APPENDAGE -> listOf(appendages)
+        RimParts.CritterPart.EYE -> listOf(eyes)
+        RimParts.CritterPart.LEG -> legs.map { it.mesh }
+    }
+
     val triangles: Int
         get() {
-            var count = body.indices.size + eyes.indices.size + marks.indices.size
+            var count = body.indices.size + eyes.indices.size + marks.indices.size + appendages.indices.size
             for (leg in legs) count += leg.mesh.indices.size
             return count / 3
         }
@@ -89,6 +101,7 @@ internal fun parseGltfCritter(bytes: ByteArray): GltfCritter {
     val body = MeshAccum()
     val eyes = MeshAccum()
     val marks = MeshAccum()
+    val appendages = MeshAccum()
     val legAccum = LinkedHashMap<String, MeshAccum>()
     for (i in 0 until count) {
         val meshIndex = meshOf[i]
@@ -143,7 +156,7 @@ internal fun parseGltfCritter(bytes: ByteArray): GltfCritter {
         val here = world[i] ?: FloatArray(16) { if (it % 5 == 0) 1f else 0f }
         nodes += AntNode(names[i], parent[i], here[12], here[13], here[14])
     }
-    val critter = GltfCritter(nodes, body.finish(), eyes.finish(), marks.finish(), legs)
+    val critter = GltfCritter(nodes, body.finish(), eyes.finish(), marks.finish(), appendages.finish(), legs)
     if (critter.body.indices.isEmpty() || critter.eyes.indices.isEmpty()) error("critter is missing a body part")
     return critter
 }

@@ -73,7 +73,10 @@ internal class RimShader(cfg: Config, private val profile: OutdoorLighting.RimPr
 
 /** Which parts get the shared rim (Artist table on #84). Legs, antennae, jaws, eyes: never. */
 internal object RimParts {
-    enum class AntPart { BODY, HEAD, JAW, LEG, EYE }
+    enum class AntPart { BODY, HEAD, JAW, ANTENNA, LEG, EYE }
+
+    /** Critter batches. [APPENDAGE] holds antennae and mandibles (#91 Artist review). */
+    enum class CritterPart { BODY, MARK, APPENDAGE, EYE, LEG }
 
     fun ant(part: AntPart): Boolean = part == AntPart.BODY || part == AntPart.HEAD
 
@@ -90,4 +93,8 @@ internal object RimParts {
         com.neojou.myants.sim.InsectKind.LADYBUG -> OutdoorLighting.RimProfile.LADYBUG
         else -> null
     }
+
+    /** Profile for one critter batch: body and marks follow [critter]; appendages, eyes and legs never rim. */
+    fun critterRim(kind: com.neojou.myants.sim.InsectKind, part: CritterPart): OutdoorLighting.RimProfile? =
+        if (part == CritterPart.BODY || part == CritterPart.MARK) critter(kind) else null
 }

@@ -65,7 +65,7 @@ class CritterGlbTest {
         }
         var spanMin = Float.POSITIVE_INFINITY
         var spanMax = Float.NEGATIVE_INFINITY
-        val parts = listOf(critter.body, critter.eyes, critter.marks) + critter.legs.map { it.mesh }
+        val parts = listOf(critter.body, critter.eyes, critter.marks, critter.appendages) + critter.legs.map { it.mesh }
         for (part in parts) {
             var v = 0
             while (v < part.positions.size) {
@@ -102,7 +102,7 @@ class CritterGlbTest {
     private fun modelLength(critter: GltfCritter): Float {
         var minX = Float.POSITIVE_INFINITY
         var maxX = Float.NEGATIVE_INFINITY
-        val parts = listOf(critter.body, critter.eyes, critter.marks) + critter.legs.map { it.mesh }
+        val parts = listOf(critter.body, critter.eyes, critter.marks, critter.appendages) + critter.legs.map { it.mesh }
         for (part in parts) {
             var v = 0
             while (v < part.positions.size) {

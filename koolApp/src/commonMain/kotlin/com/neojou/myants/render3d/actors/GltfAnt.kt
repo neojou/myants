@@ -1,5 +1,6 @@
 package com.neojou.myants.render3d.actors
 
+import com.neojou.myants.render3d.RimParts
 import kotlin.math.sqrt
 
 /**
@@ -13,11 +14,22 @@ internal class GltfAnt(
     val head: AntMesh,
     val eyes: AntMesh,
     val mandibles: AntMesh,
+    val antennae: AntMesh,
     val legs: List<AntLeg>,
 ) {
+    /** The meshes drawn in the batch for [part]; the renderer gives that batch [RimParts.antRim] of [part]. */
+    fun mesh(part: RimParts.AntPart): List<AntMesh> = when (part) {
+        RimParts.AntPart.BODY -> listOf(body)
+        RimParts.AntPart.HEAD -> listOf(head)
+        RimParts.AntPart.JAW -> listOf(mandibles)
+        RimParts.AntPart.ANTENNA -> listOf(antennae)
+        RimParts.AntPart.EYE -> listOf(eyes)
+        RimParts.AntPart.LEG -> legs.map { it.mesh }
+    }
+
     val triangles: Int
         get() {
-            var count = body.indices.size + head.indices.size + eyes.indices.size + mandibles.indices.size
+            var count = body.indices.size + head.indices.size + eyes.indices.size + mandibles.indices.size + antennae.indices.size
             for (leg in legs) count += leg.mesh.indices.size
             return count / 3
         }
@@ -116,6 +128,7 @@ internal fun parseGltfAnt(bytes: ByteArray): GltfAnt {
     val head = MeshAccum()
     val eyes = MeshAccum()
     val jaws = MeshAccum()
+    val antennae = MeshAccum()
     val legAccum = LinkedHashMap<String, MeshAccum>()
     for (i in 0 until count) {
         val meshIndex = meshOf[i]
@@ -171,7 +184,7 @@ internal fun parseGltfAnt(bytes: ByteArray): GltfAnt {
         val here = world[i] ?: floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1f)
         nodes += AntNode(names[i], parent[i], here[12], here[13], here[14])
     }
-    val ant = GltfAnt(nodes, materials, body.finish(), head.finish(), eyes.finish(), jaws.finish(), legs)
+    val ant = GltfAnt(nodes, materials, body.finish(), head.finish(), eyes.finish(), jaws.finish(), antennae.finish(), legs)
     if (ant.body.indices.isEmpty() || ant.head.indices.isEmpty() || ant.eyes.indices.isEmpty() || ant.mandibles.indices.isEmpty()) {
         error("ant is missing a body part")
     }
