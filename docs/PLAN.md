@@ -27,8 +27,9 @@
 - #48 theme token 第二輪與 #82 antColor 接上 glTF 蟻：已在 PR #85 合併。
 - #52 glb 退回測試與 Medium 300 蟻 fps：在分支 `feat/52-gltf-fallback-fps`。web 在 headless SwiftShader（無 GPU，鎖定 Medium）約 1.6 fps，僅供參考，桌面因 kool 在 Linux 強制 Wayland、box 沒有 compositor 而量不到；結果與 Neo 本機重現步驟見 `docs/perf/52-fps.md`；#52 等 Neo 的 desktop 數據再關。
 - #81 甲蟲霧面與 `specimenCritter=beetle`：已合併（PR #89）；量測在 `docs/screenshots/81-beetle/`。
-- #83 `shot=specimen-night` 與暫停畫面鎖時鐘（動畫改用 `RenderState.animTime`）：在分支 `feat/83-specimen-night`，未合併；量測在 `docs/screenshots/83-specimen-night/`。
-- #94 工蟻／兵蟻甲殼法線朝外＋正確法線下 `antChitin` (0.036,0.036,0.039)、`CHITIN_ALBEDO_SCALE` 0.52：在分支 `feat/94-ant-shell-normals`，未合併；量測在 `docs/screenshots/94-ant-normals/`。
+- #83 `shot=specimen-night` 與暫停畫面鎖時鐘（動畫改用 `RenderState.animTime`）：已合併（PR #90）；量測在 `docs/screenshots/83-specimen-night/`。
+- #94 工蟻／兵蟻甲殼法線朝外＋正確法線下 `antChitin` (0.036,0.036,0.039)、`CHITIN_ALBEDO_SCALE` 0.52：已合併（PR #95）；量測在 `docs/screenshots/94-ant-normals/`。
+- #84 共用白天甲殼 rim（方案 C：無側面基底 `rimColor × k × pow(1 − N·V, p)`，`RIM_DAY` 0.10、`RIM_EXP` 4.0，暖色；蟻頭胸腹與甲蟲身體，瓢蟲不套用；夜間留給 #91）：在分支 `feat/84-shared-rim-day`，PR 審查中；量測、`contour.py`、`gray.py` 在 `docs/screenshots/84-rim/`。
 - 下一步：#47 依序合併：守門（#60）→ InspectRing 分派移到 session（#63）→ RenderState／RenderHost 介面（PR 已開，疊在 #63 上，允許清單已清空）→ 子渲染器物件（PR 已開，疊在 RenderState／RenderHost PR 上），皆不改行為；#13 與 milestone M5 仍開。巢穴 glTF 沒做。不 push main、不關 issue、不改版號。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 

@@ -58,8 +58,17 @@ internal class Instancer {
 
     fun batch(size: Int): Batch = MeshInstanceList(layout, size)
 
-    fun shaded(parent: Node, instances: Batch, name: String, roughness: Float, metallic: Float): Mesh<*> {
-        val shader = deferredKslPbrShader {
+    /** Rim shaders created by [shaded] with rim = true; updated each frame by [updateRim]. */
+    private val rimShaders = mutableListOf<RimShader>()
+
+    fun updateRim(state: RenderState) {
+        if (rimShaders.isEmpty()) return
+        val bright = if (state.view.dayNight) state.world.dayBrightness().toFloat() else 1f
+        for (s in rimShaders) s.apply(bright)
+    }
+
+    fun shaded(parent: Node, instances: Batch, name: String, roughness: Float, metallic: Float, rim: Boolean = false): Mesh<*> {
+        val shader = if (rim) RimShader.create(layout, roughness, metallic).also { rimShaders += it } else deferredKslPbrShader {
             vertices { instancedModelMatrix(layout.modelMat) }
             color { instanceColor(layout.color) }
             roughness(roughness)

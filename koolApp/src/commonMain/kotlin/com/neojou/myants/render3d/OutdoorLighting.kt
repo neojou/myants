@@ -1,6 +1,11 @@
 package com.neojou.myants.render3d
 
+import de.fabmax.kool.math.Vec3f
 import de.fabmax.kool.util.Color
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
 
 /**
  * Outdoor light targets from the Artist spec in #68. Pure numbers, so tests can
@@ -76,4 +81,43 @@ internal object OutdoorLighting {
         fun ch(n: Float) = k * (n + (1f - n) * t)
         return Color(ch(nightTint.r), ch(nightTint.g), ch(nightTint.b), 1f)
     }
+
+    /** Sun / moon direction (pointing down from the light); shared by the light and the rim (#84). */
+    fun lightDirection(bright: Float, timeOfDay: Double): Vec3f {
+        val elevRad = sunElevation(bright) * (PI.toFloat() / 180f)
+        val azRad = (timeOfDay * 160.0 - 80.0).toFloat() * (PI.toFloat() / 180f)
+        return Vec3f(sin(azRad) * cos(elevRad), -sin(elevRad), cos(azRad) * cos(elevRad))
+    }
+
+    // ---- Shared chitin rim / fresnel (#84 day, #91 night) ----
+
+    /** Day rim strength (linear emission), Artist range 0.06–0.15. */
+    const val RIM_DAY = 0.10f
+
+    /** Night rim strength; 0 until #91 sets it. */
+    const val RIM_NIGHT = 0.0f
+
+    /** Fresnel exponent p, Artist range 3–5 for day (narrow edge). */
+    const val RIM_EXP = 4.0f
+
+    /** Rim colour: warm sun by day, moon at night. */
+    fun rimColor(bright: Float): Color = lightColor(bright)
+
+    /** Night value under the moon, then linear to [RIM_DAY] with the same t as [ambientStrength]. */
+    fun rimStrength(bright: Float): Float {
+        if (isNight(bright)) return RIM_NIGHT
+        val t = ((bright - NIGHT_BELOW) / (1f - NIGHT_BELOW)).coerceIn(0f, 1f)
+        return RIM_NIGHT + (RIM_DAY - RIM_NIGHT) * t
+    }
+
+    /** #91 may interpolate a night exponent here; day is fixed. */
+    @Suppress("UNUSED_PARAMETER")
+    fun rimExp(bright: Float): Float = RIM_EXP
+
+    /**
+     * CPU mirror of the shader term (per channel factor before rimColor), for tests.
+     * No side(N, L) base (Plan C, §6.8): it depends only on N·V, so it is 0 facing the camera.
+     */
+    fun rimFactor(bright: Float, nDotV: Float): Float =
+        rimStrength(bright) * (1f - nDotV.coerceIn(0f, 1f)).pow(rimExp(bright))
 }
