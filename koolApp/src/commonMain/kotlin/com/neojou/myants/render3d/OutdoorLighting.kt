@@ -94,34 +94,45 @@ internal object OutdoorLighting {
     /** Day rim strength (linear emission), Artist range 0.06–0.15. */
     const val RIM_DAY = 0.10f
 
-    /** Night rim strength; 0 until #91 sets it. */
-    const val RIM_NIGHT = 0.0f
+    /** Night moon-rim strength (#91 Artist start value; range 0.30–0.60). */
+    const val RIM_NIGHT = 0.45f
 
     /** Fresnel exponent p, Artist range 3–5 for day (narrow edge). */
     const val RIM_EXP = 4.0f
 
-    /** TDD stub (#91): night exponent not set yet. */
-    const val RIM_EXP_NIGHT = RIM_EXP
+    /** Night fresnel exponent (#91 Artist start value; range 2.0–3.0). */
+    const val RIM_EXP_NIGHT = 2.5f
 
-    /** TDD stub (#91): ladybug scale not set yet. */
-    const val RIM_LADYBUG_NIGHT_SCALE = 0f
+    /** Ladybug shell gets 0.6× the ant's night rim and none by day (#91 Artist table). */
+    const val RIM_LADYBUG_NIGHT_SCALE = 0.6f
 
+    /** Who gets which rim: ant / beetle chitin share one; the ladybug only takes the night part. */
     enum class RimProfile { CHITIN, LADYBUG }
 
     /** Rim colour: warm sun by day, moon at night. */
     fun rimColor(bright: Float): Color = lightColor(bright)
 
-    /** Night value under the moon, then linear to [RIM_DAY] with the same t as [ambientStrength]. */
-    @Suppress("UNUSED_PARAMETER")
+    /** 0 under the moon, 1 at noon; the same t as [ambientStrength]. */
+    private fun dayT(bright: Float): Float =
+        if (isNight(bright)) 0f else ((bright - NIGHT_BELOW) / (1f - NIGHT_BELOW)).coerceIn(0f, 1f)
+
+    /**
+     * [RIM_NIGHT] under the moon, then linear to [RIM_DAY] with the same t as [ambientStrength].
+     * The ladybug takes only the night part (× [RIM_LADYBUG_NIGHT_SCALE]), fading to 0 by noon.
+     */
     fun rimStrength(bright: Float, profile: RimProfile = RimProfile.CHITIN): Float {
-        if (isNight(bright)) return RIM_NIGHT
-        val t = ((bright - NIGHT_BELOW) / (1f - NIGHT_BELOW)).coerceIn(0f, 1f)
-        return RIM_NIGHT + (RIM_DAY - RIM_NIGHT) * t
+        val t = dayT(bright)
+        return when (profile) {
+            RimProfile.CHITIN -> RIM_DAY * t + RIM_NIGHT * (1f - t) // exact RIM_DAY at noon
+            RimProfile.LADYBUG -> RIM_LADYBUG_NIGHT_SCALE * RIM_NIGHT * (1f - t)
+        }
     }
 
-    /** #91 may interpolate a night exponent here; day is fixed. */
-    @Suppress("UNUSED_PARAMETER")
-    fun rimExp(bright: Float): Float = RIM_EXP
+    /** [RIM_EXP_NIGHT] under the moon, then linear to the day [RIM_EXP] with the same t. */
+    fun rimExp(bright: Float): Float {
+        val t = dayT(bright)
+        return RIM_EXP * t + RIM_EXP_NIGHT * (1f - t) // exact RIM_EXP at noon
+    }
 
     /**
      * CPU mirror of the shader term (per channel factor before rimColor), for tests.
