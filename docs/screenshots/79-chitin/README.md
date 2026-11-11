@@ -1,5 +1,7 @@
 # #79 蟻身與瓢蟲黑點對比（shot=specimen）
 
+本表是 #79 當時的實測紀錄。現行門檻見 [`docs/ART_DIRECTION.md`](../../ART_DIRECTION.md) §6.8 與 [`docs/screenshots/MEASURE.md`](../MEASURE.md)。
+
 量測：`python3 measure.py main_specimen.png pr_specimen.png`（WCAG 相對亮度對比；蟻 ROI x505–600 y420–470，瓢蟲 ROI x590–680 y395–480）。
 
 | 版本 | 蟻 / 地面 | D1 | 殼 / 黑點 | D2 |
