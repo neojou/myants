@@ -64,8 +64,7 @@ internal class Instancer {
     fun updateRim(state: RenderState) {
         if (rimShaders.isEmpty()) return
         val bright = if (state.view.dayNight) state.world.dayBrightness().toFloat() else 1f
-        val dir = OutdoorLighting.lightDirection(bright, state.world.timeOfDay)
-        for (s in rimShaders) s.apply(bright, dir)
+        for (s in rimShaders) s.apply(bright)
     }
 
     fun shaded(parent: Node, instances: Batch, name: String, roughness: Float, metallic: Float, rim: Boolean = false): Mesh<*> {

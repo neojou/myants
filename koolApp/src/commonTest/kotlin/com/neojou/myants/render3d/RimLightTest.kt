@@ -13,7 +13,6 @@ class RimLightTest {
     fun dayParametersArePinned() {
         assertEquals(0.10f, OutdoorLighting.RIM_DAY)
         assertEquals(4.0f, OutdoorLighting.RIM_EXP)
-        assertEquals(0.35f, OutdoorLighting.RIM_SIDE_BASE)
         assertTrue(OutdoorLighting.RIM_DAY in 0.06f..0.15f)
         assertTrue(OutdoorLighting.RIM_EXP in 3f..5f)
     }
@@ -34,14 +33,31 @@ class RimLightTest {
     @Test
     fun rimOnlyAtSilhouetteAndBelowBloom() {
         // Facing the camera: no rim at all, so no frontal highlight.
-        assertEquals(0f, OutdoorLighting.rimFactor(1f, 1f, 0.5f))
-        // Grazing, back-lit edge is the brightest point; still far below bloom.
-        val peak = OutdoorLighting.rimFactor(1f, 0f, 0f)
+        assertEquals(0f, OutdoorLighting.rimFactor(1f, 1f))
+        // Grazing edge is the brightest point; still far below bloom.
+        val peak = OutdoorLighting.rimFactor(1f, 0f)
         assertTrue(abs(peak - OutdoorLighting.RIM_DAY) < 1e-6f)
         val c = OutdoorLighting.sunColor
         assertTrue(maxOf(c.r, c.g, c.b) * peak < OutdoorLighting.BLOOM_THRESHOLD)
-        // Lit side is weaker than shaded side.
-        assertTrue(OutdoorLighting.rimFactor(1f, 0.1f, 1f) < OutdoorLighting.rimFactor(1f, 0.1f, 0f))
+    }
+
+    @Test
+    fun noSideBaseSoBodyInteriorStaysUnlit() {
+        // Plan C (§6.8): no side(N, L) floor. At N·V = 0.7 (body interior seen at an angle)
+        // the old 0.35 base still added ≥0.35 × k × 0.3^4; the new term must stay < 1 % of k.
+        assertTrue(OutdoorLighting.rimFactor(1f, 0.7f) < 0.01f * OutdoorLighting.RIM_DAY)
+        // Strictly rises towards the silhouette (monotonic edge gain).
+        var prev = OutdoorLighting.rimFactor(1f, 1f)
+        for (i in 9 downTo 0) {
+            val f = OutdoorLighting.rimFactor(1f, i / 10f)
+            assertTrue(f > prev)
+            prev = f
+        }
+    }
+
+    @Test
+    fun rimIsOffAtNightUntil91() {
+        for (ndv in listOf(0f, 0.3f, 1f)) assertEquals(0f, OutdoorLighting.rimFactor(0.1f, ndv))
     }
 
     @Test

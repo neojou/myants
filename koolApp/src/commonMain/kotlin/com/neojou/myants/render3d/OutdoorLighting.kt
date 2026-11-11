@@ -100,9 +100,6 @@ internal object OutdoorLighting {
     /** Fresnel exponent p, Artist range 3–5 for day (narrow edge). */
     const val RIM_EXP = 4.0f
 
-    /** side(N, L) = RIM_SIDE_BASE + (1 - RIM_SIDE_BASE) * (1 - saturate(N·L)). */
-    const val RIM_SIDE_BASE = 0.35f
-
     /** Rim colour: warm sun by day, moon at night. */
     fun rimColor(bright: Float): Color = lightColor(bright)
 
@@ -117,10 +114,10 @@ internal object OutdoorLighting {
     @Suppress("UNUSED_PARAMETER")
     fun rimExp(bright: Float): Float = RIM_EXP
 
-    /** CPU mirror of the shader term (per channel factor before rimColor), for tests. */
-    fun rimFactor(bright: Float, nDotV: Float, nDotL: Float): Float {
-        val f = (1f - nDotV.coerceIn(0f, 1f)).pow(rimExp(bright))
-        val side = RIM_SIDE_BASE + (1f - RIM_SIDE_BASE) * (1f - nDotL.coerceIn(0f, 1f))
-        return rimStrength(bright) * f * side
-    }
+    /**
+     * CPU mirror of the shader term (per channel factor before rimColor), for tests.
+     * No side(N, L) base (Plan C, §6.8): it depends only on N·V, so it is 0 facing the camera.
+     */
+    fun rimFactor(bright: Float, nDotV: Float): Float =
+        rimStrength(bright) * (1f - nDotV.coerceIn(0f, 1f)).pow(rimExp(bright))
 }
