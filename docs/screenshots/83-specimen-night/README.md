@@ -10,7 +10,7 @@
 
 正午 specimen（measure.py）：main 是 D1 4.71/4.70、D2 3.31/3.31；PR 兩次都是 D1=4.71、D2=3.31。
 
-夜間（specimen-night、specimen-night&specimenCritter=beetle）只附圖，ΔE 與對比由 QE 量測，沒有門檻。
+夜間（specimen-night、specimen-night&specimenCritter=beetle）只附圖，ΔE 與對比由 QE 量測。夜間不要套用正午的 D1／D3 門檻；現行夜間驗收見 [`docs/screenshots/MEASURE.md`](../MEASURE.md) 第 6 節。
 
 ## PM 決定後（commit c0e30fc：一般暫停時動畫照常，只有 shot=specimen* 凍結）
 
