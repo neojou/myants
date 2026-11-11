@@ -10,6 +10,7 @@
 - 色彩 token 收斂第二輪：`Critter.kt` 的甲蟲／瓢蟲殼、眼、腳與甲蟲斑紋色移到 `WorldPalette`（數值不變），`GrafikPanel` 的色票改用 `MyantsTheme.Data.AntColorChoice.color`。WorldRenderer、Critter、GrafikPanel、NestCutaway、GltfMerged 不再有 `Color(` 字面值或 hex 色碼，由 `ColorTokenTest` 檢查（Closes #48）
 
 ### 新增
+- 夜間月光 rim（#91）：同一套 `RimShader`／`OutdoorLighting` 補夜間參數，公式與白天相同（無側面基底 `rimColor × k × pow(1 − saturate(N·V), p)`）。夜間 `rimColor`＝`moonColor` (0.62, 0.66, 0.78)、`RIM_NIGHT` 0.45、`RIM_EXP_NIGHT` 2.5（Artist 起點值）；晨昏以 `ambientStrength` 的 t 線性內插到白天 `RIM_DAY` 0.10／`RIM_EXP` 4.0（正午值與 #98 位元相同）。瓢蟲紅殼（含黑點與前胸）改用夜間限定 profile：0.6×`RIM_NIGHT`，正午為 0，所以正午瓢蟲不變。地面、環境光、月光強度不動。`RimLightTest` 鎖住日夜參數、過渡與套用部位；夜間 contour／gray 實測與圖在 `docs/screenshots/91-night-rim/`，夜間合格帶待 Artist 依實測定（Closes #91）
 - 蟻與甲蟲甲殼共用的白天 rim／fresnel 邊光（方案 C，作法 A：在 deferred PBR 材質的 emission 加 `rimColor × k × pow(1 − saturate(N·V), p)`，**無側面基底**，正面為 0、本體內部不變亮）。白天 `rimColor`＝太陽暖色、`RIM_DAY` 0.10、`RIM_EXP` 4.0；套用在工蟻／兵蟻的頭、胸、腹與甲蟲身體，腳、觸角、顎和瓢蟲不套用；夜間強度先為 0（#91）。輪廓量測腳本 `docs/screenshots/84-rim/contour.py`（2px 邊帶增益：蟻 1.235、甲蟲 1.148，內部中位 1.000）與灰階圖腳本 `gray.py`；headless 兩輪 D1 4.51、D2 3.31、D3 3.22（實測值）。`RimLightTest` 檢查參數、無側面基底與套用部位（Closes #84）
 - 夜間固定構圖截圖 `shot=specimen-night`：與 `shot=specimen` 共用構圖（相機 420,300、zoom 6、蟻與 `specimenCritter`、無雨、開場暫停），只把 timeOfDay 換成 `shot=night` 的 0.92。供 QE 量夜間三花 ΔE 與蟻／甲蟲對地面對比（Closes #83）
 - `specimenCritter=beetle`（瀏覽器 `?shot=specimen&specimenCritter=beetle`、桌面 `--specimen-critter=beetle`）：specimen 構圖改擺甲蟲取代瓢蟲，位置、光、相機相同；預設仍是瓢蟲（#81）
