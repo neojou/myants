@@ -1,8 +1,11 @@
 # contour.py — #84 輪廓對比（MEASURE.md §4）：同構圖、同 seed 的 k=0 圖與開啟可讀性層的圖逐框比較。
-# 用法：python3 contour.py K0.png [--beetle] [--r N] [--mask MASK.png] IMG.png ...
+# 用法：python3 contour.py K0.png [--beetle] [--r N] [--mask MASK.png] [--body] IMG.png ...
 #   --mask（#91 夜間用）：遮罩與輪廓帶改由 MASK.png（同構圖的正午 k=0 圖）決定，亮度仍比 K0 與 IMG。
 #   夜間地面太暗（L≈0.012），「L < 0.5×地面」在夜圖上選不到蟲體像素（遮罩為空），所以夜間要借正午 k=0 的幾何。
 #   構圖凍結（#83：specimen 與 specimen-night 相機、蟲位、姿勢相同），兩張的剪影像素位置一致。不加 --mask 時行為不變。
+#   --body（#91 Artist §5、#102 夜間正式帶）：遮罩先 binary_opening 2 次去掉 ≤4px 細結構（腳、觸角、大顎、框角他物），
+#   輪廓帶＝本體 − 本體侵蝕 r px，內部＝本體侵蝕 r px（同 Artist nband.py）。另印細結構（遮罩 − 本體）的中位增益 thinGain。
+#   不加 --body 時行為不變。
 #   specimen 圖量蟻（框 x505–600、y420–470）；--beetle 圖量甲蟲（框 x615–695、y422–462）。
 # 遮罩：k=0 圖固定框內 L < 0.5 × k=0 地面中位 L（地面框 x700–740、y470–500）。只由 k=0 圖決定，兩張圖用同一組像素。
 # 輪廓帶 edge = 遮罩 − 遮罩侵蝕 r px（預設 r=2；框邊視為遮罩內，不算輪廓）；本體內部 interior = 侵蝕後的遮罩。
@@ -13,7 +16,7 @@
 import sys
 import numpy as np
 from PIL import Image
-from scipy.ndimage import binary_erosion
+from scipy.ndimage import binary_erosion, binary_opening
 
 ANT = (slice(420, 470), slice(505, 600))
 BEETLE = (slice(422, 462), slice(615, 695))
@@ -30,19 +33,26 @@ def load(f):
     return np.asarray(Image.open(f).convert('RGB')).astype(float)
 
 
-def bands(k0, box, r, ref=None):
+def bands(k0, box, r, ref=None, body=False):
     lb = lum(k0[box])
     ref = k0 if ref is None else ref
     mask = lum(ref[box]) < 0.5 * np.median(lum(ref[GROUND]))
-    inner = binary_erosion(mask, iterations=r, border_value=1)
-    return lb, mask & ~inner, inner
+    if not body:
+        inner = binary_erosion(mask, iterations=r, border_value=1)
+        return lb, mask & ~inner, inner, None
+    core = binary_opening(mask, iterations=2, border_value=0)
+    inner = binary_erosion(core, iterations=r, border_value=1)
+    return lb, core & ~inner, inner, mask & ~core
 
 
-def gains(k0, img, box, r, ref=None):
-    lb, edge, inner = bands(k0, box, r, ref)
+def gains(k0, img, box, r, ref=None, body=False):
+    lb, edge, inner, thin = bands(k0, box, r, ref, body)
     li = lum(img[box])
     changed = np.abs(li - lb) > 0.002
-    return dict(
+    extra = {}
+    if thin is not None:
+        extra = dict(thinPx=int(thin.sum()), thinGain=np.median(li[thin]) / np.median(lb[thin]))
+    return extra | dict(
         edgePx=int(edge.sum()), innerPx=int(inner.sum()),
         edgeGain=np.median(li[edge]) / np.median(lb[edge]),
         interiorGain=np.median(li[inner]) / np.median(lb[inner]),
@@ -65,11 +75,14 @@ def main(argv):
         i = argv.index('--mask')
         ref = load(argv[i + 1])
         del argv[i:i + 2]
+    body = '--body' in argv
+    argv = [a for a in argv if a != '--body']
     k0 = load(argv[0])
     box = BEETLE if beetle else ANT
     for f in argv[1:]:
-        g = gains(k0, load(f), box, r, ref)
-        print(f"{f}: {'beetle' if beetle else 'ant'} r={r} edgePx={g['edgePx']} innerPx={g['innerPx']} "
+        g = gains(k0, load(f), box, r, ref, body)
+        tag = f" body thinPx={g['thinPx']} thinGain={g['thinGain']:.3f}" if body else ''
+        print(f"{f}: {'beetle' if beetle else 'ant'} r={r}{tag} edgePx={g['edgePx']} innerPx={g['innerPx']} "
               f"edgeGain={g['edgeGain']:.3f} interiorGain={g['interiorGain']:.3f} "
               f"edgeMeanGain={g['edgeMeanGain']:.3f} interiorMeanGain={g['interiorMeanGain']:.3f} "
               f"changedInEdge%={g['changedInEdge']:.1f}")

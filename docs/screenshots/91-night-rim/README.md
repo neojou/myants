@@ -1,6 +1,6 @@
 # #91 夜間月光 rim（同一套 RimShader；實測值(headless)）
 
-現行規則見 [`docs/ART_DIRECTION.md`](../../ART_DIRECTION.md) §6.8 與 [`../MEASURE.md`](../MEASURE.md)。夜間**不套用**正午 D1／D3，也**不套用**正午輪廓合格帶；夜間合格帶由 Artist 依本頁實測另定。本頁的夜間數字只是實測紀錄，不是 PASS／FAIL。
+現行規則見 [`docs/ART_DIRECTION.md`](../../ART_DIRECTION.md) §6.8 與 [`../MEASURE.md`](../MEASURE.md)。夜間**不套用**正午 D1／D3，也**不套用**正午輪廓合格帶；夜間合格帶由 Artist 在 #105 審查 §5 定案（本體帶），本頁照該帶判定；寫進 ART_DIRECTION／MEASURE.md 由 PM 在合併後處理。
 
 ## 公式與參數
 
@@ -21,69 +21,84 @@ rim = rimColor(bright) × k(bright) × pow(1 − saturate(N·V), p(bright))
 - 寫成 `a·t + b·(1−t)`，t=1 時精確等於 `RIM_DAY`／`RIM_EXP`，正午 uniform 與 #98 位元相同。
 - 線性峰值 0.45 × 0.78 = 0.35 < `BLOOM_THRESHOLD` 1.2（計算值）。
 - 套用部位：工蟻／兵蟻頭、胸、腹；甲蟲身體與斑紋；瓢蟲殼與黑點（夜間限定 profile）。腳、觸角、顎、眼、蚜蟲等不套用。
+- **Artist FAIL 修正（#105）**：修正前蟻觸角（`Head/AntennaL/{Scape,Funiculus}`）落在頭部批次、甲蟲觸角與大顎落在身體批次，實際有套 rim；夜間 N·V≈0 打到峰值，成為斷續亮點。現在蟻觸角在 `antenna` 批次（頭部顏色、`CHITIN_ROUGHNESS`、無 rim），甲蟲 `Antenna*`／`Mandible*` 在 `appendage` 批次（身體顏色與 roughness、無 rim）。`RIM_NIGHT`、p、`rimColor` 未改。
 - 地面、環境光、`MOON_INTENSITY`、albedo、roughness 都沒改。
 
 ## 拍攝
 
-Playwright + Chrome headless（swiftshader）、1600×900、seed=12345、quality=medium、`83-specimen-night/shot_lock.py`，一次拍一張。
-k=0（夜間 rim 關閉）對照：main `2eaa03b` build（`main_r1_*`；`17f2c0d` 只改文件）。PR：`pr_r1_*`、`pr_r2_*`，兩次獨立啟動。
+Playwright + Chrome headless（swiftshader）、1600×900、seed=12345、quality=medium、`83-specimen-night/shot_lock.py`，一次拍一張（port 18911）。
+
+- `pr_r1_*`、`pr_r2_*`：修正後 PR build（`c928041`），兩次獨立啟動。四張 r2 都和 r1 位元組相同；正午 r2 未另存。
+- `k0_r1_*`：**同一個 build** 只把 `RIM_DAY`、`RIM_NIGHT` 設 0 的量測用 build（未提交）。正午 k0 當夜間幾何 MASK；它和 `84-rim/k0_r1_specimen*.png` 只差左上 FPS 區（甲蟲構圖位元組相同）。夜 k0 和修正前 main `2eaa03b` 的夜圖位元組相同。
+- 正午「main」對照（mid、瓢蟲）：`84-rim/pr_r1_specimen*.png`（#98，main 正午圖）。
 
 ## 白天回歸（正午 `shot=specimen`）
 
-| 指標 | 門檻 | main | PR r1 | PR r2 |
+| 指標 | 門檻 | main（#98） | 修正後 r1 | 修正後 r2 |
 |---|---|---|---|---|
-| D1 蟻/地 | ≥3.0 | 4.51 | 4.51 | 4.51 |
+| D1 蟻/地 | ≥3.0 | 4.51 | 4.56 | 4.56 |
 | D2 瓢蟲殼/斑點 | ≥3.3 | 3.31 | 3.31 | 3.31 |
 | D3 甲蟲本體/地 | ≥3.0 | 3.22 | 3.22 | 3.22 |
-| 蟻 edgeGain／內部中位／內部平均（2px，對 `84-rim/k0_r1_*`） | 1.15–1.35／1.000／≤1.01 | 1.235／1.000／1.001 | 1.235／1.000／1.001 | 1.235／1.000／1.001 |
-| 甲蟲 edgeGain／內部中位／內部平均 | 1.10–1.22／1.000／≤1.03 | 1.148／1.000／1.018 | 1.148／1.000／1.018 | 1.148／1.000／1.018 |
+| 蟻 edgeGain／內部中位／內部平均（2px，對同 build k0） | 1.15–1.35／1.000／≤1.01 | 1.235／1.000／1.001 | **1.132**／1.000／1.001 | **1.132**／1.000／1.001 |
+| 蟻本體帶 edgeGain（`--body`，只參考） | — | 1.237 | 1.237 | 1.237 |
+| 甲蟲 edgeGain／內部中位／內部平均 | 1.10–1.22／1.000／≤1.03 | 1.148／1.000／1.018 | 1.135／1.000／1.018 | 1.135／1.000／1.018 |
 | hot%（蟻／甲蟲） | ≤2% | 0.0／0.0 | 0.0／0.0 | 0.0／0.0 |
-| mid（蟻／甲蟲） | ≤main×1.10 | 0.0214／0.0419 | 同 | 同 |
+| mid（蟻／甲蟲） | ≤main×1.10 | 0.0214／0.0419 | 0.0214／0.0419 | 同 |
 | 瓢蟲 shell/gnd | 不變 | 1.62 | 1.62 | 1.62 |
 
-PR 的正午兩張（`specimen`、`specimen_beetle`）r1、r2 都和 main 位元組相同，也和 `84-rim/pr_r1_*`（#98）位元組相同，所以只存 `pr_r1_specimen*.png`。
+**偏差（待 PM／Artist 裁決）**：工蟻 2px edgeGain 1.132，低於正午帶下限 1.15。原因是觸角不再套白天 rim：2px 帶有一部分是觸角像素，修正前它們被 rim 抬亮，現在增益是 1.000，把中位數拉低。本體帶（`--body`，去掉觸角、腳等細結構）是 1.237，和修正前 1.237 相同，頭胸腹的白天邊光沒變。我沒有調 `RIM_DAY`，也沒有改門檻。D1 由 4.51 升到 4.56（推測是觸角像素變暗）。
 
-## 夜間（`shot=specimen-night`，只記錄，合格帶待 Artist）
+## 夜間（`shot=specimen-night`，Artist §5 合格帶，每張單獨判定）
 
-### 輪廓對比（`84-rim/contour.py --mask`，2px）
+量法：`84-rim/contour.py --mask k0_r1_specimen*.png --body`（幾何用同 build 正午 k0；亮度比夜 k0 與夜 PR）。`--body`：遮罩先 `binary_opening(iterations=2)` 去掉 ≤4px 細結構，再取外緣 2px；內部＝本體侵蝕 2px（同 Artist `nband.py`）。不加 `--body` 時輸出和修改前逐字相同（正午、夜間各圖重跑比對）。
 
-夜地面 L≈0.012，`contour.py` 預設的「k=0 圖 L < 0.5×地面」在夜圖上選不到蟲（遮罩為空，edgePx=0）。所以夜間加 `--mask`：遮罩與輪廓帶的幾何借同構圖的正午 k=0 圖（`84-rim/k0_r1_specimen*.png`），亮度仍是夜 k=0 與夜 PR 相比。構圖凍結（#83），剪影像素位置相同。不加 `--mask` 時腳本行為不變（正午數字重跑一致）。
+### 本體帶（正式）
 
-| | edgeGain | interiorGain（中位） | edgeMeanGain | interiorMeanGain | changedInEdge% |
-|---|---|---|---|---|---|
-| 夜 k=0（main 對自己） | 1.000 | 1.000 | 1.000 | 1.000 | 0.0 |
-| 蟻 PR r1 | 1.697 | 1.061 | 2.456 | 1.070 | 90.9 |
-| 蟻 PR r2 | 1.697 | 1.061 | 2.456 | 1.070 | 90.9 |
-| 甲蟲 PR r1 | 2.320 | 1.115 | 4.271 | 1.574 | 22.0 |
-| 甲蟲 PR r2 | 2.320 | 1.115 | 4.271 | 1.574 | 22.0 |
+| | 門檻 | 修正前（36e99ba） | 修正後 r1 | 修正後 r2 |
+|---|---|---|---|---|
+| 工蟻 edgeGain | 1.85–2.70 | 2.275 | 2.163 | 2.163 |
+| 工蟻 內部中位／平均 | ≤1.10／≤1.20 | 1.024／1.100 | 1.024／1.100 | 1.024／1.100 |
+| 工蟻 core/gnd（`rim.py`） | ≤1.5 | 1.07 | 1.07 | 1.07 |
+| 甲蟲 edgeGain | 2.40–3.85 | 3.146 | 2.672 | 2.672 |
+| 甲蟲 內部中位／平均 | ≤1.20／≤1.75 | 1.115／1.575 | 1.115／1.575 | 1.115／1.575 |
+| 甲蟲 core/gnd | ≤1.5 | 1.03 | 1.03 | 1.03 |
 
-注意：p=2.5 比白天的 4.0 寬，夜間內部中位數也被抬亮（蟻 1.061、甲蟲 1.115）。正午的「內部中位 1.000」不套用於夜間；這組數字留給 Artist 定帶時參考。
+本體帶 edgeGain 比修正前低（蟻 2.275→2.163、甲蟲 3.146→2.672），推測是 opening 後的本體仍含觸角根部與大顎基部的幾個像素，修正前它們是 rim 峰值。仍在合格帶內。
 
-### 灰階（`84-rim/gray.py`）
+2px 預設帶（紀錄，不判）：工蟻 1.697／1.061／1.070；甲蟲 1.987／1.115／1.574（r1、r2 相同）。
 
-`main_r1_specimen-night_gray*.png`（k=0）、`pr_r1_specimen-night_gray*.png`、`pr_r1_specimen-night_beetle_gray*.png`。「找得到」由 Artist 判定。
+### 細結構不得套 rim（`night.py`）
 
-### 其他保留項（`rim.py`，本目錄；參考 #91 Artist 舊表 N4–N6）
+| | 門檻 | 修正前 | 修正後 r1 | 修正後 r2 |
+|---|---|---|---|---|
+| 工蟻 細結構中位增益（contour 框／寬框） | ≤1.05 | 1.000／1.000 | 1.000／1.000 | 1.000／1.000 |
+| 甲蟲 細結構中位增益（contour 框／寬框） | ≤1.05 | 1.152／1.113 | 1.000／1.000 | 1.000／1.000 |
+| 蟻頭前 x571–582,y430–462 對地 ≥3:1 像素（k0） | ≤k0 | 3（1） | 1（1） | 1（1） |
+| 甲蟲頭前 x590–618,y428–458 對地 ≥3:1 像素（k0） | ≤k0 | 28（0） | **1**（0） | **1**（0） |
 
-| 項目 | main k=0 | PR r1 | PR r2 |
-|---|---|---|---|
-| N5 夜地面框 RGB 中位數（蟻構圖／甲蟲構圖） | [30 28 27]／[30 28 27] | [30 28 27]／[30 28 27] | 同 r1 |
-| N6 夜地面 B/R ÷ 日地面 B/R（#74，≥1.35） | 0.900／0.661 = 1.36 | 1.36 | 1.36 |
-| N4 遮罩內最亮 15% RGB 中位數（蟻／甲蟲） | [44 42.5 42.5]／[42 32 27] | [100 98 99]／[74 70 73] | 同 r1 |
-| 蟻 rim/gnd、core/gnd | 1.20、1.07 | 2.80、1.07 | 同 r1 |
-| 甲蟲 rim/gnd、core/gnd | 1.05、1.03 | 1.81、1.03 | 同 r1 |
-| 瓢蟲 shell/gnd、shellrim/gnd | 1.51、2.02 | 1.58、2.85 | 同 r1 |
-| 夜 D1／D2／D3（`81-beetle/measure.py`，只參考） | 1.30／1.84／1.02 | 1.29／1.94／1.03 | 同 r1 |
+**偏差（字面不過，待裁決）**：甲蟲頭前區仍有 1 個 ≥3:1 像素 (617,441)，RGB [125 127 136]（4.25:1），和修正前同一像素同值。它在正午遮罩的本體裡（opening 後仍在，屬本體帶），位置是頭殼前緣，落在區域右邊界 x=617。這個 build 的觸角與大顎批次沒有 rim，能被抬亮的只剩有 rim 的頭殼，所以它是頭殼邊光，不是細結構。觸角與大顎的 27 個碎點已全部消失（見 6× 對照圖）。我沒有改門檻或參數。
 
-- N4：rim 讓最亮 15% 從暖灰變成接近中性灰（B−R 由 −1.5／−15 變 −1／−1）；舊表「B ≥ R」差 1 階未成立。是否要求，由 Artist 定帶時決定。
-- 本體 core/gnd 不變（蟻 1.07、甲蟲 1.03）：本體仍是暗剪影，亮的是邊。
+### 其他保留項
 
-**風險（PM 決策 #91）**：夜地面 B/R 實測 1.36，門檻 1.35（#74），餘裕極薄；之後任何動到夜間地面／環境光／月光的改動都要重測 N5／N6。
+| 項目 | 門檻 | k0 | 修正後 r1 | 修正後 r2 |
+|---|---|---|---|---|
+| N4 本體帶增益 >1.2 像素 RGB 中位 B−R（蟻／甲蟲） | ≥0 | — | +6.0／+2.0 | 同 r1 |
+| N4 本體帶最亮 15% B−R（蟻／甲蟲） | ≥0 | +1.0／−15.0 | +11.5／+2.0 | 同 r1 |
+| N5 夜地面 RGB（兩構圖） | 每 channel ±2 | [30 28 27] | [30 28 27] | [30 28 27] |
+| N6 夜／日地面 B/R | ≥1.35 | 0.900／0.661 = 1.36 | 1.36 | 1.36 |
+| 夜 D2 | ≥1.8 | 1.84 | 1.94 | 1.94 |
+| 瓢蟲 shell/gnd、shellrim/gnd | 可辨 | 1.51、2.02 | 1.58、2.85 | 同 r1 |
+| rim 線性峰值 | <1.2 | — | 0.45×0.78 = 0.35（計算值） | 同 |
+| 夜 D1（只參考） | — | 1.30 | 1.29 | 1.29 |
 
-兩輪一致：`specimen-night` r1/r2 位元組相同；`specimen-night_beetle` r1/r2 0 差異像素。
+**風險（PM 決策 #91）**：N6 實測 1.36，門檻 1.35，餘裕極薄；之後動到夜間地面／環境光／月光都要重測 N5／N6。
 
 ## 圖
 
-- 全圖：`main_r1_specimen-night*.png`（k=0）、`pr_r1_specimen-night*.png`、`pr_r2_specimen-night*.png`、`pr_r1_specimen.png`／`pr_r1_specimen_beetle.png`（正午；main 正午圖與 `84-rim/pr_r1_*` 位元組相同，不重複存）
-- 3× crop：`*_specimen-night_crop3x.png`（x 480–720、y 370–500，蟻與瓢蟲）、`*_specimen-night_beetle_crop3x.png`（x 600–710、y 410–475）；上下對照 `main_vs_pr_night_ant.png`（上 k=0、下 PR r1）
-- 重跑全部數字：`bash docs/screenshots/91-night-rim/verify.sh`（只用已提交的圖；正午 main 對照＝`84-rim/pr_r1_specimen*.png`，與 main 位元組相同）
+- 全圖：`k0_r1_specimen*.png`（同 build k=0；正午兩張是 MASK）、`pr_r1_specimen*.png`、`pr_r2_specimen-night*.png`
+- **6× 對照**（上 k=0、中 修正前 36e99ba、下 修正後）：`specimen-night_beetlehead_k0_vs_pr_6x.png`（甲蟲頭前 x582–630,y418–466）、`specimen-night_anthead_k0_vs_pr_6x.png`（蟻頭 x555–600,y422–470）
+- 6× 單張：`{k0,pr}_r1_specimen{,-night}_{anthead,beetlehead}_crop6x.png`
+- 3× crop：`*_specimen-night_crop3x.png`（x 480–720、y 370–500）、`*_specimen-night_beetle_crop3x.png`（x 600–710、y 410–475）
+- 灰階（`84-rim/gray.py`）：`{k0,pr}_r1_specimen-night_gray*.png`、`pr_r1_specimen-night_beetle_gray*.png`
+- 重產 crop：`python3 crops.py DIR`（DIR 需有 `k0_r1_*`、`pr_r1_*` 與修正前 `old_r1_*`）
+- 重跑全部數字：`bash docs/screenshots/91-night-rim/verify.sh`（只用已提交的圖）
