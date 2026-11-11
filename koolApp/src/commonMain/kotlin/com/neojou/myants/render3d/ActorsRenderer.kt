@@ -177,17 +177,20 @@ internal class ActorsRenderer(
         val head = MeshInstanceList(layout, 2048)
         val eyes = MeshInstanceList(layout, 2048)
         val jaws = MeshInstanceList(layout, 2048)
+        val antennae = MeshInstanceList(layout, 2048)
         val legs = List(6) { MeshInstanceList(layout, 2048) }
         return AntSlot(
             body,
             head,
             eyes,
             jaws,
+            antennae,
             legs,
             shadedInstances(content, body, "$name-chitin", WorldPalette.CHITIN_ROUGHNESS, 0f, RimParts.antRim(RimParts.AntPart.BODY)),
             shadedInstances(content, head, "$name-head", WorldPalette.CHITIN_ROUGHNESS, 0f, RimParts.antRim(RimParts.AntPart.HEAD)),
             shadedInstances(content, eyes, "$name-eye", 0.12f, 0.02f),
-            shadedInstances(content, jaws, "$name-jaw", WorldPalette.CHITIN_ROUGHNESS, 0f),
+            shadedInstances(content, jaws, "$name-jaw", WorldPalette.CHITIN_ROUGHNESS, 0f, RimParts.antRim(RimParts.AntPart.JAW)),
+            shadedInstances(content, antennae, "$name-antenna", WorldPalette.CHITIN_ROUGHNESS, 0f, RimParts.antRim(RimParts.AntPart.ANTENNA)),
             legs.mapIndexed { index, batch ->
                 shadedInstances(content, batch, "$name-leg-$index", WorldPalette.CHITIN_ROUGHNESS, 0f)
             },
@@ -198,6 +201,7 @@ internal class ActorsRenderer(
         val body = MeshInstanceList(layout, 128)
         val eyes = MeshInstanceList(layout, 128)
         val marks = MeshInstanceList(layout, 128)
+        val appendages = MeshInstanceList(layout, 128)
         val legs = List(legCount) { MeshInstanceList(layout, 128) }
         return CritterSlot(
             kind,
@@ -205,8 +209,16 @@ internal class ActorsRenderer(
             body,
             eyes,
             marks,
+            appendages,
             legs,
-            shadedInstances(content, body, "${kind.name}-body", WorldPalette.critterBodyRoughness(kind), 0.02f, RimParts.critter(kind)),
+            shadedInstances(
+                content,
+                body,
+                "${kind.name}-body",
+                WorldPalette.critterBodyRoughness(kind),
+                0.02f,
+                RimParts.critterRim(kind, RimParts.CritterPart.BODY),
+            ),
             shadedInstances(content, eyes, "${kind.name}-eye", 0.25f, 0.02f),
             shadedInstances(
                 content,
@@ -214,7 +226,15 @@ internal class ActorsRenderer(
                 "${kind.name}-mark",
                 WorldPalette.critterMarkRoughness(kind),
                 0.02f,
-                RimParts.critter(kind),
+                RimParts.critterRim(kind, RimParts.CritterPart.MARK),
+            ),
+            shadedInstances(
+                content,
+                appendages,
+                "${kind.name}-appendage",
+                WorldPalette.critterBodyRoughness(kind),
+                0.02f,
+                RimParts.critterRim(kind, RimParts.CritterPart.APPENDAGE),
             ),
             legs.mapIndexed { index, batch ->
                 shadedInstances(content, batch, "${kind.name}-leg-$index", WorldPalette.CHITIN_ROUGHNESS, 0.02f)
@@ -230,7 +250,7 @@ internal class ActorsRenderer(
                     check(it.legs.size == slot.legMeshes.size) { "${it.legs.size} legs, expected ${slot.legMeshes.size}" }
                 }
             } ?: return@launch
-            uploadCritterMeshes(parsed, slot.bodyMesh, slot.eyeMesh, slot.markMesh, slot.legMeshes)
+            uploadCritterMeshes(parsed, slot.bodyMesh, slot.eyeMesh, slot.markMesh, slot.appendageMesh, slot.legMeshes)
             slot.model = parsed
             MyLog.add(TAG, "${slot.kind} gltf tris=${parsed.triangles}", LogLevel.DEBUG)
         }
@@ -240,7 +260,7 @@ internal class ActorsRenderer(
         scope.launch {
             val loaded = Assets.defaultLoader.loadBlob(path).map { it.toArray() }
             val parsed = parseGlbOrFallback(label, "block ants", loaded, parse = ::parseGltfAnt) ?: return@launch
-            uploadAntMeshes(parsed, slot.bodyMesh, slot.headMesh, slot.eyeMesh, slot.jawMesh, slot.legMeshes)
+            uploadAntMeshes(parsed, slot.bodyMesh, slot.headMesh, slot.eyeMesh, slot.jawMesh, slot.antennaMesh, slot.legMeshes)
             slot.model = parsed
             MyLog.add(TAG, "$label gltf tris=${parsed.triangles}", LogLevel.DEBUG)
         }
@@ -392,7 +412,7 @@ internal class ActorsRenderer(
                 seen += insect.seq
                 val phase = (state.animTime * 0.35f + insect.seq * 0.173f) % 1f
                 drawCritter(
-                    model, insect.type, slot.body, slot.eyes, slot.marks, slot.legs,
+                    model, insect.type, slot.body, slot.eyes, slot.marks, slot.appendages, slot.legs,
                     x, GroundHeight.at(x, z), z, yaw, size, phase, moved, mat, scale,
                 )
             } else {
@@ -444,7 +464,7 @@ internal class ActorsRenderer(
                 if (model != null) {
                     val y = GroundHeight.at(x, z)
                     model.draw(
-                        slot.body, slot.head, slot.eyes, slot.jaws, slot.legs,
+                        slot.body, slot.head, slot.eyes, slot.jaws, slot.antennae, slot.legs,
                         x, y, z, yaw, len, phase, moving && preset.legAnimation,
                         outdoorAntTint(colony.id, ant.type, state.view.antColor), mat, scale,
                     )

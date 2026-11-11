@@ -120,6 +120,7 @@ internal fun parseGltfCritter(bytes: ByteArray): GltfCritter {
             val accum = when {
                 bucket == "eye" -> eyes
                 bucket == "mark" -> marks
+                bucket == "appendage" -> appendages
                 bucket.startsWith("Leg") -> legAccum.getOrPut(bucket) { MeshAccum() }
                 else -> body
             }
@@ -169,6 +170,8 @@ private fun critterBucket(index: Int, names: Array<String>, parent: IntArray): S
             name.startsWith("Eye") -> return "eye"
             name.startsWith("Spot") -> return "mark"
             name.startsWith("Elytra") -> return "mark"
+            name.startsWith("Antenna") -> return "appendage"
+            name.startsWith("Mandible") -> return "appendage"
             name.startsWith("Leg") -> return name
         }
         cursor = parent[cursor]

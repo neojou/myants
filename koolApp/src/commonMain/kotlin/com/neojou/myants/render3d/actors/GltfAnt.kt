@@ -147,6 +147,7 @@ internal fun parseGltfAnt(bytes: ByteArray): GltfAnt {
             val accum = when {
                 bucket == "eye" -> eyes
                 bucket == "jaw" -> jaws
+                bucket == "antenna" -> antennae
                 bucket == "head" -> head
                 bucket.startsWith("Leg") -> legAccum.getOrPut(bucket) { MeshAccum() }
                 else -> body
@@ -185,7 +186,9 @@ internal fun parseGltfAnt(bytes: ByteArray): GltfAnt {
         nodes += AntNode(names[i], parent[i], here[12], here[13], here[14])
     }
     val ant = GltfAnt(nodes, materials, body.finish(), head.finish(), eyes.finish(), jaws.finish(), antennae.finish(), legs)
-    if (ant.body.indices.isEmpty() || ant.head.indices.isEmpty() || ant.eyes.indices.isEmpty() || ant.mandibles.indices.isEmpty()) {
+    if (ant.body.indices.isEmpty() || ant.head.indices.isEmpty() || ant.eyes.indices.isEmpty() || ant.mandibles.indices.isEmpty() ||
+        ant.antennae.indices.isEmpty()
+    ) {
         error("ant is missing a body part")
     }
     return ant
@@ -199,6 +202,7 @@ private fun bucketFor(index: Int, names: Array<String>, parent: IntArray): Strin
         when {
             name.startsWith("Eye") -> return "eye"
             name.startsWith("Mandible") -> return "jaw"
+            name.startsWith("Antenna") -> return "antenna"
             name.startsWith("Leg") -> return name
             name == "Head" -> onHead = true
         }

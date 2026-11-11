@@ -82,11 +82,13 @@ internal class AntSlot(
     val head: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     val eyes: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     val jaws: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    val antennae: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     val legs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>,
     val bodyMesh: Mesh<*>,
     val headMesh: Mesh<*>,
     val eyeMesh: Mesh<*>,
     val jawMesh: Mesh<*>,
+    val antennaMesh: Mesh<*>,
     val legMeshes: List<Mesh<*>>,
     var model: GltfAnt? = null,
 ) {
@@ -95,6 +97,7 @@ internal class AntSlot(
         head.clear()
         eyes.clear()
         jaws.clear()
+        antennae.clear()
         for (batch in legs) batch.clear()
     }
 }
@@ -106,10 +109,12 @@ internal class CritterSlot(
     val body: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     val eyes: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     val marks: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    val appendages: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     val legs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>,
     val bodyMesh: Mesh<*>,
     val eyeMesh: Mesh<*>,
     val markMesh: Mesh<*>,
+    val appendageMesh: Mesh<*>,
     val legMeshes: List<Mesh<*>>,
     var model: GltfCritter? = null,
 ) {
@@ -117,6 +122,7 @@ internal class CritterSlot(
         body.clear()
         eyes.clear()
         marks.clear()
+        appendages.clear()
         for (batch in legs) batch.clear()
     }
 }

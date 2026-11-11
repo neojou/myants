@@ -48,17 +48,20 @@ internal fun uploadAntMeshes(
     head: Mesh<*>,
     eyes: Mesh<*>,
     jaws: Mesh<*>,
+    antennae: Mesh<*>,
     legs: List<Mesh<*>>,
 ) {
     body.upload(ant.body)
     head.upload(ant.head)
     eyes.upload(ant.eyes)
     jaws.upload(ant.mandibles)
+    antennae.upload(ant.antennae)
     for (i in ant.legs.indices) legs[i].upload(ant.legs[i].mesh)
 }
 
 /**
- * One outdoor ant. The body, head, eyes and jaws share one rigid pose.
+ * One outdoor ant. The body, head, antennae, eyes and jaws share one rigid pose.
+ * Antennae keep the head color but sit in their own unrimmed batch (#91).
  * Each leg pivots at the thoracic socket stored in the glTF node.
  * Tripod: L1, R2, L3 move together; the other three are half a step away.
  */
@@ -67,6 +70,7 @@ internal fun GltfAnt.draw(
     head: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     eyes: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     jaws: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    antennae: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     legs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>,
     x: Float,
     y: Float,
@@ -83,6 +87,7 @@ internal fun GltfAnt.draw(
     rigid(head, x, y, z, yaw, length, tint.head, mat, scale)
     rigid(eyes, x, y, z, yaw, length, tint.eye, mat, scale)
     rigid(jaws, x, y, z, yaw, length, tint.jaw, mat, scale)
+    rigid(antennae, x, y, z, yaw, length, tint.head, mat, scale)
     val layout = InstanceLayouts.ModelMatColor
     for (i in this.legs.indices) {
         val leg = this.legs[i]

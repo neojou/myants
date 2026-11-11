@@ -86,7 +86,7 @@ internal object RimParts {
     /**
      * Critter body and marks: beetle (elytra, pronotum, head) shares the chitin rim; the ladybug shell
      * (spots and pronotum included) gets the night-only 0.6× rim (#91), so its noon look is unchanged.
-     * Everything else (aphid, prey, …) and all eyes / legs: no rim.
+     * Everything else (aphid, prey, …) and all eyes / legs / antennae / mandibles: no rim (see [critterRim]).
      */
     fun critter(kind: com.neojou.myants.sim.InsectKind): OutdoorLighting.RimProfile? = when (kind) {
         com.neojou.myants.sim.InsectKind.BEETLE -> OutdoorLighting.RimProfile.CHITIN
