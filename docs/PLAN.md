@@ -29,7 +29,7 @@
 - #81 甲蟲霧面與 `specimenCritter=beetle`：已合併（PR #89）；量測在 `docs/screenshots/81-beetle/`。
 - #83 `shot=specimen-night` 與暫停畫面鎖時鐘（動畫改用 `RenderState.animTime`）：已合併（PR #90）；量測在 `docs/screenshots/83-specimen-night/`。
 - #94 工蟻／兵蟻甲殼法線朝外＋正確法線下 `antChitin` (0.036,0.036,0.039)、`CHITIN_ALBEDO_SCALE` 0.52：已合併（PR #95）；量測在 `docs/screenshots/94-ant-normals/`。
-- #84 共用白天甲殼 rim（方案 C：無側面基底 `rimColor × k × pow(1 − N·V, p)`，`RIM_DAY` 0.10、`RIM_EXP` 4.0，暖色；蟻頭胸腹與甲蟲身體，瓢蟲不套用；夜間留給 #91）：在分支 `feat/84-shared-rim-day`，PR 審查中；量測、`contour.py`、`gray.py` 在 `docs/screenshots/84-rim/`。
+- #84 共用白天甲殼 rim（方案 C：無側面基底 `rimColor × k × pow(1 − N·V, p)`，`RIM_DAY` 0.10、`RIM_EXP` 4.0，暖色；蟻頭胸腹與甲蟲身體，瓢蟲不套用）：已合併（PR #98，main `2eaa03b`）。正午輪廓合格帶已由 Artist 定案並寫進 ART_DIRECTION §6.8 與 `docs/screenshots/MEASURE.md`（工蟻 edgeGain 1.15–1.35、甲蟲 1.10–1.22；內部中位數 1.000）。夜間參數見 #91；量測腳本在 `docs/screenshots/84-rim/`。
 - 下一步：#47 依序合併：守門（#60）→ InspectRing 分派移到 session（#63）→ RenderState／RenderHost 介面（PR 已開，疊在 #63 上，允許清單已清空）→ 子渲染器物件（PR 已開，疊在 RenderState／RenderHost PR 上），皆不改行為；#13 與 milestone M5 仍開。巢穴 glTF 沒做。不 push main、不關 issue、不改版號。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 
