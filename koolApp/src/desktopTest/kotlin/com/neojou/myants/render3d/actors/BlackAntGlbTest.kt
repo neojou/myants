@@ -46,20 +46,21 @@ class BlackAntGlbTest {
         var maxX = Float.NEGATIVE_INFINITY
         var minX = Float.POSITIVE_INFINITY
         var i = 0
-        while (i < ant.head.positions.size) {
-            val x = ant.head.positions[i]
+        while (i < ant.antennae.positions.size) {
+            val x = ant.antennae.positions[i]
             if (x > maxX) maxX = x
             if (x < minX) minX = x
             i += 3
         }
         assertTrue(maxX > headX + 0.12f, "antenna maxX=$maxX head=$headX")
         assertTrue(ant.head.indices.isNotEmpty())
+        assertTrue(ant.antennae.indices.isNotEmpty())
         assertTrue(ant.eyes.indices.isNotEmpty())
         assertTrue(ant.mandibles.indices.isNotEmpty())
         assertTrue(ant.triangles in 1500..6000, "tris=${ant.triangles}")
         var spanMin = minX
         var spanMax = maxX
-        for (part in listOf(ant.body, ant.eyes, ant.mandibles) + ant.legs.map { it.mesh }) {
+        for (part in listOf(ant.body, ant.head, ant.eyes, ant.mandibles) + ant.legs.map { it.mesh }) {
             var v = 0
             while (v < part.positions.size) {
                 val x = part.positions[v]

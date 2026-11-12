@@ -50,16 +50,19 @@ internal fun uploadCritterMeshes(
     body: Mesh<*>,
     eyes: Mesh<*>,
     marks: Mesh<*>,
+    appendages: Mesh<*>,
     legs: List<Mesh<*>>,
 ) {
     body.uploadCritter(critter.body)
     eyes.uploadCritter(critter.eyes)
     marks.uploadCritter(critter.marks)
+    appendages.uploadCritter(critter.appendages)
     for (i in critter.legs.indices) legs[i].uploadCritter(critter.legs[i].mesh)
 }
 
 /**
- * One outdoor insect other than the aphid. The body, eyes, and spots share a rigid pose.
+ * One outdoor insect other than the aphid. The body, eyes, spots, and appendages share a rigid pose.
+ * Appendages (antennae, mandibles) keep the body color in their own unrimmed batch (#91).
  * Six-leg kinds use the ant tripod. Eight-leg kinds alternate two sets of four.
  */
 internal fun drawCritter(
@@ -68,6 +71,7 @@ internal fun drawCritter(
     body: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     eyes: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     marks: MeshInstanceList<InstanceLayouts.ModelMatColor>,
+    appendages: MeshInstanceList<InstanceLayouts.ModelMatColor>,
     legs: List<MeshInstanceList<InstanceLayouts.ModelMatColor>>,
     x: Float,
     y: Float,
@@ -84,6 +88,9 @@ internal fun drawCritter(
     rigidCritter(eyes, x, y, z, yaw, length, tint.eye, mat, scale)
     if (critter.marks.indices.isNotEmpty()) {
         rigidCritter(marks, x, y, z, yaw, length, tint.mark, mat, scale)
+    }
+    if (critter.appendages.indices.isNotEmpty()) {
+        rigidCritter(appendages, x, y, z, yaw, length, tint.body, mat, scale)
     }
     val layout = InstanceLayouts.ModelMatColor
     val amp = if (moving) critterStep(kind) else 0f
