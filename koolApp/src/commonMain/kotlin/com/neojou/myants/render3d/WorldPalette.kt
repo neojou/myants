@@ -118,7 +118,7 @@ object WorldPalette {
     val nestSoilDeep = Color(0.18f, 0.12f, 0.09f, 1f)
 
     /**
-     * Default outdoor ant shell albedo under correct outward normals (#94).
+     * Black-swatch outdoor ant shell albedo under correct outward normals (#94; default until #86).
      * Calculated from the §10 isolation shot (D1 3.53 at 0.07 → target ≈4.71 at k≈0.52).
      * Locked by test; fine-tune only inside 0.035–0.038 with measured D1.
      */
@@ -130,9 +130,9 @@ object WorldPalette {
     val rivalJaw = Color(0.32f, 0.16f, 0.10f, 1f)
 
     /**
-     * Scale applied to non-default antColor swatches in [outdoorChitin] (#94).
-     * Same ratio as the default drop (0.036/0.07); keeps custom colours from
-     * reading ~1.94× brighter after the shell-normal fix. Per-swatch D1 is still #86.
+     * Scale applied to custom antColor swatches in [outdoorChitin] (#94).
+     * Same ratio as the black-shell drop (0.036/0.07); keeps custom colours from
+     * reading ~1.94× brighter after the shell-normal fix. Clamp: see [CHITIN_Y_MAX] (#86).
      */
     const val CHITIN_ALBEDO_SCALE = 0.52f
 
@@ -146,15 +146,24 @@ object WorldPalette {
     const val CHITIN_Y_MAX = 0.065f
 
     /**
-     * Outdoor glTF chitin for colony 0 from the antColor setting (#82, #94).
-     * Default (worker copper) uses [antChitin]. Any other swatch is sRGB→linear
-     * then multiplied by [CHITIN_ALBEDO_SCALE].
+     * Outdoor glTF chitin for colony 0 from the antColor setting (#82, #94, #86).
+     * Copper (default) uses [copperChitin] and Black uses [antChitin], both as given.
+     * Any other swatch, including a saved custom hex, is sRGB→linear × [CHITIN_ALBEDO_SCALE];
+     * if its linear luminance exceeds [CHITIN_Y_MAX], RGB is scaled down by the same factor
+     * (hue and channel ratios kept, alpha kept, no lower bound).
      */
     fun outdoorChitin(antColor: Color): Color {
-        if (antColor == worker) return antChitin
+        if (antColor == worker) return copperChitin
+        if (antColor == blackSwatch) return antChitin
         val c = antColor.toLinear()
         val s = CHITIN_ALBEDO_SCALE
-        return Color(c.r * s, c.g * s, c.b * s, c.a)
+        val r = c.r * s
+        val g = c.g * s
+        val b = c.b * s
+        val y = 0.2126f * r + 0.7152f * g + 0.0722f * b
+        if (y <= CHITIN_Y_MAX) return Color(r, g, b, c.a)
+        val k = CHITIN_Y_MAX / y
+        return Color(r * k, g * k, b * k, c.a)
     }
 
     // Glb critter tints that differ from the classic 2D palette (#48: moved from Critter.kt, values unchanged).
