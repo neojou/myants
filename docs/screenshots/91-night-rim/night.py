@@ -4,7 +4,7 @@
 # 本體 body＝遮罩 binary_opening 2 次（去掉 ≤4px 細結構）；本體帶＝body − body 侵蝕 2px；細結構 thin＝遮罩 − body。
 # 印：
 #   thin  細結構中位增益：contour 框（同 contour.py --body 的 thinGain）與寬框（蟻 x500–600,y418–472；甲蟲 x590–700,y415–470，含觸角前端／大顎）
-#   zone  頭前區域內對地 ≥3:1 的像素數（區域內全部像素，不限遮罩；numpy 半開區間）：蟻 x571–582,y430–462；甲蟲 x590–618,y428–458；與夜 k0 比
+#   zone  頭前區域內對地 ≥3:1 的像素數（區域內全部像素，不限遮罩；numpy 半開區間）：蟻 x571–582,y430–462；甲蟲 x590–616,y428–458（不含頭殼前緣，#105 Artist 復審修正）；與夜 k0 比
 #   N4    本體帶上增益 >1.2 的像素 RGB 中位數 B−R；本體帶最亮 15% 的 RGB 中位數 B−R（兩者都要 ≥ 0）
 import sys, numpy as np
 from PIL import Image
@@ -27,7 +27,7 @@ beetle = '--beetle' in a
 a = [x for x in a if x != '--beetle']
 box = (slice(422, 462), slice(615, 695)) if beetle else (slice(420, 470), slice(505, 600))
 wide = (slice(415, 470), slice(590, 700)) if beetle else (slice(418, 472), slice(500, 600))
-zone = (slice(428, 458), slice(590, 618)) if beetle else (slice(430, 462), slice(571, 582))
+zone = (slice(428, 458), slice(590, 617)) if beetle else (slice(430, 462), slice(571, 582))
 M, K = ld(a[0]), ld(a[1])
 gm = np.median(L(M[G]))
 
