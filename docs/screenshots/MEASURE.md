@@ -43,7 +43,7 @@ python3 docs/screenshots/81-beetle/measure.py --beetle specimen_beetle.png
 
 - 只量固定幾何輪廓帶，不要用會把本體算進去的框去驗 rim。#84 試做時用的是 2px 邊帶。
 - **邊帶增益**：輪廓帶內相對亮度中位數，相對 k=0 同一帶的比值。k=0 時增益應接近 1.000；加強時應單調上升。
-- **本體內部**：輪廓帶以內的中位數增益須維持 1.000。若內部也被抬亮，代表公式帶了側面基底，或作用範圍過寬，不算通過。
+- **本體內部**：輪廓帶以內的中位數增益須 ≤1.01（期望 1.000，超過時的條件見下方合格帶表附註）。若內部也被抬亮，代表公式帶了側面基底，或作用範圍過寬，不算通過。
 
 正午正式判準（只用於 `shot=specimen`，不套用於 `specimen-night`）：`84-rim/contour.py --body` 的本體帶，每張單獨過、兩輪都要過。#98 定案時用預設 2px 帶，#105 Artist 復審改為本體帶。
 
@@ -67,7 +67,7 @@ python3 docs/screenshots/84-rim/contour.py k0_specimen.png --body pr_specimen.pn
 python3 docs/screenshots/84-rim/contour.py k0_specimen_beetle.png --beetle --body pr_specimen_beetle.png
 ```
 
-輸出 `edgeGain`（輪廓帶中位數增益）、`interiorGain`（內部中位數增益，須為 1.000），另附 mean 增益與變動像素落在輪廓帶的比例，供 Artist 校準。灰階檢查用圖可用 `84-rim/gray.py` 產生（見下一節）。
+輸出 `edgeGain`（輪廓帶中位數增益）、`interiorGain`（內部中位數增益，須 ≤1.01，期望 1.000；超過時的條件見合格帶表附註），另附 mean 增益與變動像素落在輪廓帶的比例，供 Artist 校準。灰階檢查用圖可用 `84-rim/gray.py` 產生（見下一節）。
 
 ## 5. 灰階檢查
 
@@ -87,7 +87,7 @@ python3 docs/screenshots/84-rim/contour.py k0_specimen_beetle.png --beetle --bod
   python3 docs/screenshots/91-night-rim/night.py MASK_NOON_K0.png NIGHT_K0.png [--beetle] IMG.png
   ```
 
-  細結構中位增益 ≤1.05。頭前細結構區（不含頭殼）對地 ≥3:1 的像素不得多於 k0；區域：甲蟲 x590–616、y428–457（含兩端；numpy [428:458, 590:617]）；蟻 x571–581、y430–461（含兩端；numpy [430:462, 571:582]）。甲蟲區在 #105 由 numpy [428:458, 590:618]（含兩端 x590–617）改窄一欄：原區吃進頭殼前緣，頭殼邊光屬本體帶。改窄後仍抓得到原本的錯（#105 修正前 26 px、k0 0）。N4（rim 色溫）：本體帶上被抬亮（增益 >1.2）的像素，rim 加上的光必須偏冷：同像素「IMG − 同 build 夜 k0」的逐像素 Δ(B−R)（sRGB 8-bit）中位 ≥0，且加上的線性光總和 B ≥ R。本體帶最亮 15% 的中位，仍要求絕對 B−R ≥0。理由：自選暖色殼（例如 Copper）本身 R>B，被抬亮的像素絕對 B−R 不代表 rim 的色溫（#110 裁決）。 `night.py` 目前只印絕對 B−R，Δ(B−R) 需另算（見 #110 Artist review）。
+  細結構中位增益 ≤1.05。頭前細結構區（不含頭殼）對地 ≥3:1 的像素不得多於 k0；區域：甲蟲 x590–616、y428–457（含兩端；numpy [428:458, 590:617]）；蟻 x571–581、y430–461（含兩端；numpy [430:462, 571:582]）。甲蟲區在 #105 由 numpy [428:458, 590:618]（含兩端 x590–617）改窄一欄：原區吃進頭殼前緣，頭殼邊光屬本體帶。改窄後仍抓得到原本的錯（#105 修正前 26 px、k0 0）。N4（rim 色溫）：本體帶上被抬亮（增益 >1.2）的像素，rim 加上的光必須偏冷：同像素「IMG − 同 build 夜 k0」的逐像素 Δ(B−R)（sRGB 8-bit）中位 ≥0，且加上的線性光總和 B ≥ R。本體帶最亮 15% 的中位，仍要求絕對 B−R ≥0。理由：自選暖色殼（例如 Copper）本身 R>B，被抬亮的像素絕對 B−R 不代表 rim 的色溫（#110 裁決）。 `night.py` 目前只印絕對 B−R，Δ(B−R) 需另算，加印另見 #112。
 - 其餘夜間條款：N5 地面 RGB 每個 channel ±2；N6 ≥1.35；夜 D2 ≥1.8；rim 線性峰值低於 bloom 門檻 1.2。hot% 夜間不適用。
 - 量法附註：`contour.py --body` 與 `night.py` 的 `thinGain` 目前是「中位數的比值」。正午甲蟲 41 個細結構像素只變 3 個，卻印出 1.084；逐像素增益的中位數是 1.000。正午不設細結構門檻；夜間兩種算法目前都是 1.000。
 - 既有參考（#83／#90，實測值(headless)）：夜間 D1 1.29、D2 1.84；甲蟲鞘翅／前胸對地約 1.04／1.05。
