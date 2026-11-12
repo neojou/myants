@@ -153,3 +153,7 @@ cmake-build-*/
 .venv/
 gpu_chrome.json
 tools/__pycache__/
+
+# Python bytecode (any directory)
+__pycache__/
+*.pyc

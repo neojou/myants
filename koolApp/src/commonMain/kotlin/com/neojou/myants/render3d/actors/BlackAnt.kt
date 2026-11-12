@@ -18,7 +18,7 @@ import kotlin.math.sin
 internal class AntTint(val chitin: Color, val head: Color, val eye: Color, val jaw: Color)
 
 /**
- * Colony 0 is black chitin unless the antColor setting picks another swatch (#82). A rival colony stays dark, with a warm brown cast.
+ * Colony 0 follows the antColor setting via [WorldPalette.outdoorChitin] (#82, #86: Copper default is copper, Black is the black shell). A rival colony stays dark, with a warm brown cast.
  * A soldier's head uses the red marker. The body keeps the colony color.
  */
 internal fun outdoorAntTint(
