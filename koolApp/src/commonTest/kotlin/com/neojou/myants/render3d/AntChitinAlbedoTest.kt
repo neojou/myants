@@ -24,13 +24,16 @@ class AntChitinAlbedoTest {
     }
 
     @Test
-    fun outdoorChitinDefaultUsesAntChitin() {
-        assertEquals(WorldPalette.antChitin, WorldPalette.outdoorChitin(WorldPalette.worker))
+    fun outdoorChitinDefaultUsesCopperChitin() {
+        // #86: Copper (default) is true copper in 3D; the tuned black shell moved to the Black swatch.
+        assertEquals(WorldPalette.copperChitin, WorldPalette.outdoorChitin(WorldPalette.worker))
+        assertEquals(WorldPalette.antChitin, WorldPalette.outdoorChitin(WorldPalette.blackSwatch))
     }
 
     @Test
     fun outdoorChitinNonDefaultAppliesScale() {
-        val swatch = Color(0.2f, 0.4f, 0.8f, 1f)
+        // Dark enough to stay under CHITIN_Y_MAX (#86), so the #94 scale applies unchanged.
+        val swatch = Color(0.1f, 0.2f, 0.3f, 1f)
         val linear = swatch.toLinear()
         val s = WorldPalette.CHITIN_ALBEDO_SCALE
         val got = WorldPalette.outdoorChitin(swatch)

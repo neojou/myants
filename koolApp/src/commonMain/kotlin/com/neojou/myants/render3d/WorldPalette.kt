@@ -136,6 +136,15 @@ object WorldPalette {
      */
     const val CHITIN_ALBEDO_SCALE = 0.52f
 
+    /** Copper (default) outdoor 3D shell: true copper in linear albedo, Y 0.0638 (#86 Artist literal). */
+    val copperChitin = Color(0.165f, 0.040f, 0.002f, 1f)
+
+    /** The Black swatch hex; must match MyantsTheme.Data (#86: maps to [antChitin]). */
+    val blackSwatch = Color("#222222")
+
+    /** Linear-luminance cap for custom swatches in [outdoorChitin] (#86, ART_DIRECTION §6.8 D1 ≥3.0). */
+    const val CHITIN_Y_MAX = 0.065f
+
     /**
      * Outdoor glTF chitin for colony 0 from the antColor setting (#82, #94).
      * Default (worker copper) uses [antChitin]. Any other swatch is sRGB→linear
