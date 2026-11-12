@@ -11,7 +11,7 @@
 # 輪廓帶 edge = 遮罩 − 遮罩侵蝕 r px（預設 r=2；框邊視為遮罩內，不算輪廓）；本體內部 interior = 侵蝕後的遮罩。
 # L = WCAG 相對亮度（sRGB→線性，0.2126R+0.7152G+0.0722B），與 79-chitin/measure.py 相同。
 # edgeGain     = median(L_IMG[edge])     / median(L_K0[edge])      — k=0 時 ≈1.000，加強時應單調上升
-# interiorGain = median(L_IMG[interior]) / median(L_K0[interior])  — 須維持 1.000（>1 代表內部被抬亮）
+# interiorGain = median(L_IMG[interior]) / median(L_K0[interior])  — 須 ≤1.01、期望 1.000（見 ART_DIRECTION §6.8 附註，#110）
 # 另印 mean 增益，以及 |ΔL|>0.002 的像素落在輪廓帶的比例（changedInEdge%），供 Artist 校準參考。
 import sys
 import numpy as np
