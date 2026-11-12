@@ -5,6 +5,7 @@
 ## [Unreleased]
 
 ### 變更
+- ART_DIRECTION §4、§6.7、§6.8：寫入 #86 Artist 規格。3D 室外 Copper 改用真銅色 `copperChitin` (0.165, 0.040, 0.002)，名稱與 hex 不變；Black 改用 `antChitin`；自選色線性亮度上限 `CHITIN_Y_MAX` 0.065（等比縮小、色相不變）；每個色票正午 D1 ≥3.0、hot% ≤2%（Refs #86）
 - ART_DIRECTION §6.8 與 `docs/screenshots/MEASURE.md`：依 #105 Artist 復審改寫可讀性合格帶。正午量準改為 `contour.py --body` 本體帶（工蟻 1.15–1.35、甲蟲 1.07–1.16），預設 2px 帶只記錄；寫入夜間合格帶（本體帶工蟻 1.75–2.55、甲蟲 2.10–3.25）與夜間必過項。`91-night-rim/night.py` 的甲蟲頭前區改為 x590–616，不含頭殼前緣（Refs #91、#105）
 - ART_DIRECTION §6.8：角色可讀性改採方案 C。材質維持 #95 正午基準；正午 D1／D3 本體填色門檻改為 ≥3.0，D2 維持 ≥3.3；rim 或描邊改用輪廓對比與灰階檢查。量測說明見 `docs/screenshots/MEASURE.md`（研究 #96）。
 - ART_DIRECTION §6.8 與 `docs/screenshots/MEASURE.md`：寫入 #98 Artist 定案的正午輪廓合格帶（工蟻 edgeGain 1.15–1.35、甲蟲 1.10–1.22；內部中位數 1.000；內部平均蟻 ≤1.01、甲蟲 ≤1.03）。夜間門檻仍待 #91。
