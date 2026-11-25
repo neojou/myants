@@ -5,6 +5,7 @@
 ## [Unreleased]
 
 ### 變更
+- ART_DIRECTION §6.8 與 MEASURE.md：依 #110 Artist 裁決，mid 改為不高於同 build、同色票 k0 的 1.10 倍（色票 albedo 沒變的 PR 也可對照 main 同色票）；色票本身亮度由 CHITIN_Y_MAX 0.065、D1、hot% 管（Refs #110、#86）
 - ART_DIRECTION §6.8、MEASURE.md：依 #110 Artist 裁決，正午內部中位數改 ≤1.01（期望 1.000）、夜間 N4 改看 rim 加上的光、#86 Black 驗收分室外／巢穴兩區（Refs #86）
 - ART_DIRECTION §4、§6.7、§6.8：寫入 #86 Artist 規格。3D 室外 Copper 改用真銅色 `copperChitin` (0.165, 0.040, 0.002)，名稱與 hex 不變；Black 改用 `antChitin`；自選色線性亮度上限 `CHITIN_Y_MAX` 0.065（等比縮小、色相不變）；每個色票正午 D1 ≥3.0、hot% ≤2%（Refs #86）
 - ART_DIRECTION §6.8 與 `docs/screenshots/MEASURE.md`：依 #105 Artist 復審改寫可讀性合格帶。正午量準改為 `contour.py --body` 本體帶（工蟻 1.15–1.35、甲蟲 1.07–1.16），預設 2px 帶只記錄；寫入夜間合格帶（本體帶工蟻 1.75–2.55、甲蟲 2.10–3.25）與夜間必過項。`91-night-rim/night.py` 的甲蟲頭前區改為 x590–616，不含頭殼前緣（Refs #91、#105）

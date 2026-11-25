@@ -106,7 +106,7 @@ python3 docs/screenshots/84-rim/contour.py k0_specimen_beetle.png --beetle --bod
 
 - 瓢蟲觀感與 shell／gnd 不變。
 - hot%≤2%。
-- mid 不高於對照 main 的 1.10 倍（沿用 #84 量測裡 G3／G6 的慣例）。
+- mid 不高於同 build、同色票 k0 的 1.10 倍（#110 Artist 裁決；色票 albedo 沒變的 PR，也可對照 main 同色票；倍數沿用 #84 量測裡 G3／G6 的慣例）。色票本身亮度由 CHITIN_Y_MAX 0.065、D1 ≥3.0、hot% ≤2% 管，不靠這條。
 - 正午兩輪數字一致。
 - 花色 ΔE 走自己的標準（見 `75-clover/`）。UI 文字對比仍見 ART_DIRECTION §4，不和蟲體共用這份說明。
 
