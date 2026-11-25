@@ -15,6 +15,7 @@ object MyantsTheme {
         val surfaceRaised = Color("#1C1822").withAlpha(0.86f)
         val surfaceVariant = Color("#2A2730")
         val outline = Color("#EADDFF").withAlpha(0.10f)
+        val outlineStrong = Color("#000000") // STUB (red commit)
         val onSurface = Color("#EEEEEE")
         val onSurfaceVar = Color("#BDBDBD")
         val onSurfaceDisabled = Color("#EEEEEE").withAlpha(0.38f)

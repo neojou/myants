@@ -92,6 +92,9 @@ class ViewState {
         Panel.ABOUT -> showAbout
     }
 
+    /** Bit mask of open panels, bit = [Panel.ordinal]. STUB (red commit). */
+    fun openMask(): Int = 0
+
     /**
      * Opens a side [panel] exclusively (or toggles it off when already open).
      * [Panel.ABOUT] is a dialog independent of the side panels: it only opens.

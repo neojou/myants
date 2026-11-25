@@ -102,6 +102,9 @@ internal class PheroLayer(val name: String) {
         return BufferedImageData2d(buf!!, w, h, TexFormat.RGBA, "$name-$bucket")
     }
 
+    /** Painted RGBA bytes (test hook). */
+    internal val pixels: Uint8Buffer? get() = buf
+
     internal fun paint(grid: PheromoneGrid, strength: Double) {
         val data = buf ?: return
         val gain = min(1.0, 0.85 * strength)

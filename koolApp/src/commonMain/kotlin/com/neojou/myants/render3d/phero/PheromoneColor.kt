@@ -8,6 +8,9 @@ import kotlin.math.sqrt
  * R = √(protein+sugar+danger), G = √sugar, B = √(home+danger), threshold 0.01.
  */
 object PheromoneColor {
+    /** STUB (red commit): the old pure-blue channel. */
+    val HOME: DoubleArray = doubleArrayOf(0.0, 0.0, 1.0)
+
     fun rgba(
         home: Double,
         sugar: Double,
