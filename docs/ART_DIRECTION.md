@@ -15,7 +15,7 @@
 | 面向 | 原則（違反任一條就是必改） |
 |---|---|
 | 構圖 | 世界視窗不被 UI 切斷；HUD 離螢幕邊 12dp；面板可以收合；同一時間最多開一個側面板。 |
-| 色彩與對比 | UI 只用 Theme token，程式裡不出現新的 `Color(...)` 寫死值；`primary` 系列只用於 hover、pressed、selected、focus、開關 on；文字對比度見 §4。 |
+| 色彩與對比 | UI 只用 Theme token，程式裡不出現新的 `Color(...)` 寫死值；`primary` 系列只用於 hover、pressed、selected、focus、開關 on；文字按鈕與圖示按鈕同一套 hover／pressed／selected 規則，不使用 kool 預設青色與點擊擴散圈；文字對比度見 §4。 |
 | 字體排版 | 用 kool 內建 Fira Sans MSDF，不改 `classloaderAssetPath`；字級只用 10／12／14／18sp；HUD 數字欄位固定寬（`size.hudDigit`），不隨數值跳動。 |
 | 間距與層級 | 群組內 2dp、群組間 6dp、面板內距 8dp；層級只有兩層：`surface`（HUD）和 `surfaceRaised`（面板、tooltip），不疊第三層。 |
 | 動效 | hover 120ms；按下縮到 0.96、120ms、不回彈；面板開關 160ms；tooltip 延遲 0.45s。沒有循環動畫，也沒有閃爍（時鐘石冒號屬於世界物件，不算 UI）。 |
@@ -28,6 +28,7 @@
 | `surface` | `#120F17` α0.72 | #3 → PR #16（從 α0.62 調高，原因是對比度） |
 | `surfaceRaised` | `#1C1822` α0.86 | #3、PR #16 |
 | `surfaceVariant` / `outline` | `#2A2730` / `#EADDFF` α0.10 | #3 |
+| `outlineStrong` | `#EEEEEE` α0.40 | #87 |
 | `onSurface` / `onSurfaceVar` | `#EEEEEE` / `#BDBDBD` | #3 → PR #16（從 #AAAAAA 改） |
 | `onSurfaceDisabled` | `#EEEEEE` α0.38 | #3 |
 | `primary` / `primaryVariant` / `primaryContainer` / `onPrimary` | `#6750A4` / `#4F378B` / `#EADDFF` / `#FFFFFF` | #3 |
@@ -41,11 +42,25 @@
 | 字級 | 10 / 12 / 14 / 18sp | #3 |
 | 動效 | 按下縮到 0.96、120ms；tooltip 延遲 0.45s（原規格 0.6s，PM 改成 0.45s） | #5、PR #23 |
 
+**文字按鈕狀態**（#87；對比皆為 WCAG 公式的**計算值**，不四捨五入）
+
+| 狀態 | 底 | 字 | 邊框 1dp |
+|---|---|---|---|
+| rest | `surfaceVariant` #2A2730 | `onSurface` #EEEEEE，**12.65** | `outlineStrong`（疊在底上 #78777C，對底 **3.29**） |
+| hover | rest 再疊 `primaryHover`（= #413D49） | #EEEEEE，**9.12** | 同 rest |
+| pressed | rest 再疊 `primaryPressed`（= #504B59），內容縮 0.96、120ms、不回彈 | #EEEEEE，**7.22** | 同 rest |
+| selected（對應面板開著） | `primary` #6750A4 | `primaryContainer` #EADDFF，**5.00** | 1dp `primaryContainer` |
+| selected + pressed | `primaryVariant` #4F378B | #EADDFF，**7.23** | 同上 |
+| disabled | 無底 | `onSurfaceDisabled`（WCAG 豁免，3.11） | `outline`（#EADDFF α0.10） |
+| danger（Restart）rest | `danger` #601410 | `onDanger` #F2B8B5，**7.66** | `onDanger` α0.55（= #B06E6B，對底 **3.30**） |
+| danger hover／pressed | 疊 `primaryHover`／`primaryPressed`（#712C2D／#7C3C40） | **5.87**／**4.78** | 同 danger rest |
+
 ## 4. 無障礙
 - **對比度**：文字對背景 ≥ 4.5:1。最差情況是半透明底疊在最亮的日景天空 `#C8D8E8` 上：`#EEEEEE` 為 7.93:1，`#BDBDBD` 為 4.90:1，選中圖示 `#EADDFF` 對 `primary` 為 5.0:1，外框對 HUD 底為 7.15:1（以上都是 WCAG 公式的**計算值**，`ThemeTest` 有守住）。disabled 狀態可以低於標準，這是 WCAG 豁免。
 - **色弱**：用 Machado 2009 模擬 protan／deutan／tritan，CIEDE2000 ΔE < 12 視為分不開，這時一定要有非顏色提示（形狀、線型、標籤、文字名稱）。
 - **AntSim 資料色不改**（糖 `#FFD700`、蛋白 `#CD5C5C`、蟻色預設、圖表四色）。分不開時加非顏色提示，不調色。
   - 蟻色的 hex 和名稱不改。3D 室外的 albedo 可以由 hex 換算、鉗制（§6.7 `CHITIN_Y_MAX`），或由 Artist 指定字面值（Copper、Black）（#86）。
+  - 費洛蒙 home 色因 #87 改為 `#0088D9`（紋理位元組；3D 室外位元組當線性值乘 boost，巢穴與 Classic 2D 為顯示空間加法）；sugar、protein、danger 不變。理由：舊色在正午褐土上讀成紫／洋紅，與 danger 分不開。
 - **選中狀態三重提示**：`primary` 底色、1dp 外框、實心版圖示（如果圖示沒有實心版，至少要有前兩種）。
 - **圖示視覺重量一致**：同一列不要實心、空心混用到明顯一輕一重；播放控制一律用實心版。
 
@@ -57,7 +72,7 @@
 
 ## 6. 審查流程與清單
 1. 讀 PR 描述、diff、留言和 CI；只看 HEAD sha，並寫在留言裡。
-2. 逐項對照 §2–§5。若 PR 涉及室外蟲體或可讀性層，也要對照 §6.7–§6.8 與 `docs/screenshots/MEASURE.md`。
+2. 逐項對照 §2–§5。若 PR 涉及室外蟲體或可讀性層，也要對照 §6.7–§6.8 與 `docs/screenshots/MEASURE.md`。若涉及費洛蒙軌跡，也要對照 §6.9。
 3. 留言開頭標 `[Artist]`，分成「必改」（擋合併）和「建議」（可以另開 issue），每點都寫出要改哪裡、改成什麼值。
 4. 每個數字都要標明是**計算值**還是**實測值**。
 5. 用 headless Chrome 渲染 SVG 或 mock 只算**預覽**，不等於 kool 的實機畫面；留言中不能把預覽寫成截圖。
@@ -138,6 +153,12 @@ hot% 夜間不適用。D1／D3 夜間只記參考。觀感：暗身加冷色細�
 
 UI 文字對比仍見 §4（≥4.5），不和蟲體共用這張表。
 
+## 6.9 費洛蒙可讀性（#87 Artist 規格）
+
+home 軌跡色相 190–250°；ΔE 對地正午 ≥15、夜間 ≥30；夜間最大強度 bloom 亮度 ≤1.4；與五個蟻色票的 ΔE ≥10；公式保持「無 home 像素不變」。
+
+deutan 下 home 對 danger 的 ΔE 為 5–10，接受現況（與舊色相當）；danger 色不動，以 Inspect 點地面時各費洛蒙通道的文字名稱與數值當非顏色提示。
+
 ## 7. 參考資料
 - 原作截圖：`docs/programming/antsim_screenshots/`
 - 3D 參考與比較圖：`docs/programming/3d_refs/references/`（說明見該目錄的 README）
@@ -157,6 +178,7 @@ UI 文字對比仍見 §4（≥4.5），不和蟲體共用這張表。
 **修訂紀錄**
 | 日期 | 變更 |
 |---|---|
+| 2026-11-25 | #87 Artist 規格：文字按鈕用 MyantsTheme（新 token `outlineStrong` `#EEEEEE` α0.40）；費洛蒙 home 改為 `#0088D9`。寫入 §2、§3 文字按鈕狀態表、§4 加註與 §6.9。 |
 | 2026-11-12 | #110 Artist 裁決：正午本體帶內部中位數改為 ≤1.01（期望 1.000，附量化條件）；夜間 N4 改看 rim 加上的光 Δ(B−R) 中位 ≥0 且加光 B ≥ R，最亮 15% 仍要絕對 B−R ≥0；#86 Black 驗收改為室外與巢穴分區比對。 |
 | 2026-11-12 | #86 Artist 規格：Copper 在 3D 室外改用真銅色 `copperChitin` (0.165, 0.040, 0.002)，名稱、hex、2D、設定檔不動；Black 改用 `antChitin`；自選色加 `CHITIN_Y_MAX` 0.065 等比鉗制。§4 補註、§6.7 表與原則、§6.8 自選色驗收。 |
 | 2026-11-12 | #105 合併後依 Artist 復審改寫 §6.8：正午量準改為 `contour.py --body` 本體帶（工蟻 1.15–1.35、甲蟲 1.07–1.16），預設 2px 只記錄；寫入夜間合格帶（工蟻 1.75–2.55、甲蟲 2.10–3.25）與夜間必過項；甲蟲頭前區改為 x590–616、不含頭殼。 |
