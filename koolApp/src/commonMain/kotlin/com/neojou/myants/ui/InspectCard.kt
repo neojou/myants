@@ -28,18 +28,6 @@ internal object InspectCardSpec {
     val valueWidth = Dp(64f)
 }
 
-/** Follow button colors, IconButton-style (#61): rest surfaceVariant, hover primaryHover, following primary + 1dp outline. */
-internal data class FollowButtonVisual(val background: Color, val foreground: Color, val border: Color?)
-
-internal fun followButtonVisual(following: Boolean, hovered: Boolean): FollowButtonVisual {
-    val c = MyantsTheme.colors
-    return when {
-        following -> FollowButtonVisual(c.primary, c.onPrimary, c.primaryContainer)
-        hovered -> FollowButtonVisual(c.surfaceVariant.mix(c.primaryHover.withAlpha(1f), c.primaryHover.a), c.onSurface, null)
-        else -> FollowButtonVisual(c.surfaceVariant, c.onSurface, null)
-    }
-}
-
 /**
  * Accent bar color. Always onSurfaceVar: data colors (black colony, beetle, leaf…)
  * fall under 2:1 on surfaceRaised, and primary is reserved for interaction state.
@@ -157,20 +145,12 @@ internal fun Scene.addInspectCard(session: AppSession, hud: UiSurface): UiSurfac
 }
 }
 
+/** Follow toggle: the shared [TextButton], selected while following (#87). */
 private fun UiScope.FollowButton(following: Boolean, onClick: () -> Unit) {
-    Box {
-        val hovered = remember { mutableStateOf(false) }
-        val v = followButtonVisual(following, hovered.use())
-        modifier
-            .margin(top = InspectCardSpec.buttonGap)
-            .padding(horizontal = MyantsTheme.space.s2, vertical = Dp(4f))
-            .background(RoundRectBackground(v.background, MyantsTheme.radius.md))
-            .onEnter { hovered.set(true) }
-            .onExit { hovered.set(false) }
-            .onClick { onClick() }
-        if (v.border != null) modifier.border(RoundRectBorder(v.border, MyantsTheme.radius.md, MyantsTheme.stroke.selected))
-        Text(tr(if (following) UiText.INSPECT_FOLLOWING else UiText.INSPECT_FOLLOW)) {
-            modifier.font(sizes.smallText.derive(MyantsTheme.text.md)).textColor(v.foreground)
-        }
-    }
+    TextButton(
+        tr(if (following) UiText.INSPECT_FOLLOWING else UiText.INSPECT_FOLLOW),
+        selected = following,
+        layout = { modifier.margin(top = InspectCardSpec.buttonGap) },
+        onClick = onClick,
+    )
 }

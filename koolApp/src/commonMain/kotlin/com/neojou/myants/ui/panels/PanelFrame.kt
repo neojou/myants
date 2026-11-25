@@ -3,6 +3,7 @@ package com.neojou.myants.ui.panels
 import com.neojou.myants.closeSidePanels
 import com.neojou.myants.AppSession
 import com.neojou.myants.ui.MyantsTheme
+import com.neojou.myants.ui.TextButton
 import com.neojou.myants.ui.UiText
 import com.neojou.myants.ui.applyControlRadius
 import com.neojou.myants.ui.installLanguageFont
@@ -27,11 +28,7 @@ internal fun Scene.sidePanel(session: AppSession, title: UiText, block: UiScope.
             .onPointer { it.pointer.consume() }
         Row {
             Text(tr(title)) { modifier.alignY(AlignmentY.Center).width(Grow.Std) }
-            Button("x") {
-                modifier.onClick {
-                    session.closeSidePanels()
-                }
-            }
+            TextButton("x") { session.closeSidePanels() }
         }
         block()
     }.also { it.applyControlRadius() }

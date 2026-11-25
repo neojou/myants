@@ -92,8 +92,8 @@ class ViewState {
         Panel.ABOUT -> showAbout
     }
 
-    /** Bit mask of open panels, bit = [Panel.ordinal]. STUB (red commit). */
-    fun openMask(): Int = 0
+    /** Bit mask of open panels, bit = [Panel.ordinal]. The toolbar reads it to draw selected panel buttons (#87). */
+    fun openMask(): Int = Panel.entries.fold(0) { mask, p -> if (isOpen(p)) mask or (1 shl p.ordinal) else mask }
 
     /**
      * Opens a side [panel] exclusively (or toggles it off when already open).

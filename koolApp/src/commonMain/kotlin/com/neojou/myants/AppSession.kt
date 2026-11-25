@@ -131,6 +131,8 @@ class AppSession(launch: LaunchConfig) {
     val toolState = mutableStateOf(SimTool.INSPECT)
     val rainingState = mutableStateOf(false)
     val colonyCountState = mutableStateOf(1)
+    /** [com.neojou.myants.session.ViewState.openMask]; panel buttons show selected while their panel is open. */
+    val openPanelsState = mutableStateOf(0)
 
     val analyseLines = ArrayList<AnalyseLine>()
 
@@ -194,6 +196,7 @@ class AppSession(launch: LaunchConfig) {
         toolState.value = tool
         rainingState.value = world.raining
         colonyCountState.value = colonies
+        openPanelsState.value = view.openMask()
     }
 
     fun notifyInput() = cine.notifyInput(Time.gameTime)

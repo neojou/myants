@@ -5,6 +5,7 @@ import com.neojou.myants.AnalyseLine
 import com.neojou.myants.AppSession
 import com.neojou.myants.ui.L10n
 import com.neojou.myants.ui.MyantsTheme
+import com.neojou.myants.ui.TextButton
 import com.neojou.myants.ui.UiText
 import com.neojou.myants.ui.tr
 import de.fabmax.kool.modules.ui2.*
@@ -20,11 +21,10 @@ internal fun UiScope.analyse(session: AppSession) {
                 if (line.path == null) {
                     Text(label) { modifier.margin(top = MyantsTheme.space.s2) }
                 } else {
-                    Button(label) {
-                        modifier.margin(top = MyantsTheme.space.s2).onClick {
-                            session.applyAnalyse(line.path, line.to)
-                        }
-                    }
+                    TextButton(
+                        label,
+                        layout = { modifier.margin(top = MyantsTheme.space.s2) },
+                    ) { session.applyAnalyse(line.path, line.to) }
                 }
             }
         }

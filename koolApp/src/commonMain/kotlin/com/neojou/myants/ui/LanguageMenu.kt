@@ -39,20 +39,16 @@ internal fun Scene.addLanguageMenu(session: AppSession) = addPanelSurface(
         .onPointer { it.pointer.consume() }
     Column {
         UiLanguage.entries.forEachIndexed { index, choice ->
-            Button(choice.endonym) {
-                modifier
-                    .width(Grow.Std)
-                    .margin(top = if (index == 0) Dp(0f) else MyantsTheme.space.gapInGroup)
-                    .onClick { session.setLanguage(choice) }
-                if (lang == choice) {
-                    modifier.colors(
-                        buttonColor = T.primary,
-                        buttonHoverColor = T.primary,
-                        textColor = T.primaryContainer,
-                        textHoverColor = T.primaryContainer,
-                    )
-                }
-            }
+            TextButton(
+                choice.endonym,
+                selected = lang == choice,
+                fillWidth = true,
+                layout = {
+                    modifier
+                        .width(Grow.Std)
+                        .margin(top = if (index == 0) Dp(0f) else MyantsTheme.space.gapInGroup)
+                },
+            ) { session.setLanguage(choice) }
         }
     }
 }.also { it.applyControlRadius() }
