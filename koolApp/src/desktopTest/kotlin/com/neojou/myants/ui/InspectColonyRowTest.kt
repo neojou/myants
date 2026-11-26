@@ -52,4 +52,13 @@ class InspectColonyRowTest {
         assertTrue(rows.size <= InspectPanel.MAX_ROWS)
         assertEquals("Rival colony 2 · Gold #d9bf52", rows.last().value)
     }
+
+    @Test
+    fun onlyTheColonyRowIsWideSoTheLongNameIsNotClipped() {
+        for (lang in UiLanguage.entries) {
+            val rows = InspectCopy.antPanel(ant(1), lang).rows
+            assertTrue(rows.last().wide, "$lang colony row keeps its own width")
+            assertTrue(rows.dropLast(1).none { it.wide }, "$lang other rows keep the fixed value column")
+        }
+    }
 }

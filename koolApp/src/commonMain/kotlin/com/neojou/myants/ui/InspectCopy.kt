@@ -18,8 +18,11 @@ import kotlin.math.round
  * Inspect lines. English one-line text keeps the historical enum wording so existing tests stay valid.
  * The card ([InspectPanel]) uses translated labels and sentence-case names in every language.
  */
-/** One label/value line of the floating inspector card (#61). */
-internal data class InspectRow(val label: String, val value: String)
+/**
+ * One label/value line of the floating inspector card (#61).
+ * [wide] (#109): the value keeps its own width instead of the fixed value column (long names such as the rival colony label).
+ */
+internal data class InspectRow(val label: String, val value: String, val wide: Boolean = false)
 
 /** Structured inspect card: a title plus at most [MAX_ROWS] label/value rows. The one-line [InspectCopy] text stays for tests. */
 internal data class InspectPanel(val title: String, val rows: List<InspectRow>) {
