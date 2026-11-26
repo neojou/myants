@@ -26,10 +26,11 @@ internal fun Scene.addAboutDialog(session: AppSession) = addPanelSurface(backgro
     Text("Based on AntSim_V2 by nilsgollub (MIT)") {
         modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s3)
     }
-    Button(tr(UiText.OK)) {
-        modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s6).onClick {
-            session.showAbout = false
-            session.bump()
-        }
+    TextButton(
+        tr(UiText.OK),
+        layout = { modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s6) },
+    ) {
+        session.showAbout = false
+        session.bump()
     }
 }.also { it.applyControlRadius() }

@@ -1,5 +1,6 @@
 package com.neojou.myants.classic2d
 
+import com.neojou.myants.render3d.phero.PheromoneColor
 import com.neojou.myants.sim.PerformanceManager
 import com.neojou.myants.sim.PheromoneGrid
 import de.fabmax.kool.modules.ksl.KslUnlitShader
@@ -19,7 +20,6 @@ import de.fabmax.kool.scene.VertexLayouts
 import de.fabmax.kool.scene.addMesh
 import de.fabmax.kool.math.QuatF
 import de.fabmax.kool.util.Uint8Buffer
-import kotlin.math.min
 import kotlin.math.sqrt
 
 internal fun classicSpriteShader(circle: Texture2d, layout: InstanceLayouts.ModelMatColor) = KslUnlitShader {
@@ -102,32 +102,27 @@ internal class PheroLayer(val name: String) {
         return BufferedImageData2d(buf!!, w, h, TexFormat.RGBA, "$name-$bucket")
     }
 
+    /** Painted RGBA bytes (test hook). */
+    internal val pixels: Uint8Buffer? get() = buf
+
     internal fun paint(grid: PheromoneGrid, strength: Double) {
         val data = buf ?: return
-        val gain = min(1.0, 0.85 * strength)
+        val px = scratch
         var p = 0
         for (i in 0 until w * h) {
-            val home = grid.toHome[i].toDouble()
-            val sugar = grid.toSugar[i].toDouble()
-            val protein = grid.toProtein[i].toDouble()
-            val danger = grid.toDanger[i].toDouble()
-            if (home > 0.01 || sugar > 0.01 || protein > 0.01 || danger > 0.01) {
-                val r = min(255.0, sqrt(protein + sugar + danger) * 255.0 * gain)
-                val g = min(255.0, sqrt(sugar) * 255.0 * gain)
-                val b = min(255.0, sqrt(home + danger) * 255.0 * gain)
-                data[p] = r.toInt().toUByte()
-                data[p + 1] = g.toInt().toUByte()
-                data[p + 2] = b.toInt().toUByte()
-                data[p + 3] = 255.toUByte()
-            } else {
-                data[p] = 0.toUByte()
-                data[p + 1] = 0.toUByte()
-                data[p + 2] = 0.toUByte()
-                data[p + 3] = 0.toUByte()
-            }
+            PheromoneColor.pack(
+                grid.toHome[i].toDouble(), grid.toSugar[i].toDouble(),
+                grid.toProtein[i].toDouble(), grid.toDanger[i].toDouble(), strength, px,
+            )
+            data[p] = px[0].toUByte()
+            data[p + 1] = px[1].toUByte()
+            data[p + 2] = px[2].toUByte()
+            data[p + 3] = px[3].toUByte()
             p += 4
         }
     }
+
+    private val scratch = IntArray(4)
 }
 
 internal fun circleTexture(): Texture2d {
