@@ -36,9 +36,9 @@ class InspectColonyRowTest {
     fun antCardEndsWithItsColonyInEveryLanguage() {
         for (lang in UiLanguage.entries) {
             val label = expectedLabel.getValue(lang)
-            assertEquals(InspectRow(label, "1"), InspectCopy.antPanel(ant(0), lang).rows.last(), "$lang own")
+            assertEquals(InspectRow(label, "1", wide = true), InspectCopy.antPanel(ant(0), lang).rows.last(), "$lang own")
             assertEquals(
-                InspectRow(label, MyantsTheme.Data.rivalColonyLabel(lang)),
+                InspectRow(label, MyantsTheme.Data.rivalColonyLabel(lang), wide = true),
                 InspectCopy.antPanel(ant(1, AntKind.SOLDIER), lang).rows.last(),
                 "$lang rival",
             )

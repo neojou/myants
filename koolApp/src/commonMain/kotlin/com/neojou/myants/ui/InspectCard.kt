@@ -108,7 +108,7 @@ internal fun Scene.addInspectCard(session: AppSession, hud: UiSurface): UiSurfac
                             .textColor(T.onSurfaceVar)
                     }
                     Text(row.value) {
-                        modifier.width(InspectCardSpec.valueWidth)
+                        modifier.width(if (row.wide) FitContent else InspectCardSpec.valueWidth)
                             .textAlignX(AlignmentX.End)
                             .font(sizes.smallText.derive(MyantsTheme.text.md))
                             .textColor(T.onSurface)

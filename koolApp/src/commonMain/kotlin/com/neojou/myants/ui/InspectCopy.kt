@@ -68,7 +68,7 @@ internal object InspectCopy {
             InspectRow(label(UiText.INSPECT_ENERGY, lang), ant.energy.toInt().toString()),
             InspectRow(label(UiText.INSPECT_HEALTH, lang), ant.health.toInt().toString()),
             InspectRow(label(UiText.INSPECT_CARRY, lang), carry(ant.carrying, lang)),
-            colonyId(ant)?.let { InspectRow(label(UiText.INSPECT_COLONY, lang), colony(it, lang)) },
+            colonyId(ant)?.let { InspectRow(label(UiText.INSPECT_COLONY, lang), colony(it, lang), wide = true) },
         ),
     )
 
