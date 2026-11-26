@@ -35,6 +35,7 @@ fun parseLaunch(tokens: List<String>): LaunchConfig {
     var shotOut: String? = null
     var specimenCritter: InsectKind? = null
     var lockQuality = false
+    var specimenRival = false
     for (raw in tokens) {
         val body = raw.removePrefix("--").removePrefix("-")
         if (body == "no-bloom" || body == "nobloom") {
@@ -55,9 +56,10 @@ fun parseLaunch(tokens: List<String>): LaunchConfig {
             "shot-out" -> shotOut = value
             "lock-quality", "lockQuality" -> lockQuality = value == "1" || value.equals("true", ignoreCase = true)
             "specimenCritter", "specimen-critter" -> specimenCritter = parseSpecimenCritter(value)
+            "specimenRival", "specimen-rival" -> specimenRival = value == "1" || value.equals("true", ignoreCase = true)
         }
     }
-    return LaunchConfig(seed, colonies, quality, renderer, backend, noBloom, shot, shotOut, specimenCritter, lockQuality)
+    return LaunchConfig(seed, colonies, quality, renderer, backend, noBloom, shot, shotOut, specimenCritter, lockQuality, specimenRival)
 }
 
 /** Critters that `shot=specimen` can show next to the ant (#81). */

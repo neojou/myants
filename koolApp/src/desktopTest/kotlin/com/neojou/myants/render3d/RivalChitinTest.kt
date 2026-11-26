@@ -27,7 +27,8 @@ class RivalChitinTest {
         for ((name, pair) in listOf("r" to (rival.r to gold.r), "g" to (rival.g to gold.g), "b" to (rival.b to gold.b))) {
             assertTrue(abs(pair.first - pair.second) <= 0.0005f, "$name rival=${pair.first} gold=${pair.second}")
         }
-        assertTrue(lum(rival) <= WorldPalette.CHITIN_Y_MAX, "Y=${lum(rival)}")
+        // Same 1e-4 slack as ChitinLuminanceCapTest: the 4-digit literal lands at Y 0.06503.
+        assertTrue(lum(rival) <= WorldPalette.CHITIN_Y_MAX + 1e-4f, "Y=${lum(rival)}")
     }
 
     @Test

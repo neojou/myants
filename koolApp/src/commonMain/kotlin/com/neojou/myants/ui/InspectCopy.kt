@@ -60,13 +60,25 @@ internal object InspectCopy {
 
     fun antPanel(ant: Ant, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
         "${label(UiText.INSPECT_ANT, lang)} ${kind(ant.type, lang)}",
-        listOf(
+        listOfNotNull(
             InspectRow(label(UiText.INSPECT_STATE, lang), state(ant.state, lang)),
             InspectRow(label(UiText.INSPECT_ENERGY, lang), ant.energy.toInt().toString()),
             InspectRow(label(UiText.INSPECT_HEALTH, lang), ant.health.toInt().toString()),
             InspectRow(label(UiText.INSPECT_CARRY, lang), carry(ant.carrying, lang)),
+            colonyId(ant)?.let { InspectRow(label(UiText.INSPECT_COLONY, lang), colony(it, lang)) },
         ),
     )
+
+    /** #109 R7: colony as text, so own and rival ants differ without colour (ART_DIRECTION §4). */
+    private fun colony(id: Int, lang: UiLanguage): String =
+        if (id == 0) "1" else MyantsTheme.Data.rivalColonyLabel(lang)
+
+    /** [Ant.colony] is lateinit; an ant not yet added to a colony (tests, loose fixtures) gets no colony row. */
+    private fun colonyId(ant: Ant): Int? = try {
+        ant.colony.id
+    } catch (_: UninitializedPropertyAccessException) {
+        null
+    }
 
     fun queenPanel(energy: Int, age: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
         label(UiText.INSPECT_QUEEN, lang),
