@@ -22,7 +22,13 @@ object ShotPose {
     const val SPECIMEN_DAY = 0.45
     const val SPECIMEN_NIGHT = 0.92
 
-    fun apply(shot: String?, world: World, camera: CameraState, critter: InsectKind = InsectKind.LADYBUG): Boolean {
+    fun apply(
+        shot: String?,
+        world: World,
+        camera: CameraState,
+        critter: InsectKind = InsectKind.LADYBUG,
+        specimenRival: Boolean = false,
+    ): Boolean {
         when (shot) {
             "specimen" -> return specimen(world, camera, critter, SPECIMEN_DAY)
             "specimen-night" -> return specimen(world, camera, critter, SPECIMEN_NIGHT)

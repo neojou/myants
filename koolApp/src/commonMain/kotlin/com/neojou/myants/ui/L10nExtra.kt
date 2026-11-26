@@ -101,6 +101,7 @@ private val EXTRA: Map<UiText, Map<UiLanguage, String>> = mapOf(
     UiText.INSPECT_FOLLOWING to p("Following", "跟隨中", "追従中", "Folgt"),
     UiText.INSPECT_STATE to p("State", "狀態", "状態", "Zustand"),
     UiText.INSPECT_CARRY to p("Carrying", "搬運", "運搬物", "Trägt"),
+    UiText.INSPECT_COLONY to p("Colony", "群", "コロニー", "Kolonie"),
     UiText.INSPECT_AMOUNT to p("Amount", "數量", "量", "Menge"),
     UiText.INSPECT_CASTE to p("Caste", "分工", "分工", "Kaste"),
     UiText.INSPECT_ROLE to p("Role", "角色", "役割", "Rolle"),

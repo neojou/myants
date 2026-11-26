@@ -20,6 +20,8 @@ data class LaunchConfig(
     val specimenCritter: InsectKind? = null,
     /** `lock-quality=1` / `lockQuality=1`, or MYANTS_LOCK_QUALITY=1 on desktop: no auto-downgrade. */
     val lockQuality: Boolean = false,
+    /** `specimenRival=1` (#109): the specimen ant is a colony-1 (rival) worker. Only read by `shot=specimen*`. */
+    val specimenRival: Boolean = false,
 )
 
 fun parseLaunch(tokens: List<String>): LaunchConfig {
