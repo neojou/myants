@@ -154,6 +154,7 @@ class AppSession(launch: LaunchConfig) {
         view.applySaved(saved)
         L10n.language.value = view.language
         launch.colonies?.let { colonies = it.coerceIn(1, 2) }
+        if (launch.specimenRival && shot?.startsWith("specimen") == true) colonies = 2 // #109: the rival specimen needs colony 1
         launch.quality?.let { quality = it }
         PerformanceManager.lockQuality = launch.lockQuality
         if (launch.lockQuality) MyLog.add("PERF", "Quality locked: auto-downgrade is off for this run.", LogLevel.INFO)
@@ -165,7 +166,7 @@ class AppSession(launch: LaunchConfig) {
         PerformanceManager.setQuality(quality)
         world = World()
         resetCamera(fromUser = false)
-        if (ShotPose.apply(shot, world, camera, specimenCritter)) {
+        if (ShotPose.apply(shot, world, camera, specimenCritter, launch.specimenRival)) {
             // #76 specimen: freeze sim and keep the cinematic camera off, in memory only (not saved).
             clock.paused = true
             clock.animFrozen = true

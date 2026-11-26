@@ -33,6 +33,7 @@
 - #91 夜間月光 rim（同一套 `RimShader`：夜間 `moonColor`、`RIM_NIGHT` 0.45、`RIM_EXP_NIGHT` 2.5；瓢蟲殼夜間 0.6×、正午 0；白天 #98 行為不變）：已合併（PR #105，main `b405ae4`）。Artist 首審 FAIL（觸角、甲蟲大顎被套 rim）已修：觸角與大顎移到不套 rim 的批次；夜間合格帶（本體帶，`contour.py --body`）由 Artist 在 #105 定案，兩輪重量與圖在 `docs/screenshots/91-night-rim/`。正午工蟻 2px edgeGain 因觸角不再亮降到 1.132；Artist 裁決改用本體帶判定（1.237），2px 只記錄。夜間合格帶（工蟻 1.75–2.55、甲蟲 2.10–3.25）寫進 §6.8（PR #106）。
 - #86 3D 自選蟻色（Grok Bot Coder，2026-11-12，分支 `feat/86-copper-chitin`，PR 待 QE／Artist）：Copper（預設）室外改真銅色 `copperChitin`，Black 改用 `antChitin`，其他色票／自訂 hex 鉗到線性 Y ≤0.065。量測與圖在 `docs/screenshots/86-copper/`；ART_DIRECTION 條文歸 #108。未合併。
 - #87 文字按鈕 `TextButton` 與費洛蒙回家色（Grok Bot Coder，2026-11-25，分支 `feat/87-button-selected`，PR 待 QE／Artist）：工具列、對話框、面板、語言選單、Inspect Follow 改用同一個 `TextButton`（selected 時面板按鈕變紫）；`PheromoneColor.pack` 成為 3D 與 Classic 2D 的唯一費洛蒙色函式，home 改 `#0088D9`。量測與前後截圖在 `docs/screenshots/87-buttons/`；ART_DIRECTION 條文在 PR #114。Checkbox／Slider 是 #115。未合併。
+- #109 敵群蟻殼 `rivalChitin` 與 Inspect 所屬群（Grok Bot Coder，2026-11-26，分支 `feat/109-rival-chitin`，PR 待 QE／Artist）：敵群室外蟻殼改為 Gold 鉗制字面值 (0.0857, 0.0644, 0.0104)；新增 `specimenRival=1` 構圖；Inspect 蟻卡片加「群」一列（四語）。量測與圖在 `docs/screenshots/109-rival/`；ART_DIRECTION 條文由 PM 另開文件 PR。R9 桌機實拍待 Neo。未合併。
 - 下一步：#47 依序合併：守門（#60）→ InspectRing 分派移到 session（#63）→ RenderState／RenderHost 介面（PR 已開，疊在 #63 上，允許清單已清空）→ 子渲染器物件（PR 已開，疊在 RenderState／RenderHost PR 上），皆不改行為；#13 與 milestone M5 仍開。巢穴 glTF 沒做。不 push main、不關 issue、不改版號。
 - 工作方式：`handoff.md` 第 0 節，以及 `docs/AI/How-To-Grok-build-one-AI-developing-approach.md`。
 

@@ -125,7 +125,12 @@ object WorldPalette {
     val antChitin = Color(0.036f, 0.036f, 0.039f, 1f)
     val antEye = Color(0.02f, 0.02f, 0.025f, 1f)
     val antJaw = Color(0.16f, 0.12f, 0.09f, 1f)
-    val rivalChitin = Color(0.20f, 0.11f, 0.07f, 1f)
+    /**
+     * Rival colony (colony 1) outdoor shell (#109 Artist literal): Gold #d9bf52, the rival's 2D and nest colour,
+     * through the custom-swatch pipeline = outdoorChitin(#d9bf52) (×[CHITIN_ALBEDO_SCALE], capped at [CHITIN_Y_MAX]), Y 0.0650.
+     * Ignores colony 0's antColor. Was dark brown (0.20, 0.11, 0.07), D1 ≈2.47 (calc), under the §6.8 floor 3.0.
+     */
+    val rivalChitin = Color(0.0857f, 0.0644f, 0.0104f, 1f)
     val rivalEye = Color(0.08f, 0.04f, 0.03f, 1f)
     val rivalJaw = Color(0.32f, 0.16f, 0.10f, 1f)
 

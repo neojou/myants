@@ -1,6 +1,7 @@
 package com.neojou.myants.session
 
 import com.neojou.myants.AnalyseLine
+import com.neojou.myants.sim.AntKind
 import com.neojou.myants.sim.AntPlace
 import com.neojou.myants.sim.Insect
 import com.neojou.myants.sim.InsectKind
@@ -12,7 +13,7 @@ object ShotPose {
     /**
      * `specimen` (#76): fixed composition for headless measurement. Noon light, zoom 6, one ant and one
      * ladybug at fixed world points around the camera centre. Returns true when the sim must start paused
-     * so the composition stays frozen. `specimenCritter=beetle` (#81) swaps the ladybug for a beetle at the same spot. `specimen-night` (#83) is the same composition at night. Only runs for these shots; normal runs never reach it.
+     * so the composition stays frozen. `specimenCritter=beetle` (#81) swaps the ladybug for a beetle at the same spot. `specimen-night` (#83) is the same composition at night. `specimenRival=1` (#109) puts a colony-1 worker on the ant spot. Only runs for these shots; normal runs never reach it.
      */
     const val SPECIMEN_X = 420.0
     const val SPECIMEN_Y = 300.0
@@ -22,10 +23,16 @@ object ShotPose {
     const val SPECIMEN_DAY = 0.45
     const val SPECIMEN_NIGHT = 0.92
 
-    fun apply(shot: String?, world: World, camera: CameraState, critter: InsectKind = InsectKind.LADYBUG): Boolean {
+    fun apply(
+        shot: String?,
+        world: World,
+        camera: CameraState,
+        critter: InsectKind = InsectKind.LADYBUG,
+        specimenRival: Boolean = false,
+    ): Boolean {
         when (shot) {
-            "specimen" -> return specimen(world, camera, critter, SPECIMEN_DAY)
-            "specimen-night" -> return specimen(world, camera, critter, SPECIMEN_NIGHT)
+            "specimen" -> return specimen(world, camera, critter, SPECIMEN_DAY, specimenRival)
+            "specimen-night" -> return specimen(world, camera, critter, SPECIMEN_NIGHT, specimenRival)
         }
         when (shot) {
             "day" -> {
@@ -52,8 +59,12 @@ object ShotPose {
         return false
     }
 
-    /** Shared specimen composition (#76, #83); only [dayFraction] differs between day and night. Returns true (start paused). */
-    private fun specimen(world: World, camera: CameraState, critter: InsectKind, dayFraction: Double): Boolean {
+    /**
+     * Shared specimen composition (#76, #83); only [dayFraction] differs between day and night. Returns true (start paused).
+     * [rival] (#109 `specimenRival=1`): the ant on the spot is the first colony-1 worker instead of a colony-0 ant,
+     * same position and pose, so the 84-rim masks apply unchanged. Needs two colonies (AppSession forces it).
+     */
+    private fun specimen(world: World, camera: CameraState, critter: InsectKind, dayFraction: Double, rival: Boolean): Boolean {
         world.age = (world.dayLength * dayFraction).toInt()
         world.timeOfDay = if (dayFraction == SPECIMEN_DAY) SPECIMEN_DAY
             else (world.age % world.dayLength).toDouble() / world.dayLength.toDouble()
@@ -61,7 +72,8 @@ object ShotPose {
         camera.x = SPECIMEN_X
         camera.y = SPECIMEN_Y
         camera.zoom = 6.0
-        val ant = world.ants.firstOrNull { it.location == AntPlace.WORLD } ?: world.ants.firstOrNull()
+        val pool = if (rival) world.colonies.getOrNull(1)?.ants.orEmpty().filter { it.type == AntKind.WORKER } else world.ants
+        val ant = pool.firstOrNull { it.location == AntPlace.WORLD } ?: pool.firstOrNull()
         if (ant != null) {
             ant.location = AntPlace.WORLD
             ant.x = SPECIMEN_X - SPECIMEN_GAP

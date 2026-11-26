@@ -18,8 +18,11 @@ import kotlin.math.round
  * Inspect lines. English one-line text keeps the historical enum wording so existing tests stay valid.
  * The card ([InspectPanel]) uses translated labels and sentence-case names in every language.
  */
-/** One label/value line of the floating inspector card (#61). */
-internal data class InspectRow(val label: String, val value: String)
+/**
+ * One label/value line of the floating inspector card (#61).
+ * [wide] (#109): the value keeps its own width instead of the fixed value column (long names such as the rival colony label).
+ */
+internal data class InspectRow(val label: String, val value: String, val wide: Boolean = false)
 
 /** Structured inspect card: a title plus at most [MAX_ROWS] label/value rows. The one-line [InspectCopy] text stays for tests. */
 internal data class InspectPanel(val title: String, val rows: List<InspectRow>) {
@@ -60,13 +63,25 @@ internal object InspectCopy {
 
     fun antPanel(ant: Ant, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
         "${label(UiText.INSPECT_ANT, lang)} ${kind(ant.type, lang)}",
-        listOf(
+        listOfNotNull(
             InspectRow(label(UiText.INSPECT_STATE, lang), state(ant.state, lang)),
             InspectRow(label(UiText.INSPECT_ENERGY, lang), ant.energy.toInt().toString()),
             InspectRow(label(UiText.INSPECT_HEALTH, lang), ant.health.toInt().toString()),
             InspectRow(label(UiText.INSPECT_CARRY, lang), carry(ant.carrying, lang)),
+            colonyId(ant)?.let { InspectRow(label(UiText.INSPECT_COLONY, lang), colony(it, lang), wide = true) },
         ),
     )
+
+    /** #109 R7: colony as text, so own and rival ants differ without colour (ART_DIRECTION §4). */
+    private fun colony(id: Int, lang: UiLanguage): String =
+        if (id == 0) "1" else MyantsTheme.Data.rivalColonyLabel(lang)
+
+    /** [Ant.colony] is lateinit; an ant not yet added to a colony (tests, loose fixtures) gets no colony row. */
+    private fun colonyId(ant: Ant): Int? = try {
+        ant.colony.id
+    } catch (_: UninitializedPropertyAccessException) {
+        null
+    }
 
     fun queenPanel(energy: Int, age: Int, lang: UiLanguage = L10n.language.value): InspectPanel = InspectPanel.of(
         label(UiText.INSPECT_QUEEN, lang),
