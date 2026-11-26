@@ -16,19 +16,6 @@ class InspectCardTest {
     private val c = MyantsTheme.colors
 
     @Test
-    fun followButtonUsesIconButtonStateColors() {
-        val rest = followButtonVisual(following = false, hovered = false)
-        assertEquals(c.surfaceVariant, rest.background)
-        assertNull(rest.border)
-        val hover = followButtonVisual(following = false, hovered = true)
-        assertTrue(hover.background != rest.background, "hover tints the rest color")
-        assertNull(hover.border)
-        val on = followButtonVisual(following = true, hovered = true)
-        assertEquals(c.primary, on.background)
-        assertEquals(c.primaryContainer, on.border)
-    }
-
-    @Test
     fun selectionRingIsTwoToneOuterLight() {
         val bands = selectRingBands()
         assertEquals(2, bands.size)

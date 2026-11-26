@@ -113,4 +113,20 @@ class ViewStateTest {
         assertFalse(v.showGrafik || v.showParams || v.showStats || v.showAnalyse)
         assertTrue(v.showAbout)
     }
+
+    @Test
+    fun openMaskTracksEveryPanelByOrdinal() {
+        val v = ViewState()
+        assertEquals(0, v.openMask())
+        v.openPanel(Panel.PARAMS)
+        assertEquals(1 shl Panel.PARAMS.ordinal, v.openMask())
+        v.openPanel(Panel.ABOUT)
+        assertEquals((1 shl Panel.PARAMS.ordinal) or (1 shl Panel.ABOUT.ordinal), v.openMask())
+        v.refreshAnalyseForTest()
+        assertEquals((1 shl Panel.ANALYSE.ordinal) or (1 shl Panel.ABOUT.ordinal), v.openMask())
+        v.closeSidePanels()
+        assertEquals(1 shl Panel.ABOUT.ordinal, v.openMask())
+    }
+
+    private fun ViewState.refreshAnalyseForTest() = showOnlyAnalyse()
 }
