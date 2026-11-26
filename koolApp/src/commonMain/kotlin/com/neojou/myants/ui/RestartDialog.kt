@@ -30,17 +30,11 @@ internal fun Scene.addRestartDialog(session: AppSession) = addPanelSurface(
     }
     Row {
         modifier.alignX(AlignmentX.Center).margin(top = MyantsTheme.space.s6)
-        Button(tr(UiText.CANCEL)) { modifier.onClick { session.dismissRestart() } }
-        Button(tr(UiText.RESTART)) {
-            modifier
-                .margin(start = MyantsTheme.space.gapGroup)
-                .colors(
-                    buttonColor = T.danger,
-                    buttonHoverColor = T.danger,
-                    textColor = T.onDanger,
-                    textHoverColor = T.onDanger,
-                )
-                .onClick { session.confirmRestart() }
-        }
+        TextButton(tr(UiText.CANCEL)) { session.dismissRestart() }
+        TextButton(
+            tr(UiText.RESTART),
+            danger = true,
+            layout = { modifier.margin(start = MyantsTheme.space.gapGroup) },
+        ) { session.confirmRestart() }
     }
 }.also { it.applyControlRadius() }
