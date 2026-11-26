@@ -30,6 +30,7 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
     val tool = session.toolState.use()
     val raining = session.rainingState.use()
     val colonies = session.colonyCountState.use()
+    val open = session.openPanelsState.use()
     modifier
         .align(AlignmentX.End, AlignmentY.Top)
         .margin(MyantsTheme.space.screenEdge)
@@ -70,16 +71,7 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
     }
     Row {
         modifier.margin(top = MyantsTheme.space.gapGroup)
-        Button(tr(UiText.RESTART)) {
-            modifier
-                .colors(
-                    buttonColor = T.danger,
-                    buttonHoverColor = T.danger,
-                    textColor = T.onDanger,
-                    textHoverColor = T.onDanger,
-                )
-                .onClick { session.askRestart() }
-        }
+        TextButton(tr(UiText.RESTART), danger = true) { session.askRestart() }
         Checkbox(colonies > 1) {
             modifier.margin(start = MyantsTheme.space.gapInGroup).alignY(AlignmentY.Center).onToggle {
                 session.setColonies(if (it) 2 else 1)
@@ -89,21 +81,23 @@ internal fun Scene.addToolbar(session: AppSession) = addPanelSurface(
     }
     Row {
         modifier.margin(top = MyantsTheme.space.gapGroup)
-        Button(tr(UiText.GRAFIK)) { modifier.onClick { session.openPanel(Panel.GRAFIK) } }
-        Button(tr(UiText.PARAMS)) {
-            modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.openPanel(Panel.PARAMS) }
-        }
-        Button(tr(UiText.STATS)) {
-            modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.openPanel(Panel.STATS) }
-        }
-        Button(tr(UiText.ANALYSE)) {
-            modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.refreshAnalyse() }
-        }
-        Button(tr(UiText.ABOUT)) {
-            modifier.margin(start = MyantsTheme.space.gapInGroup).onClick { session.openPanel(Panel.ABOUT) }
-        }
+        panelButton(UiText.GRAFIK, open, Panel.GRAFIK, first = true) { session.openPanel(Panel.GRAFIK) }
+        panelButton(UiText.PARAMS, open, Panel.PARAMS) { session.openPanel(Panel.PARAMS) }
+        panelButton(UiText.STATS, open, Panel.STATS) { session.openPanel(Panel.STATS) }
+        panelButton(UiText.ANALYSE, open, Panel.ANALYSE) { session.refreshAnalyse() }
+        panelButton(UiText.ABOUT, open, Panel.ABOUT) { session.openPanel(Panel.ABOUT) }
     }
 }.also { it.applyControlRadius() }
+
+/** Panel button: selected while its panel is open (#87). [open] is [AppSession.openPanelsState]. */
+private fun UiScope.panelButton(label: UiText, open: Int, panel: Panel, first: Boolean = false, onClick: () -> Unit) {
+    TextButton(
+        tr(label),
+        selected = open and (1 shl panel.ordinal) != 0,
+        layout = { if (!first) modifier.margin(start = MyantsTheme.space.gapInGroup) },
+        onClick = onClick,
+    )
+}
 
 private fun UiScope.toolButton(session: AppSession, current: SimTool, tool: SimTool, icon: HudIcon) {
     val first = tool == SimTool.INSPECT

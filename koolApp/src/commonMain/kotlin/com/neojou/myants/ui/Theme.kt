@@ -15,6 +15,8 @@ object MyantsTheme {
         val surfaceRaised = Color("#1C1822").withAlpha(0.86f)
         val surfaceVariant = Color("#2A2730")
         val outline = Color("#EADDFF").withAlpha(0.10f)
+        /** Text button border (#87). Over [surfaceVariant] it reads #78777C, 3.29:1 against its own fill. */
+        val outlineStrong = Color("#EEEEEE").withAlpha(0.40f)
         val onSurface = Color("#EEEEEE")
         val onSurfaceVar = Color("#BDBDBD")
         val onSurfaceDisabled = Color("#EEEEEE").withAlpha(0.38f)

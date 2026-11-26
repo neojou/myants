@@ -5,7 +5,7 @@
 ## [Unreleased]
 
 ### 變更
-- 玩家可見變更：費洛蒙「回家」色改為 `#0088D9`；文字按鈕改用 MyantsTheme 樣式。ART_DIRECTION 寫入 §2、§3 `outlineStrong` 與文字按鈕狀態表、§4 加註、新 §6.9；§6.9 P5 量法依 #116 Artist 裁決改為位移向量色相與上半群 ΔE，headless 對照用 `pheromoneIntensity=0.0001`（Refs #87）
+- 玩家可見變更（#87）：文字按鈕（Graphics／Params／Stats／Analysis／About、Restart、Restart 與 About 對話框、Analysis 建議、Params Reset、側面板 x、語言選單、Inspect Follow）全部改用 MyantsTheme 的新 `TextButton`（`textButtonVisual` 純函式，新 token `outlineStrong`），不再有 kool 預設青色與點擊白色擴散圈；面板開著時，對應的 Graphics／Params／Stats／Analysis／About 按鈕顯示 selected。費洛蒙「回家」色由 `#0000FF` 改為 `#0088D9`（3D 室外、巢穴剖面與 Classic 2D 共用 `PheromoneColor.pack`，無 home 的像素逐位元不變）。Checkbox／Slider 不在本次（#115）。sim 行為不變。ART_DIRECTION 寫入 §2、§3 `outlineStrong` 與文字按鈕狀態表、§4 加註、新 §6.9；§6.9 P5 量法依 #116 Artist 裁決改為位移向量色相與上半群 ΔE，headless 對照用 `pheromoneIntensity=0.0001`（Closes #87）
 - ART_DIRECTION §6.8、MEASURE.md：依 #110 Artist 裁決，正午內部中位數改 ≤1.01（期望 1.000）、夜間 N4 改看 rim 加上的光、#86 Black 驗收分室外／巢穴兩區（Refs #86）
 - ART_DIRECTION §4、§6.7、§6.8：寫入 #86 Artist 規格。3D 室外 Copper 改用真銅色 `copperChitin` (0.165, 0.040, 0.002)，名稱與 hex 不變；Black 改用 `antChitin`；自選色線性亮度上限 `CHITIN_Y_MAX` 0.065（等比縮小、色相不變）；每個色票正午 D1 ≥3.0、hot% ≤2%（Refs #86）
 - ART_DIRECTION §6.8 與 `docs/screenshots/MEASURE.md`：依 #105 Artist 復審改寫可讀性合格帶。正午量準改為 `contour.py --body` 本體帶（工蟻 1.15–1.35、甲蟲 1.07–1.16），預設 2px 帶只記錄；寫入夜間合格帶（本體帶工蟻 1.75–2.55、甲蟲 2.10–3.25）與夜間必過項。`91-night-rim/night.py` 的甲蟲頭前區改為 x590–616，不含頭殼前緣（Refs #91、#105）
