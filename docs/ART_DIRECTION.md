@@ -58,6 +58,7 @@
 ## 4. 無障礙
 - **對比度**：文字對背景 ≥ 4.5:1。最差情況是半透明底疊在最亮的日景天空 `#C8D8E8` 上：`#EEEEEE` 為 7.93:1，`#BDBDBD` 為 4.90:1，選中圖示 `#EADDFF` 對 `primary` 為 5.0:1，外框對 HUD 底為 7.15:1（以上都是 WCAG 公式的**計算值**，`ThemeTest` 有守住）。disabled 狀態可以低於標準，這是 WCAG 豁免。
 - **色弱**：用 Machado 2009 模擬 protan／deutan／tritan，CIEDE2000 ΔE < 12 視為分不開，這時一定要有非顏色提示（形狀、線型、標籤、文字名稱）。
+  - 3D 室外鉗制後的 Copper 與 Gold（敵群），protan／deutan 分不開（ΔE 1.3／3.7，計算值）；非顏色提示為 Inspect 的所屬群列（#109）。
 - **AntSim 資料色不改**（糖 `#FFD700`、蛋白 `#CD5C5C`、蟻色預設、圖表四色）。分不開時加非顏色提示，不調色。
   - 蟻色的 hex 和名稱不改。3D 室外的 albedo 可以由 hex 換算、鉗制（§6.7 `CHITIN_Y_MAX`），或由 Artist 指定字面值（Copper、Black）（#86）。
   - 費洛蒙 home 色因 #87 改為 `#0088D9`（紋理位元組；3D 室外位元組當線性值乘 boost，巢穴與 Classic 2D 為顯示空間加法）；sugar、protein、danger 不變。理由：舊色在正午褐土上讀成紫／洋紅，與 danger 分不開。
@@ -89,8 +90,9 @@
 |---|---|---|
 | `WorldPalette.antChitin`（Black 色票，#86 起） | `(0.036, 0.036, 0.039)` | 計算值起點（由錯誤法線下 0.07、D1 3.53→目標 ≈4.71 反推 k≈0.52）；實測微調容許 0.035–0.038 |
 | `WorldPalette.copperChitin` | `(0.165, 0.040, 0.002)` | Copper（預設）在 3D 室外用的真銅色，Y 0.0638；不經 ×0.52 與鉗制。正午 D1 3.82（實測值(headless)，#86 Artist 規格） |
+| `WorldPalette.rivalChitin` | `(0.0857, 0.0644, 0.0104)` | 敵群（colony 1）＝ Gold `#d9bf52` 走自選色管線（×0.52，`CHITIN_Y_MAX` 鉗制）的結果，Y 0.065；不理會玩家 antColor；正午 D1 3.58（實測值(headless)，Gold 代理，#109） |
 | `CHITIN_ALBEDO_SCALE` | `0.52` | 自選色 `outdoorChitin`：`toLinear()` 後再乘此係數，避免法線翻正後自選色再亮一截。鉗制見 `CHITIN_Y_MAX` |
-| `CHITIN_Y_MAX` | `0.065` | 自選色 `toLinear×0.52` 後，線性亮度 Y＝0.2126R＋0.7152G＋0.0722B 超過此值就把 RGB 等比縮小，色相與 channel 比例不變；不設下限；Y 已 ≤0.065 的顏色照原樣。適用 Copper、Black 以外的色票與設定檔裡的任意 hex（#86） |
+| `CHITIN_Y_MAX` | `0.065` | 自選色 `toLinear×0.52` 後，線性亮度 Y＝0.2126R＋0.7152G＋0.0722B 超過此值就把 RGB 等比縮小，色相與 channel 比例不變；不設下限；Y 已 ≤0.065 的顏色照原樣。適用 Copper、Black 以外的色票與設定檔裡的任意 hex，以及敵群（#86、#109） |
 | `CHITIN_ROUGHNESS` | `1.0` | 不動（#79） |
 | `antEye`／瓢蟲／甲蟲／地面／光照 | — | #94／#95 未改 |
 
@@ -133,6 +135,12 @@
 自選蟻色（#86）：每個色票都要過正午 D1 ≥3.0、hot% ≤2%，兩輪各自判。預設色票（Copper）另外要過正午與夜間的輪廓合格帶，k0 圖用同 build 的銅色圖。Black：3D 室外（x<1180，排除 FPS 區）與 main `b405ae4` 預設 specimen 逐像素相同；面板／巢穴剖面（x≥1180）與 main 同色票（`#222222`）的 specimen 逐像素相同（#110 更正）。
 
 仍保留：瓢蟲觀感與 shell／gnd 不變；hot%≤2%；mid 不高於同 build、同色票 k0 的 1.10 倍（色票 albedo 沒變的 PR，也可對照 main 同色票；色票本身亮度由 CHITIN_Y_MAX 0.065、D1、hot% 管）；兩輪一致。桌面實機畫面仍等 Neo 補拍（見 §6）。
+
+敵蟻（#109）：3D 室外 `rivalChitin` 走 Gold `#d9bf52` 自選色管線（見 §6.7）。驗收用含敵蟻的可重現構圖（例如 `specimenRival=1`），或 colony 0 換色票的對照圖；兩輪各自判。
+
+- 正午可讀性（R3）：敵蟻正午 D1 ≥3.0、hot% ≤2%。期望約 3.58／0.0（實測值(headless)，Gold 代理）。D2 3.31、瓢蟲 shell/gnd 1.62 不變（實測值(headless)，與 #86 相同）。
+- 正午分辨（R4）：量敵蟻本體中位色的 CIEDE2000。對 Copper ≥10（期望 14.8，實測值(headless)），色相差 ≥20°（期望 36°）；對 Black、Sage、Blue 各 ≥10（期望 12.0／15.3／22.6，實測值(headless)）；對甲蟲本體 ≥6（期望 8.0，實測值(headless)），另外靠體型分辨；對地面 ≥25（期望 32.9，實測值(headless)）。玩家選 Gold 時 ΔE 0，接受（兩群在 3D 同色；非顏色提示見 §4）。
+- 夜間可讀性（R5）：用同一構圖與同 build 的 k0（`RIM_DAY`、`RIM_NIGHT` 設 0 的量測 build）。夜間合格帶同工蟻（本體帶 1.75–2.55，內部中位 ≤1.10、平均 ≤1.20，core/gnd ≤1.5）；細結構 ≤1.05，頭前 ≥3:1 的像素 ≤k0；N4 照本節 #110 條文（抬亮像素的 Δ(B−R) 中位 ≥0、加上的線性光 B≥R，本體帶最亮 15% 的絕對 B−R ≥0）；N5 地面不變。夜間只驗可讀性，對 Copper 的夜間 ΔE 只記錄。
 
 夜間（`shot=specimen-night`）不要套用正午的 D1／D3 門檻，也不要套用上面的正午輪廓合格帶。本體填色可以低於 3。夜間用同一套可讀性層，強度與色溫可以不同，以輪廓對比和灰階「找得到」為驗收。
 
@@ -189,6 +197,7 @@ deutan 下 home 對 danger 的 ΔE 為 5–10，接受現況（與舊色相當�
 **修訂紀錄**
 | 日期 | 變更 |
 |---|---|
+| 2026-11-26 | #109 Artist 規格：敵蟻 3D 室外 `rivalChitin` 改為 Gold `#d9bf52` 走自選色管線的字面值 (0.0857, 0.0644, 0.0104)，Y 0.065。寫入 §4 色弱加註、§6.7 表（含 `CHITIN_Y_MAX` 適用敵群）、§6.8 敵蟻驗收 R3–R5。 |
 | 2026-11-26 | #116 Artist 裁決：P5 改用位移向量色相與上半群 ΔE；headless 用 `pheromoneIntensity=0.0001` 當對照 |
 | 2026-11-25 | #87 Artist 規格：文字按鈕用 MyantsTheme（新 token `outlineStrong` `#EEEEEE` α0.40）；費洛蒙 home 改為 `#0088D9`。寫入 §2、§3 文字按鈕狀態表、§4 加註與 §6.9。 |
 | 2026-11-25 | #110 Artist 裁決：§6.8 mid 條改為不高於同 build、同色票 k0 的 1.10 倍（色票 albedo 沒變的 PR 也可對照 main 同色票）。色票本身亮度由 CHITIN_Y_MAX 0.065、D1、hot% 管。#110 Copper 對 k0 1.011 倍通過，對 main 1.26 倍接受。 |

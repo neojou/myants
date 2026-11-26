@@ -5,6 +5,7 @@
 ## [Unreleased]
 
 ### 變更
+- ART_DIRECTION §4、§6.7、§6.8：寫入 #109 Artist 規格。3D 室外敵蟻 `rivalChitin` 改為 Gold `#d9bf52` 走自選色管線的字面值 (0.0857, 0.0644, 0.0104)，Y 0.065；正午 D1 ≥3.0、hot% ≤2%（期望 3.58／0.0，實測值(headless)）；正午對 Copper／Black／Sage／Blue ΔE ≥10、對甲蟲 ≥6、對地面 ≥25；夜間只驗可讀性，ΔE 只記錄。protan／deutan 下對 Copper 分不開，非顏色提示為 Inspect 所屬群列（Refs #109）
 - 3D 室外自選蟻色（#86，依 Artist 規格）：預設 Copper 改顯示真銅色 `WorldPalette.copperChitin` (0.165, 0.040, 0.002)（線性，Y 0.0638），不再借用黑殼；Black `#222222` 改用 #94／#95 調好的 `antChitin`（取代 `#222222×0.52`）；其他色票與設定檔任意 hex 仍是 `toLinear() × CHITIN_ALBEDO_SCALE`，線性亮度 Y 超過 `CHITIN_Y_MAX` 0.065 時 RGB 等比縮小（色相、alpha 保留，不設下限）。Copper 的 hex、名稱、2D、巢穴剖面與設定檔不動；`CHITIN_ALBEDO_SCALE`、roughness、`RIM_*`、rimColor 不動。`ChitinLuminanceCapTest`、`AntColorSettingsChitinTest` 鎖規則；量測與前後截圖在 `docs/screenshots/86-copper/`（Closes #86）
 - 玩家可見變更（#87）：文字按鈕（Graphics／Params／Stats／Analysis／About、Restart、Restart 與 About 對話框、Analysis 建議、Params Reset、側面板 x、語言選單、Inspect Follow）全部改用 MyantsTheme 的新 `TextButton`（`textButtonVisual` 純函式，新 token `outlineStrong`），不再有 kool 預設青色與點擊白色擴散圈；面板開著時，對應的 Graphics／Params／Stats／Analysis／About 按鈕顯示 selected。費洛蒙「回家」色由 `#0000FF` 改為 `#0088D9`（3D 室外、巢穴剖面與 Classic 2D 共用 `PheromoneColor.pack`，無 home 的像素逐位元不變）。Checkbox／Slider 不在本次（#115）。sim 行為不變。ART_DIRECTION 寫入 §2、§3 `outlineStrong` 與文字按鈕狀態表、§4 加註、新 §6.9；§6.9 P5 量法依 #116 Artist 裁決改為位移向量色相與上半群 ΔE，headless 對照用 `pheromoneIntensity=0.0001`（Closes #87）
 - ART_DIRECTION §6.8 與 MEASURE.md：依 #110 Artist 裁決，mid 改為不高於同 build、同色票 k0 的 1.10 倍（色票 albedo 沒變的 PR 也可對照 main 同色票）；色票本身亮度由 CHITIN_Y_MAX 0.065、D1、hot% 管（Refs #110、#86）
